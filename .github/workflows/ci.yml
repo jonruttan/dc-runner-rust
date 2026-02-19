@@ -16,6 +16,6 @@ jobs:
       - name: Test
         run: cargo test --locked --manifest-path spec_runner_cli/Cargo.toml
       - name: Spec Sync Check
-        run: make spec-sync-check SOURCE=https://github.com/jonruttan/data-contracts.git
+        run: make spec-sync-check
       - name: Compatibility Check
-        run: make compat-check SOURCE=https://github.com/jonruttan/data-contracts.git
+        run: make compat-check

@@ -1,6 +1,6 @@
 .PHONY: help build test smoke spec-sync spec-sync-check compat-check verify
 .DEFAULT_GOAL := help
-SOURCE ?= https://github.com/jonruttan/data-contracts.git
+SOURCE ?=
 
 help:
 	@echo "build - cargo build"
@@ -22,12 +22,24 @@ smoke:
 
 spec-sync:
 	@test -n "$(TAG)" || (echo "ERROR: TAG is required (make spec-sync TAG=<upstream-tag>)" >&2; exit 2)
-	./scripts/sync_data_contracts_specs.sh --tag "$(TAG)" --source "$(SOURCE)"
+	@if [ -n "$(SOURCE)" ]; then \
+		./scripts/sync_data_contracts_specs.sh --tag "$(TAG)" --source "$(SOURCE)"; \
+	else \
+		./scripts/sync_data_contracts_specs.sh --tag "$(TAG)"; \
+	fi
 
 spec-sync-check:
-	./scripts/sync_data_contracts_specs.sh --check --source "$(SOURCE)"
+	@if [ -n "$(SOURCE)" ]; then \
+		./scripts/sync_data_contracts_specs.sh --check --source "$(SOURCE)"; \
+	else \
+		./scripts/sync_data_contracts_specs.sh --check; \
+	fi
 
 compat-check:
-	./scripts/verify_upstream_compat.sh --strict --source "$(SOURCE)"
+	@if [ -n "$(SOURCE)" ]; then \
+		./scripts/verify_upstream_compat.sh --strict --source "$(SOURCE)"; \
+	else \
+		./scripts/verify_upstream_compat.sh --strict; \
+	fi
 
 verify: build test spec-sync-check compat-check

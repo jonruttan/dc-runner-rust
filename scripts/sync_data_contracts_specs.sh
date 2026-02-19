@@ -34,7 +34,7 @@ Usage:
 Options:
   --check           Verify lock + manifest + snapshot consistency.
   --tag <value>     Upstream tag to pin (required for write mode).
-  --source <value>  Upstream git source (default: ${DEFAULT_SOURCE}).
+  --source <value>  Upstream git source (optional for --check; default for --tag is ${DEFAULT_SOURCE}).
   --write           Perform sync write (default when --tag is provided).
 USAGE
 }
@@ -263,6 +263,7 @@ write_mode() {
   local tag="$2"
 
   [[ -n "$tag" ]] || { echo "ERROR: --tag is required for write mode" >&2; return 2; }
+  [[ -n "$source" ]] || source="$DEFAULT_SOURCE"
 
   local source_repo=""
   local temp_repo=""
@@ -342,7 +343,7 @@ LOCK
 
 MODE=""
 TAG=""
-SOURCE="${DEFAULT_SOURCE}"
+SOURCE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
