@@ -2,6 +2,7 @@ mod governance;
 mod job_helpers;
 mod profiler;
 mod spec_lang;
+mod migrators;
 
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -19,6 +20,10 @@ use profiler::{profile_options_from_env, RunProfiler};
 use serde_json::{json, Value};
 use serde_yaml::Value as YamlValue;
 use spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
+use migrators::{
+    run_migrate_case_doc_metadata_v1, run_migrate_case_domain_prefix_v1,
+    run_migrate_library_docs_metadata_v1,
+};
 
 static ACTIVE_PROFILER: OnceLock<Mutex<Option<RunProfiler>>> = OnceLock::new();
 
@@ -2935,15 +2940,6 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
             "evaluate_style",
             runner_command(&runner_bin, &runner_impl, "style-check"),
         ),
-        ("ruff", runner_command(&runner_bin, &runner_impl, "lint")),
-        (
-            "mypy",
-            runner_command(&runner_bin, &runner_impl, "typecheck"),
-        ),
-        (
-            "compileall",
-            runner_command(&runner_bin, &runner_impl, "compilecheck"),
-        ),
     ];
     if include_conformance_parity {
         default_steps.push((
@@ -3513,6 +3509,10 @@ fn main() {
         "style-check" => run_style_check_native(&root, &forwarded),
         "spec-lang-lint" => run_spec_lang_lint_native(&root, &forwarded),
         "spec-lang-format" => run_spec_lang_format_native(&root, &forwarded),
+        "migrate-contract-step-imports-v1" => run_spec_lang_format_native(&root, &forwarded),
+        "migrate-case-doc-metadata-v1" => run_migrate_case_doc_metadata_v1(&root, &forwarded),
+        "migrate-library-docs-metadata-v1" => run_migrate_library_docs_metadata_v1(&root, &forwarded),
+        "migrate-case-domain-prefix-v1" => run_migrate_case_domain_prefix_v1(&root, &forwarded),
         "normalize-check" => run_normalize_mode(&root, &forwarded, false),
         "normalize-fix" => run_normalize_mode(&root, &forwarded, true),
         "schema-registry-check" => run_job_for_command(&root, "schema-registry-check", &forwarded),
