@@ -1,4 +1,5 @@
 mod app;
+mod cli;
 mod domain;
 mod governance;
 mod infra;

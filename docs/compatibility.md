@@ -5,6 +5,10 @@
 `dc-runner-rust` is the required Rust implementation lane and must remain
 compatible with canonical Data Contracts runner contracts.
 
+To reduce CLI overload, required compatibility commands remain executable but
+are hidden from default `--help` output. This does not change contract
+compatibility requirements.
+
 Canonical contracts are authored upstream in Data Contracts and consumed here
 via a pinned vendored snapshot.
 

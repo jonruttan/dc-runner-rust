@@ -15,6 +15,8 @@ use crate::migrators::{
     run_migrate_library_docs_metadata_v1,
 };
 use crate::profiler::{profile_options_from_env, RunProfiler};
+use crate::services::gate_summary::summarize as summarize_gate;
+use crate::services::specs_ui;
 use serde_json::{json, Value};
 use serde_yaml::Value as YamlValue;
 use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
@@ -313,6 +315,141 @@ fn run_style_check_native(root: &Path, forwarded: &[String]) -> i32 {
         eprintln!("ERROR: {v}");
     }
     1
+}
+
+fn run_specs_list_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut path: Option<String> = None;
+    let mut format = crate::cli::args::OutputFormat::Text;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--path" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --path requires value");
+                    return 2;
+                }
+                path = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--format" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --format requires value");
+                    return 2;
+                }
+                format = match forwarded[i + 1].as_str() {
+                    "text" => crate::cli::args::OutputFormat::Text,
+                    "json" => crate::cli::args::OutputFormat::Json,
+                    other => {
+                        eprintln!("ERROR: unsupported format: {other} (expected text|json)");
+                        return 2;
+                    }
+                };
+                i += 2;
+            }
+            other => {
+                eprintln!("ERROR: unsupported specs list arg: {other}");
+                return 2;
+            }
+        }
+    }
+    let cases = match specs_ui::list_specs(root, path.as_deref()) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+    specs_ui::print_specs(&cases, format);
+    0
+}
+
+fn run_specs_run_native(root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.len() != 2 || forwarded[0] != "--ref" {
+        eprintln!("usage: specs run --ref <file#id>");
+        return 2;
+    }
+    let normalized = specs_ui::normalize_spec_ref(&forwarded[1]);
+    run_job_run_native(root, &["--ref".to_string(), normalized])
+}
+
+fn run_specs_run_all_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut source_root: Option<String> = None;
+    let mut fail_fast = false;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--root" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --root requires value");
+                    return 2;
+                }
+                source_root = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--fail-fast" => {
+                fail_fast = true;
+                i += 1;
+            }
+            "--continue-on-fail" => {
+                fail_fast = false;
+                i += 1;
+            }
+            other => {
+                eprintln!("ERROR: unsupported specs run-all arg: {other}");
+                return 2;
+            }
+        }
+    }
+
+    let cases = match specs_ui::list_specs(root, source_root.as_deref()) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+    if cases.is_empty() {
+        println!("No spec cases found.");
+        return 0;
+    }
+
+    let summary = specs_ui::run_all_specs(&cases, fail_fast, |spec_ref| {
+        println!("==> {spec_ref}");
+        run_job_run_native(root, &["--ref".to_string(), spec_ref.to_string()])
+    });
+    println!(
+        "specs run-all summary: total={} passed={} failed={}",
+        summary.total, summary.passed, summary.failed
+    );
+    if summary.failed > 0 {
+        for failed in summary.failed_refs {
+            eprintln!("FAILED: {failed}");
+        }
+        1
+    } else {
+        0
+    }
+}
+
+fn run_specs_check_native(root: &Path, forwarded: &[String]) -> i32 {
+    if !forwarded.is_empty() {
+        eprintln!("ERROR: specs check does not accept extra args");
+        return 2;
+    }
+    let style_code = run_style_check_native(root, &[]);
+    if style_code != 0 {
+        return style_code;
+    }
+    run_docs_lint_native(root, &[])
+}
+
+fn run_help_advanced_native(forwarded: &[String]) -> i32 {
+    if !forwarded.is_empty() {
+        eprintln!("ERROR: help-advanced does not accept extra args");
+        return 2;
+    }
+    println!("{}", crate::cli::help::ADVANCED_HELP);
+    0
 }
 
 fn run_spec_lang_lint_native(root: &Path, forwarded: &[String]) -> i32 {
@@ -1576,7 +1713,9 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
         }
     }
     if ref_arg.trim().is_empty() {
-        eprintln!("ERROR: job-run requires --ref <path#id|#id>");
+        eprintln!(
+            "ERROR: job-run requires --ref <path#id|#id> (example: /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001)"
+        );
         return 2;
     }
 
@@ -3160,6 +3299,13 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
         println!("[gate] trace: {}", trace_path.display());
     }
     if exit_code != 0 && profile_on_fail != "off" {
+        let gate_summary = summarize_gate(
+            payload
+                .get("status")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown"),
+            payload.get("first_failure_step").and_then(Value::as_str),
+        );
         let run_trace_path = root.join(".artifacts/run-trace.json");
         let run_summary_path = root.join(".artifacts/run-trace-summary.md");
         if let Some(parent) = run_trace_path.parent() {
@@ -3213,17 +3359,11 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
         summary_md.push_str("# Run Trace Summary\n\n");
         summary_md.push_str(&format!(
             "- status: `{}`\n",
-            payload
-                .get("status")
-                .and_then(Value::as_str)
-                .unwrap_or("unknown")
+            gate_summary.status
         ));
         summary_md.push_str(&format!(
             "- first_failure_step: `{}`\n",
-            payload
-                .get("first_failure_step")
-                .and_then(Value::as_str)
-                .unwrap_or("")
+            gate_summary.failed_step.as_deref().unwrap_or("")
         ));
         summary_md.push_str(&format!(
             "- skipped_step_count: `{}`\n\n",

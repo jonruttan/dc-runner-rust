@@ -37,6 +37,26 @@ upstream snapshot.
 
 ## Quickstart
 
+Most common runner CLI commands:
+
+```sh
+cargo run -q -p dc_runner_cli
+cargo run -q -p dc_runner_cli -- specs run-all
+cargo run -q -p dc_runner_cli -- specs list
+```
+
+For full command help:
+
+```sh
+cargo run -q -p dc_runner_cli -- --help
+```
+
+For advanced profiling/liveness flags:
+
+```sh
+cargo run -q -p dc_runner_cli -- help-advanced
+```
+
 Build and test:
 
 ```sh

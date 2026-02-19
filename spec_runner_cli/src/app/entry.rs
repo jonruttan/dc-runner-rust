@@ -1,130 +1,275 @@
 use std::env;
 
+use clap::error::ErrorKind;
+use clap::Parser;
+
+use crate::cli::args::{
+    CiSubcommand, Cli, CommandGroup, DocsSubcommand, GovernanceSubcommand, QualitySubcommand,
+    ReportsSubcommand, SpecsSubcommand,
+};
+use crate::cli::errors::CliError;
+
 #[derive(Debug)]
 pub struct ParsedEntry {
     pub subcommand: String,
     pub forwarded: Vec<String>,
 }
 
+fn looks_like_governance_group_subcommand(token: &str) -> bool {
+    matches!(token, "run" | "heavy" | "broad" | "critical" | "--help" | "-h")
+}
+
+fn apply_global_env(cli: &Cli) {
+    if cli.verbose > 0 {
+        env::set_var("SPEC_RUNNER_DEBUG", "1");
+        env::set_var("SPEC_RUNNER_DEBUG_LEVEL", cli.verbose.to_string());
+    }
+    if let Some(v) = &cli.profile_level {
+        env::set_var("SPEC_RUNNER_PROFILE_LEVEL", v);
+    }
+    if let Some(v) = &cli.profile_out {
+        env::set_var("SPEC_RUNNER_PROFILE_OUT", v);
+    }
+    if let Some(v) = &cli.profile_summary_out {
+        env::set_var("SPEC_RUNNER_PROFILE_SUMMARY_OUT", v);
+    }
+    if let Some(v) = &cli.profile_heartbeat_ms {
+        env::set_var("SPEC_RUNNER_PROFILE_HEARTBEAT_MS", v);
+    }
+    if let Some(v) = &cli.profile_stall_threshold_ms {
+        env::set_var("SPEC_RUNNER_PROFILE_STALL_THRESHOLD_MS", v);
+    }
+    if let Some(v) = &cli.liveness_level {
+        env::set_var("SPEC_RUNNER_LIVENESS_LEVEL", v);
+    }
+    if let Some(v) = &cli.liveness_stall_ms {
+        env::set_var("SPEC_RUNNER_LIVENESS_STALL_MS", v);
+    }
+    if let Some(v) = &cli.liveness_min_events {
+        env::set_var("SPEC_RUNNER_LIVENESS_MIN_EVENTS", v);
+    }
+    if let Some(v) = &cli.liveness_hard_cap_ms {
+        env::set_var("SPEC_RUNNER_LIVENESS_HARD_CAP_MS", v);
+    }
+    if let Some(v) = &cli.liveness_kill_grace_ms {
+        env::set_var("SPEC_RUNNER_LIVENESS_KILL_GRACE_MS", v);
+    }
+}
+
+fn map_passthrough(command: &str, args: Vec<String>) -> ParsedEntry {
+    ParsedEntry {
+        subcommand: command.to_string(),
+        forwarded: args,
+    }
+}
+
+fn from_cli(cli: Cli) -> ParsedEntry {
+    match cli.command {
+        CommandGroup::Specs(specs) => match specs.command {
+            SpecsSubcommand::List { path, format } => {
+                let mut forwarded = Vec::<String>::new();
+                if let Some(p) = path {
+                    forwarded.push("--path".to_string());
+                    forwarded.push(p);
+                }
+                forwarded.push("--format".to_string());
+                forwarded.push(match format {
+                    crate::cli::args::OutputFormat::Text => "text".to_string(),
+                    crate::cli::args::OutputFormat::Json => "json".to_string(),
+                });
+                map_passthrough("specs-list", forwarded)
+            }
+            SpecsSubcommand::Run { r#ref } => {
+                map_passthrough("specs-run", vec!["--ref".to_string(), r#ref])
+            }
+            SpecsSubcommand::RunAll {
+                root,
+                fail_fast,
+                continue_on_fail,
+            } => {
+                let mut forwarded = Vec::<String>::new();
+                if let Some(p) = root {
+                    forwarded.push("--root".to_string());
+                    forwarded.push(p);
+                }
+                if fail_fast {
+                    forwarded.push("--fail-fast".to_string());
+                }
+                if continue_on_fail {
+                    forwarded.push("--continue-on-fail".to_string());
+                }
+                map_passthrough("specs-run-all", forwarded)
+            }
+            SpecsSubcommand::Check => map_passthrough("specs-check", vec![]),
+        },
+        CommandGroup::Quality(q) => match q.command {
+            QualitySubcommand::Lint => map_passthrough("lint", vec![]),
+            QualitySubcommand::Typecheck => map_passthrough("typecheck", vec![]),
+            QualitySubcommand::Compilecheck => map_passthrough("compilecheck", vec![]),
+            QualitySubcommand::StyleCheck => map_passthrough("style-check", vec![]),
+            QualitySubcommand::TestCore => map_passthrough("test-core", vec![]),
+            QualitySubcommand::TestFull => map_passthrough("test-full", vec![]),
+        },
+        CommandGroup::Governance(g) => match g.command {
+            GovernanceSubcommand::Run => map_passthrough("governance", vec![]),
+            GovernanceSubcommand::Heavy => map_passthrough("governance-heavy", vec![]),
+            GovernanceSubcommand::Broad => map_passthrough("governance-broad-native", vec![]),
+            GovernanceSubcommand::Critical => map_passthrough("critical-gate", vec![]),
+        },
+        CommandGroup::Docs(d) => match d.command {
+            DocsSubcommand::Generate => map_passthrough("docs-generate", vec![]),
+            DocsSubcommand::GenerateCheck => map_passthrough("docs-generate-check", vec![]),
+            DocsSubcommand::Build => map_passthrough("docs-build", vec![]),
+            DocsSubcommand::BuildCheck => map_passthrough("docs-build-check", vec![]),
+            DocsSubcommand::Lint => map_passthrough("docs-lint", vec![]),
+            DocsSubcommand::Graph => map_passthrough("docs-graph", vec![]),
+        },
+        CommandGroup::Reports(r) => match r.command {
+            ReportsSubcommand::ConformancePurposeJson => {
+                map_passthrough("conformance-purpose-json", vec![])
+            }
+            ReportsSubcommand::ConformancePurposeMd => map_passthrough("conformance-purpose-md", vec![]),
+            ReportsSubcommand::RunnerIndependenceJson => {
+                map_passthrough("runner-independence-json", vec![])
+            }
+            ReportsSubcommand::RunnerIndependenceMd => {
+                map_passthrough("runner-independence-md", vec![])
+            }
+            ReportsSubcommand::PythonDependencyJson => map_passthrough("python-dependency-json", vec![]),
+            ReportsSubcommand::PythonDependencyMd => map_passthrough("python-dependency-md", vec![]),
+            ReportsSubcommand::SpecPortabilityJson => map_passthrough("spec-portability-json", vec![]),
+            ReportsSubcommand::SpecPortabilityMd => map_passthrough("spec-portability-md", vec![]),
+            ReportsSubcommand::SpecLangAdoptionJson => map_passthrough("spec-lang-adoption-json", vec![]),
+            ReportsSubcommand::SpecLangAdoptionMd => map_passthrough("spec-lang-adoption-md", vec![]),
+            ReportsSubcommand::DocsOperabilityJson => map_passthrough("docs-operability-json", vec![]),
+            ReportsSubcommand::DocsOperabilityMd => map_passthrough("docs-operability-md", vec![]),
+            ReportsSubcommand::ContractAssertionsJson => {
+                map_passthrough("contract-assertions-json", vec![])
+            }
+            ReportsSubcommand::ContractAssertionsMd => {
+                map_passthrough("contract-assertions-md", vec![])
+            }
+            ReportsSubcommand::ObjectiveScorecardJson => {
+                map_passthrough("objective-scorecard-json", vec![])
+            }
+            ReportsSubcommand::ObjectiveScorecardMd => map_passthrough("objective-scorecard-md", vec![]),
+            ReportsSubcommand::SpecLangStdlibJson => map_passthrough("spec-lang-stdlib-json", vec![]),
+            ReportsSubcommand::SpecLangStdlibMd => map_passthrough("spec-lang-stdlib-md", vec![]),
+        },
+        CommandGroup::Ci(c) => match c.command {
+            CiSubcommand::GateSummary => map_passthrough("ci-gate-summary", vec![]),
+            CiSubcommand::Cleanroom => map_passthrough("ci-cleanroom", vec![]),
+            CiSubcommand::ConformanceParity => map_passthrough("conformance-parity", vec![]),
+            CiSubcommand::RunnerCertify => map_passthrough("runner-certify", vec![]),
+        },
+        CommandGroup::StyleCheck(x) => map_passthrough("style-check", x.args),
+        CommandGroup::Lint(x) => map_passthrough("lint", x.args),
+        CommandGroup::Typecheck(x) => map_passthrough("typecheck", x.args),
+        CommandGroup::Compilecheck(x) => map_passthrough("compilecheck", x.args),
+        CommandGroup::ConformancePurposeJson(x) => map_passthrough("conformance-purpose-json", x.args),
+        CommandGroup::ConformancePurposeMd(x) => map_passthrough("conformance-purpose-md", x.args),
+        CommandGroup::RunnerIndependenceJson(x) => map_passthrough("runner-independence-json", x.args),
+        CommandGroup::RunnerIndependenceMd(x) => map_passthrough("runner-independence-md", x.args),
+        CommandGroup::PythonDependencyJson(x) => map_passthrough("python-dependency-json", x.args),
+        CommandGroup::PythonDependencyMd(x) => map_passthrough("python-dependency-md", x.args),
+        CommandGroup::CiGateSummary(x) => map_passthrough("ci-gate-summary", x.args),
+        CommandGroup::DocsGenerate(x) => map_passthrough("docs-generate", x.args),
+        CommandGroup::DocsGenerateCheck(x) => map_passthrough("docs-generate-check", x.args),
+        CommandGroup::ConformanceParity(x) => map_passthrough("conformance-parity", x.args),
+        CommandGroup::RunnerCertify(x) => map_passthrough("runner-certify", x.args),
+        CommandGroup::TestCore(x) => map_passthrough("test-core", x.args),
+        CommandGroup::TestFull(x) => map_passthrough("test-full", x.args),
+        CommandGroup::JobRun(x) => map_passthrough("job-run", x.args),
+        CommandGroup::SpecEval(x) => map_passthrough("spec-eval", x.args),
+        CommandGroup::CriticalGate(x) => map_passthrough("critical-gate", x.args),
+        CommandGroup::GovernanceBroadNative(x) => map_passthrough("governance-broad-native", x.args),
+        CommandGroup::SpecRef(x) => map_passthrough("spec-ref", x.args),
+        CommandGroup::ValidateReport(x) => map_passthrough("validate-report", x.args),
+        CommandGroup::GovernanceHeavy(x) => map_passthrough("governance-heavy", x.args),
+        CommandGroup::SpecLangLint(x) => map_passthrough("spec-lang-lint", x.args),
+        CommandGroup::SpecLangFormat(x) => map_passthrough("spec-lang-format", x.args),
+        CommandGroup::MigrateContractStepImportsV1(x) => {
+            map_passthrough("migrate-contract-step-imports-v1", x.args)
+        }
+        CommandGroup::MigrateCaseDocMetadataV1(x) => {
+            map_passthrough("migrate-case-doc-metadata-v1", x.args)
+        }
+        CommandGroup::MigrateLibraryDocsMetadataV1(x) => {
+            map_passthrough("migrate-library-docs-metadata-v1", x.args)
+        }
+        CommandGroup::MigrateCaseDomainPrefixV1(x) => {
+            map_passthrough("migrate-case-domain-prefix-v1", x.args)
+        }
+        CommandGroup::NormalizeCheck(x) => map_passthrough("normalize-check", x.args),
+        CommandGroup::NormalizeFix(x) => map_passthrough("normalize-fix", x.args),
+        CommandGroup::SchemaRegistryCheck(x) => map_passthrough("schema-registry-check", x.args),
+        CommandGroup::SchemaRegistryBuild(x) => map_passthrough("schema-registry-build", x.args),
+        CommandGroup::SchemaDocsCheck(x) => map_passthrough("schema-docs-check", x.args),
+        CommandGroup::SchemaDocsBuild(x) => map_passthrough("schema-docs-build", x.args),
+        CommandGroup::SpecPortabilityJson(x) => map_passthrough("spec-portability-json", x.args),
+        CommandGroup::SpecPortabilityMd(x) => map_passthrough("spec-portability-md", x.args),
+        CommandGroup::SpecLangAdoptionJson(x) => map_passthrough("spec-lang-adoption-json", x.args),
+        CommandGroup::SpecLangAdoptionMd(x) => map_passthrough("spec-lang-adoption-md", x.args),
+        CommandGroup::DocsOperabilityJson(x) => map_passthrough("docs-operability-json", x.args),
+        CommandGroup::DocsOperabilityMd(x) => map_passthrough("docs-operability-md", x.args),
+        CommandGroup::ContractAssertionsJson(x) => map_passthrough("contract-assertions-json", x.args),
+        CommandGroup::ContractAssertionsMd(x) => map_passthrough("contract-assertions-md", x.args),
+        CommandGroup::ObjectiveScorecardJson(x) => map_passthrough("objective-scorecard-json", x.args),
+        CommandGroup::ObjectiveScorecardMd(x) => map_passthrough("objective-scorecard-md", x.args),
+        CommandGroup::SpecLangStdlibJson(x) => map_passthrough("spec-lang-stdlib-json", x.args),
+        CommandGroup::SpecLangStdlibMd(x) => map_passthrough("spec-lang-stdlib-md", x.args),
+        CommandGroup::CiCleanroom(x) => map_passthrough("ci-cleanroom", x.args),
+        CommandGroup::PerfSmoke(x) => map_passthrough("perf-smoke", x.args),
+        CommandGroup::DocsBuild(x) => map_passthrough("docs-build", x.args),
+        CommandGroup::DocsBuildCheck(x) => map_passthrough("docs-build-check", x.args),
+        CommandGroup::DocsLint(x) => map_passthrough("docs-lint", x.args),
+        CommandGroup::DocsGraph(x) => map_passthrough("docs-graph", x.args),
+        CommandGroup::HelpAdvanced => map_passthrough("help-advanced", vec![]),
+    }
+}
+
 pub fn parse_entry(args: &[String]) -> Result<ParsedEntry, i32> {
-    let mut arg_index = 1usize;
-    while arg_index < args.len() {
-        let flag = args[arg_index].as_str();
-        match flag {
-            "--verbose" | "-v" => {
-                env::set_var("SPEC_RUNNER_DEBUG", "1");
-                env::set_var("SPEC_RUNNER_DEBUG_LEVEL", "1");
-                arg_index += 1;
-            }
-            "-vv" => {
-                env::set_var("SPEC_RUNNER_DEBUG", "1");
-                env::set_var("SPEC_RUNNER_DEBUG_LEVEL", "2");
-                arg_index += 1;
-            }
-            "-vvv" => {
-                env::set_var("SPEC_RUNNER_DEBUG", "1");
-                env::set_var("SPEC_RUNNER_DEBUG_LEVEL", "3");
-                arg_index += 1;
-            }
-            "--profile-level" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --profile-level requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_PROFILE_LEVEL", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--profile-out" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --profile-out requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_PROFILE_OUT", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--profile-summary-out" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --profile-summary-out requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_PROFILE_SUMMARY_OUT", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--profile-heartbeat-ms" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --profile-heartbeat-ms requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_PROFILE_HEARTBEAT_MS", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--profile-stall-threshold-ms" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --profile-stall-threshold-ms requires value");
-                    return Err(2);
-                }
-                env::set_var(
-                    "SPEC_RUNNER_PROFILE_STALL_THRESHOLD_MS",
-                    args[arg_index + 1].clone(),
-                );
-                arg_index += 2;
-            }
-            "--liveness-level" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --liveness-level requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_LIVENESS_LEVEL", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--liveness-stall-ms" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --liveness-stall-ms requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_LIVENESS_STALL_MS", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--liveness-min-events" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --liveness-min-events requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_LIVENESS_MIN_EVENTS", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--liveness-hard-cap-ms" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --liveness-hard-cap-ms requires value");
-                    return Err(2);
-                }
-                env::set_var("SPEC_RUNNER_LIVENESS_HARD_CAP_MS", args[arg_index + 1].clone());
-                arg_index += 2;
-            }
-            "--liveness-kill-grace-ms" => {
-                if arg_index + 1 >= args.len() {
-                    eprintln!("ERROR: --liveness-kill-grace-ms requires value");
-                    return Err(2);
-                }
-                env::set_var(
-                    "SPEC_RUNNER_LIVENESS_KILL_GRACE_MS",
-                    args[arg_index + 1].clone(),
-                );
-                arg_index += 2;
-            }
-            _ => break,
+    if args.len() <= 1 {
+        println!("dc_runner_cli quick start:");
+        println!("  spec_runner_cli specs run-all");
+        println!("  spec_runner_cli specs list");
+        println!("  spec_runner_cli --help");
+        return Err(0);
+    }
+    if args.iter().any(|arg| arg == "--help-advanced") || (args.len() > 1 && args[1] == "help-advanced") {
+        println!("{}", crate::cli::help::ADVANCED_HELP);
+        return Err(0);
+    }
+
+    // Preserve required compatibility command semantics for `governance` while also
+    // exposing a grouped `governance` UX command surface.
+    if args.len() > 1 && args[1] == "governance" {
+        let next = args.get(2).map(|s| s.as_str()).unwrap_or("");
+        if args.len() == 2
+            || (next.starts_with('-') && next != "--help" && next != "-h")
+            || !looks_like_governance_group_subcommand(next)
+        {
+            return Ok(map_passthrough("governance", args[2..].to_vec()));
         }
     }
 
-    if args.len() <= arg_index {
-        eprintln!("ERROR: missing runner adapter subcommand");
-        return Err(2);
-    }
+    let cli = match Cli::try_parse_from(args) {
+        Ok(v) => v,
+        Err(err) => {
+            let code = match err.kind() {
+                ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 0,
+                _ => CliError::Usage("invalid arguments".to_string()).exit_code(),
+            };
+            let _ = err.print();
+            if code == 2 {
+                eprintln!("Try `spec_runner_cli --help`.");
+            }
+            return Err(code);
+        }
+    };
 
-    Ok(ParsedEntry {
-        subcommand: args[arg_index].clone(),
-        forwarded: args[(arg_index + 1)..].to_vec(),
-    })
+    apply_global_env(&cli);
+    Ok(from_cli(cli))
 }
 
 #[cfg(test)]
@@ -137,23 +282,43 @@ mod tests {
 
     #[test]
     fn parse_entry_reads_subcommand_and_forwarded_args() {
-        let args = argv(&["spec_runner_cli", "--verbose", "style-check", "--foo", "bar"]);
+        let args = argv(&["spec_runner_cli", "job-run", "--ref", "#CASE"]);
         let parsed = parse_entry(&args).expect("parse");
-        assert_eq!(parsed.subcommand, "style-check");
-        assert_eq!(parsed.forwarded, vec!["--foo".to_string(), "bar".to_string()]);
+        assert_eq!(parsed.subcommand, "job-run");
+        assert_eq!(parsed.forwarded, vec!["--ref".to_string(), "#CASE".to_string()]);
     }
 
     #[test]
-    fn parse_entry_rejects_missing_flag_value() {
-        let args = argv(&["spec_runner_cli", "--profile-level"]);
+    fn parse_entry_supports_specs_run() {
+        let args = argv(&[
+            "spec_runner_cli",
+            "specs",
+            "run",
+            "--ref",
+            "/specs/example.spec.md#CASE-1",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "specs-run");
+    }
+
+    #[test]
+    fn parse_entry_rejects_unknown_subcommand() {
+        let args = argv(&["spec_runner_cli", "does-not-exist"]);
         let code = parse_entry(&args).expect_err("should fail");
         assert_eq!(code, 2);
     }
 
     #[test]
-    fn parse_entry_rejects_missing_subcommand() {
-        let args = argv(&["spec_runner_cli", "--verbose"]);
-        let code = parse_entry(&args).expect_err("should fail");
-        assert_eq!(code, 2);
+    fn parse_entry_no_args_returns_quickstart_exit_zero() {
+        let args = argv(&["spec_runner_cli"]);
+        let code = parse_entry(&args).expect_err("quickstart should exit");
+        assert_eq!(code, 0);
+    }
+
+    #[test]
+    fn parse_entry_supports_governance_group_name() {
+        let args = argv(&["spec_runner_cli", "governance", "run"]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "governance");
     }
 }

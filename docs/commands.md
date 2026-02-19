@@ -1,5 +1,28 @@
 # Commands
 
+## Runner Quickstart
+
+Use the runner CLI with minimal output first:
+
+```sh
+cargo run -q -p dc_runner_cli
+```
+
+Common commands:
+
+```sh
+cargo run -q -p dc_runner_cli -- specs run-all
+cargo run -q -p dc_runner_cli -- specs list
+cargo run -q -p dc_runner_cli -- specs run --ref /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001
+```
+
+Advanced runtime flags (profiling/liveness) are intentionally hidden from
+default help:
+
+```sh
+cargo run -q -p dc_runner_cli -- help-advanced
+```
+
 ## Maintainer Command Reference
 
 ### Build and test
@@ -52,6 +75,10 @@ Runner command contract (canonical Rust CLI with temporary `/runner_adapter.sh` 
 - `0`: success
 - `1`: runtime/tool failure
 - `2`: usage/config error
+
+Compatibility command surface remains callable for contract checks (`job-run`,
+`style-check`, `ci-gate-summary`, and other required interface commands), but
+is hidden from default top-level help to reduce cognitive load.
 
 Script/check failures return non-zero and should be treated as merge-blocking
 for required-lane flows.

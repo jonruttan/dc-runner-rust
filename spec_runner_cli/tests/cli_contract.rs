@@ -88,7 +88,7 @@ fn style_check_returns_zero() {
 fn unknown_subcommand_returns_two() {
     let (code, _stdout, stderr) = run_cli(&["__unknown_subcommand__"]);
     assert_eq!(code, 2);
-    assert!(stderr.contains("unsupported runner adapter subcommand"));
+    assert!(stderr.contains("unrecognized subcommand"));
 }
 
 #[test]
@@ -119,4 +119,36 @@ fn ci_gate_summary_writes_outputs() {
     assert_ne!(code, 2, "ci-gate-summary should not fail as usage/config error");
     assert!(out.is_file());
     assert!(trace.is_file());
+}
+
+#[test]
+fn help_works_and_mentions_specs_group() {
+    let (code, stdout, _stderr) = run_cli(&["--help"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("specs"));
+    assert!(stdout.contains("governance"));
+    assert!(!stdout.contains("--profile-level"));
+}
+
+#[test]
+fn specs_list_returns_zero() {
+    let (code, stdout, _stderr) = run_cli(&["specs", "list"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("spec cases") || stdout.contains("No spec cases found"));
+}
+
+#[test]
+fn help_advanced_lists_hidden_runtime_flags() {
+    let (code, stdout, _stderr) = run_cli(&["help-advanced"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("--profile-level"));
+    assert!(stdout.contains("--liveness-level"));
+}
+
+#[test]
+fn governance_group_help_is_concise() {
+    let (code, stdout, _stderr) = run_cli(&["governance", "--help"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("run"));
+    assert!(!stdout.contains("--profile-level"));
 }
