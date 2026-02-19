@@ -1,0 +1,10 @@
+# Rust build artifacts
+/target/
+spec_runner_cli/target/
+
+# macOS metadata
+.DS_Store
+
+# Editor/temporary files
+*.swp
+*.tmp

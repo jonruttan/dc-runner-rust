@@ -12,6 +12,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Build
-        run: cargo build --manifest-path spec_runner_cli/Cargo.toml
+        run: cargo build --locked --manifest-path spec_runner_cli/Cargo.toml
       - name: Test
-        run: cargo test --manifest-path spec_runner_cli/Cargo.toml
+        run: cargo test --locked --manifest-path spec_runner_cli/Cargo.toml
