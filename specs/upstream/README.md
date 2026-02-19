@@ -5,9 +5,9 @@ consumed by `dc-runner-rust`.
 
 Source of truth:
 
-- `data_contracts_lock_v1.yaml` (upstream repo/tag-or-ref/commit + integrity)
-- `data-contracts.manifest.sha256` (deterministic file manifest)
-- `data-contracts/` (vendored spec snapshot used for compatibility verification)
+- `/specs/upstream/data_contracts_lock_v1.yaml` (upstream repo/tag-or-ref/commit + integrity)
+- `/specs/upstream/data-contracts.manifest.sha256` (deterministic file manifest)
+- `/specs/upstream/data-contracts/` (vendored spec snapshot used for compatibility verification)
 
 Update flow:
 
@@ -21,3 +21,8 @@ Integrity check:
 ```sh
 make spec-sync-check
 ```
+
+Related docs:
+
+- `/docs/compatibility.md`
+- `/docs/release.md`

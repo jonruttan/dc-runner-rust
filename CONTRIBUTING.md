@@ -1,43 +1,67 @@
 # Contributing
 
-## Development Setup
+## Local Setup
+
+Required local tools:
+
+- `bash`
+- `cargo`
+- `git`
+
+Core setup check:
 
 ```sh
 make build
 make test
 ```
 
-## Local Verification
+## Required Local Checks
 
-Before opening a PR, run:
+Before opening a PR, run the canonical verification flow:
 
 ```sh
-cargo build --locked --manifest-path spec_runner_cli/Cargo.toml
-cargo test --locked --manifest-path spec_runner_cli/Cargo.toml
-make smoke
-make spec-sync-check
-make compat-check
+make verify
 ```
 
-## Updating Upstream Compatibility Snapshot
+This runs build, tests, upstream snapshot integrity checks, and compatibility
+verification.
 
-Canonical specs are owned by `data-contracts`. To bump this runner to a newer
-upstream version:
+## Updating Pinned Upstream Compatibility Snapshot
+
+Canonical specs are owned by `data-contracts`. To bump this runner against a
+new upstream version:
 
 ```sh
 make spec-sync TAG=<upstream-tag> SOURCE=<path-or-url>
 make verify
 ```
 
-Commit all lock/snapshot/manifest changes with your runner updates.
+Review and commit all resulting changes together:
 
-## Compatibility Rules
+- `/specs/upstream/data_contracts_lock_v1.yaml`
+- `/specs/upstream/data-contracts.manifest.sha256`
+- `/specs/upstream/data-contracts/**`
+- any implementation updates required for compatibility
 
-- Preserve `runner_adapter.sh` subcommand interface semantics.
-- Preserve adapter exit codes: `0` success, `1` runtime/tool failure, `2` usage/config error.
-- Keep required-lane runtime execution Rust-first and Python-free.
+## Pull Request Expectations
 
-## Pull Requests
+- Keep scope focused and behaviorally coherent.
+- Preserve stable runner interface semantics and exit codes.
+- Update docs/spec references when behavior or workflows change.
+- Update `/CHANGELOG.md` for user-visible changes.
 
-- Keep changes focused and include tests when behavior changes.
-- Update `CHANGELOG.md` for user-visible behavior changes.
+## Compatibility Invariants Checklist
+
+Do not regress these invariants:
+
+- Stable public command surface in `/runner_adapter.sh`
+- Stable exit code semantics (`0/1/2`)
+- Rust-first required-lane execution (no Python runtime dependency)
+- Compatibility checks remain pinned to `/specs/upstream/data-contracts/`
+
+## Reference Docs
+
+- `/docs/architecture.md`
+- `/docs/commands.md`
+- `/docs/compatibility.md`
+- `/docs/release.md`
