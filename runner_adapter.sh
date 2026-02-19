@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${ROOT_DIR}"
 
-RUST_CLI_MANIFEST="${ROOT_DIR}/runners/rust/spec_runner_cli/Cargo.toml"
+RUST_CLI_MANIFEST="${ROOT_DIR}/spec_runner_cli/Cargo.toml"
 RUST_CLI_TARGET=""
 RUST_CLI_BIN=""
 RUST_PREFERRED_TARGET=""
-HOST_BIN_LOCAL="${ROOT_DIR}/runners/rust/spec_runner_cli/target/debug/spec_runner_cli"
+HOST_BIN_LOCAL="${ROOT_DIR}/spec_runner_cli/target/debug/spec_runner_cli"
 HOST_BIN_ROOT="${ROOT_DIR}/target/debug/spec_runner_cli"
 
 is_debug_enabled() {
@@ -44,7 +44,7 @@ debug_log_at() {
 # Prefer native Apple Silicon binaries when available to avoid Rosetta/runtime hangs.
 if [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
   ARM_TARGET="aarch64-apple-darwin"
-  ARM_BIN_LOCAL="${ROOT_DIR}/runners/rust/spec_runner_cli/target/${ARM_TARGET}/debug/spec_runner_cli"
+  ARM_BIN_LOCAL="${ROOT_DIR}/spec_runner_cli/target/${ARM_TARGET}/debug/spec_runner_cli"
   ARM_BIN_ROOT="${ROOT_DIR}/target/${ARM_TARGET}/debug/spec_runner_cli"
   RUST_CLI_TARGET="${ARM_TARGET}"
   RUST_PREFERRED_TARGET="${ARM_TARGET}"

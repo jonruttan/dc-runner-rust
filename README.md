@@ -23,3 +23,9 @@ cargo build --manifest-path spec_runner_cli/Cargo.toml
 ## Release artifacts
 
 Release binaries are consumed by Data Contracts lock file and resolver.
+
+## Implementation Specs
+
+Runner-owned implementation contracts live in:
+
+- `specs/impl/rust/jobs/`
