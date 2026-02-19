@@ -27,6 +27,7 @@ upstream snapshot.
 ## Stable Interface Contract
 
 - Canonical runner entrypoint: Rust CLI (`spec_runner_cli`)
+- Published crates.io package: `dc_runner_cli`
 - Compatibility shim (one-release deprecation): `/runner_adapter.sh`
 - Stable exit code semantics:
   - `0` success
@@ -88,6 +89,12 @@ cargo xtask compat-check
 - Compatibility: `/docs/compatibility.md`
 - Release operations: `/docs/release.md`
 - Contributor workflow: `/CONTRIBUTING.md`
+
+## Crate Publishing
+
+- crates.io package: `dc_runner_cli`
+- publish flow: GitHub tag `vX.Y.Z` (must match crate version in `/spec_runner_cli/Cargo.toml`)
+- CI publish auth: `CRATES_IO_TOKEN` repository secret
 
 ## Specs Map
 

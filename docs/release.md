@@ -44,6 +44,7 @@ Trigger:
 
 - push tag matching `v*`
 - optional manual `workflow_dispatch`
+- crate publish runs only when tag version matches crate version
 
 Release targets:
 
@@ -58,6 +59,23 @@ Published assets per target:
 
 The publish job aggregates all matrix artifacts and uploads them to the GitHub
 Release associated with the tag.
+
+## Crates.io Publishing
+
+Crate: `dc_runner_cli`
+
+Release workflow includes a crate publish job that:
+
+1. validates `vX.Y.Z` tag equals `version` in `/spec_runner_cli/Cargo.toml`
+2. runs `cargo package -p dc_runner_cli --allow-dirty`
+3. runs `cargo publish -p dc_runner_cli --locked`
+
+Required repository secret:
+
+- `CRATES_IO_TOKEN`
+
+If tag/version mismatch occurs, crate publish fails with a clear error and no
+publish attempt is made.
 
 ## Data Contracts Coordination Note
 

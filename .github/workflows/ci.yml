@@ -13,3 +13,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Verify
         run: cargo xtask verify
+      - name: Package Check
+        run: cargo package -p dc_runner_cli --allow-dirty
