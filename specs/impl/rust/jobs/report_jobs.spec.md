@@ -343,7 +343,7 @@ contract:
     - std.string.contains:
       - std.object.get:
         - {var: summary_json}
-      - written_path
+        - written_path
       - .artifacts/contract-assertions-summary.md
 when:
   fail:

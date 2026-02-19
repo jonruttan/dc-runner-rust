@@ -9,13 +9,16 @@ use crate::cli::args::OutputFormat;
 pub struct SpecCase {
     pub spec_file: String,
     pub case_id: String,
+    pub case_type: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct RunAllSummary {
     pub total: usize,
+    pub attempted: usize,
     pub passed: usize,
     pub failed: usize,
+    pub skipped: usize,
     pub failed_refs: Vec<String>,
 }
 
@@ -49,6 +52,19 @@ pub fn normalize_spec_ref(raw: &str) -> String {
     }
 }
 
+fn block_type(block: &str) -> Option<String> {
+    for line in block.lines() {
+        let t = line.trim();
+        if let Some(rest) = t.strip_prefix("type:") {
+            let v = rest.trim();
+            if !v.is_empty() {
+                return Some(v.to_string());
+            }
+        }
+    }
+    None
+}
+
 pub fn list_specs(root: &Path, path_filter: Option<&str>) -> Result<Vec<SpecCase>, String> {
     let search_root = path_filter
         .map(|p| root.join(p.trim_start_matches('/')))
@@ -72,6 +88,7 @@ pub fn list_specs(root: &Path, path_filter: Option<&str>) -> Result<Vec<SpecCase
                 cases.push(SpecCase {
                     spec_file: format!("/{rel}"),
                     case_id: id,
+                    case_type: block_type(&block).unwrap_or_else(|| "unknown".to_string()),
                 });
             }
         }
@@ -89,14 +106,19 @@ pub fn print_specs(cases: &[SpecCase], format: OutputFormat) {
             }
             println!("Discovered {} spec cases:", cases.len());
             for case in cases {
-                println!("- {}#{}", case.spec_file, case.case_id);
+                println!("- {}#{} [{}]", case.spec_file, case.case_id, case.case_type);
             }
         }
         OutputFormat::Json => {
             let payload = json!(
                 cases
                     .iter()
-                    .map(|c| json!({"ref": format!("{}#{}", c.spec_file, c.case_id)}))
+                    .map(|c| {
+                        json!({
+                            "ref": format!("{}#{}", c.spec_file, c.case_id),
+                            "type": c.case_type
+                        })
+                    })
                     .collect::<Vec<_>>()
             );
             println!(
@@ -111,11 +133,17 @@ pub fn run_all_specs<F>(cases: &[SpecCase], fail_fast: bool, mut run_one: F) -> 
 where
     F: FnMut(&str) -> i32,
 {
+    let total = cases.len();
+    let runnable: Vec<&SpecCase> = cases
+        .iter()
+        .filter(|c| c.case_type == "contract.job")
+        .collect();
+    let skipped = total.saturating_sub(runnable.len());
     let mut passed = 0usize;
     let mut failed = 0usize;
     let mut failed_refs = Vec::<String>::new();
 
-    for case in cases {
+    for case in runnable {
         let spec_ref = format!("{}#{}", case.spec_file, case.case_id);
         let code = run_one(&spec_ref);
         if code == 0 {
@@ -130,9 +158,11 @@ where
     }
 
     RunAllSummary {
-        total: cases.len(),
+        total,
+        attempted: passed + failed,
         passed,
         failed,
+        skipped,
         failed_refs,
     }
 }

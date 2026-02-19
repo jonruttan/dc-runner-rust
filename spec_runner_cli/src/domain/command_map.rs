@@ -22,7 +22,9 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
         }
         "docs-graph" => Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-011"),
         "runner-certify" => {
-            Some("/specs/impl/rust/jobs/runner_certification_jobs.spec.md#DCIMPL-RUST-JOB-CERT-001")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/runner_certification_core.spec.md#DCCONF-RCERT-001",
+            )
         }
         "spec-lang-stdlib-json" => {
             Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-017")

@@ -418,8 +418,8 @@ fn run_specs_run_all_native(root: &Path, forwarded: &[String]) -> i32 {
         run_job_run_native(root, &["--ref".to_string(), spec_ref.to_string()])
     });
     println!(
-        "specs run-all summary: total={} passed={} failed={}",
-        summary.total, summary.passed, summary.failed
+        "specs run-all summary: total={} attempted={} passed={} failed={} skipped={}",
+        summary.total, summary.attempted, summary.passed, summary.failed, summary.skipped
     );
     if summary.failed > 0 {
         for failed in summary.failed_refs {
