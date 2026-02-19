@@ -35,6 +35,29 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
+## Automated Multi-Platform Release
+
+Workflow: `/.github/workflows/release.yml`
+
+Trigger:
+
+- push tag matching `v*`
+- optional manual `workflow_dispatch`
+
+Release targets:
+
+- `darwin-arm64` (`aarch64-apple-darwin`)
+- `darwin-x86_64` (`x86_64-apple-darwin`)
+- `linux-x86_64` (`x86_64-unknown-linux-gnu`)
+
+Published assets per target:
+
+- `dc-runner-rust-<platform>`
+- `dc-runner-rust-<platform>.sha256`
+
+The publish job aggregates all matrix artifacts and uploads them to the GitHub
+Release associated with the tag.
+
 ## Data Contracts Coordination Note
 
 When Data Contracts compatibility version changes:
@@ -50,6 +73,7 @@ contracts without an explicit snapshot bump.
 
 After push/tag:
 
-1. Confirm CI green on release commit.
+1. Confirm CI and Release workflows are green for the release tag.
 2. Confirm release tag points at intended commit.
-3. Confirm compatibility checks still pass from a clean checkout.
+3. Confirm all three platform binaries and checksum files are attached.
+4. Confirm compatibility checks still pass from a clean checkout.
