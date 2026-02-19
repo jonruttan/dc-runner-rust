@@ -32,10 +32,19 @@ assert_file() {
 
 assert_runner_supports_subcommand() {
   local cmd="$1"
-  if ! rg -q "(^|[|[:space:]])${cmd}([|)[:space:]]|$)" "$RUNNER_BIN"; then
-    echo "ERROR: runner adapter missing required subcommand: ${cmd}" >&2
-    return 1
+  if command -v rg >/dev/null 2>&1; then
+    if rg -q "(^|[|[:space:]])${cmd}([|)[:space:]]|$)" "$RUNNER_BIN"; then
+      return 0
+    fi
+  else
+    if grep -Eq "(^|[|[:space:]])${cmd}([|)[:space:]]|$)" "$RUNNER_BIN"; then
+      return 0
+    fi
   fi
+  {
+    echo "ERROR: runner adapter missing required subcommand: ${cmd}" >&2
+  }
+  return 1
 }
 
 assert_exit_code() {
@@ -133,9 +142,16 @@ assert_exit_code 1 "$RUNNER_BIN" job-run --ref "#DOES_NOT_EXIST"
 assert_exit_code 2 "$RUNNER_BIN" __unknown_subcommand__
 
 # Required lane must not rely on direct python runner execution.
-if rg -n "python(3)?[[:space:]]+" "$RUNNER_BIN" >/dev/null 2>&1; then
-  echo "ERROR: runner adapter appears to execute python directly" >&2
-  exit 1
+if command -v rg >/dev/null 2>&1; then
+  if rg -n "python(3)?[[:space:]]+" "$RUNNER_BIN" >/dev/null 2>&1; then
+    echo "ERROR: runner adapter appears to execute python directly" >&2
+    exit 1
+  fi
+else
+  if grep -En "python(3)?[[:space:]]+" "$RUNNER_BIN" >/dev/null 2>&1; then
+    echo "ERROR: runner adapter appears to execute python directly" >&2
+    exit 1
+  fi
 fi
 
 if [[ "$STRICT" -eq 1 ]]; then
