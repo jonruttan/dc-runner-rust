@@ -4,81 +4,133 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
             "/specs/libraries/domain/conformance_core.spec.md#LIB-DOMAIN-CONFORMANCE-001-000C-DOMAIN-CONFORMANCE-VALIDATE-REPORT-ERRORS",
         ),
         "schema-registry-build" => {
-            Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-004")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-004",
+            )
         }
         "schema-registry-check" => {
-            Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-005")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-005",
+            )
         }
-        "docs-lint" => Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-006"),
+        "docs-lint" => Some(
+            "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-006",
+        ),
         "docs-generate" => {
-            Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-007")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-007",
+            )
         }
         "docs-generate-check" => {
-            Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-008")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-008",
+            )
         }
-        "docs-build" => Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-009"),
+        "docs-build" => Some(
+            "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-009",
+        ),
         "docs-build-check" => {
-            Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-010")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-010",
+            )
         }
-        "docs-graph" => Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-011"),
+        "docs-graph" => Some(
+            "/specs/upstream/data-contracts/specs/conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-011",
+        ),
         "runner-certify" => {
             Some(
                 "/specs/upstream/data-contracts/specs/conformance/cases/core/runner_certification_core.spec.md#DCCONF-RCERT-001",
             )
         }
         "spec-lang-stdlib-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-017")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-017",
+            )
         }
         "spec-lang-stdlib-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-018")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-018",
+            )
         }
         "contract-assertions-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-005")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-005",
+            )
         }
         "contract-assertions-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-006")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-006",
+            )
         }
         "conformance-purpose-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-001")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-001",
+            )
         }
         "conformance-purpose-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-002")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-002",
+            )
         }
         "spec-portability-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-003")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-003",
+            )
         }
         "spec-portability-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-004")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-004",
+            )
         }
         "spec-lang-adoption-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-007")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-007",
+            )
         }
         "spec-lang-adoption-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-008")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-008",
+            )
         }
         "runner-independence-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-009")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-009",
+            )
         }
         "runner-independence-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-010")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-010",
+            )
         }
         "python-dependency-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-011")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-011",
+            )
         }
         "python-dependency-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-012")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-012",
+            )
         }
         "docs-operability-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-013")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-013",
+            )
         }
         "docs-operability-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-014")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-014",
+            )
         }
         "objective-scorecard-json" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-015")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-015",
+            )
         }
         "objective-scorecard-md" => {
-            Some("/specs/impl/rust/jobs/report_jobs.spec.md#DCIMPL-RUST-JOB-REP-016")
+            Some(
+                "/specs/upstream/data-contracts/specs/conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-016",
+            )
         }
         "conformance-parity" => {
             Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-002")

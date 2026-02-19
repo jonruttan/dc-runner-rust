@@ -1,0 +1,4 @@
+version: 1
+id: DC_RUNNER_RUST_SCHEMA_REGISTRY_CORE
+title: Local schema registry seed for schema-registry job helpers
+kind: registry.seed

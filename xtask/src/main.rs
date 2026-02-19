@@ -560,16 +560,17 @@ fn parse_required_subcommands(contract_file: &Path) -> Result<Vec<String>> {
     let txt = fs::read_to_string(contract_file)
         .with_context(|| format!("failed reading {}", contract_file.display()))?;
     let mut out = Vec::new();
-    let mut in_block = false;
+    let mut in_markdown_block = false;
+    let mut in_yaml_list = false;
     for line in txt.lines() {
         if line.contains("Required subcommands:") {
-            in_block = true;
+            in_markdown_block = true;
             continue;
         }
-        if in_block && line.contains("CI expectation:") {
+        if in_markdown_block && line.contains("CI expectation:") {
             break;
         }
-        if in_block {
+        if in_markdown_block {
             let t = line.trim();
             if t.starts_with("- `") {
                 let rest = &t[3..];
@@ -579,6 +580,25 @@ fn parse_required_subcommands(contract_file: &Path) -> Result<Vec<String>> {
                         out.push(cmd.to_string());
                     }
                 }
+            }
+            continue;
+        }
+
+        let t = line.trim();
+        if t == "required_subcommands:" {
+            in_yaml_list = true;
+            continue;
+        }
+        if in_yaml_list {
+            if let Some(rest) = t.strip_prefix("- ") {
+                let cmd = rest.trim();
+                if !cmd.is_empty() {
+                    out.push(cmd.to_string());
+                }
+                continue;
+            }
+            if !t.is_empty() {
+                break;
             }
         }
     }
@@ -646,7 +666,15 @@ fn compat_check(source: Option<&str>) -> Result<()> {
     }
 
     let contract_file = snap_root.join("specs/contract/12_runner_interface.md");
-    let required = parse_required_subcommands(&contract_file)?;
+    let required = match parse_required_subcommands(&contract_file) {
+        Ok(cmds) if !cmds.is_empty() => cmds,
+        _ => {
+            let governance_case = snap_root.join(
+                "specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md",
+            );
+            parse_required_subcommands(&governance_case)?
+        }
+    };
 
     for cmd in required {
         let (code, _stdout, stderr) =
