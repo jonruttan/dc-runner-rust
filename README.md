@@ -94,3 +94,9 @@ make compat-check
   - `/specs/impl/rust/jobs/`
 - Upstream pinned compatibility snapshot:
   - `/specs/upstream/data-contracts/`
+
+## Source Moved From data-contracts
+
+Implementation job specs under `/specs/impl/rust/jobs/` are canonical in this
+repository. Any legacy copies from `data-contracts/specs/impl/rust/jobs/` are
+deprecated and removed from control-plane scope.

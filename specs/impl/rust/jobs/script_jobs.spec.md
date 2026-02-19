@@ -79,7 +79,7 @@ harness:
       helper: helper.parity.run_conformance
       inputs:
         cases: specs/conformance/cases
-        php_runner: dc-runner-php
+        php_runner: dc-runner-php/conformance_runner.php
         out: .artifacts/conformance-parity.json
     on_fail:
       helper: helper.report.emit
