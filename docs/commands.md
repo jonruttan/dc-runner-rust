@@ -5,49 +5,49 @@
 ### Build and test
 
 ```sh
-make build
-make test
+cargo xtask build
+cargo xtask test
 ```
 
 ### Smoke
 
 ```sh
-make smoke
+cargo xtask smoke
 ```
 
 ### Full verification
 
 ```sh
-make verify
+cargo xtask verify
 ```
 
 ### Upstream compatibility snapshot update
 
 ```sh
-make spec-sync TAG=<upstream-tag> SOURCE=<path-or-url>
+cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
 ```
 
 ### Upstream snapshot integrity check
 
 ```sh
-make spec-sync-check
+cargo xtask spec-sync-check
 ```
 
 Optional explicit source resolution check:
 
 ```sh
-make spec-sync-check SOURCE=https://github.com/jonruttan/data-contracts.git
+cargo xtask spec-sync-check --source https://github.com/jonruttan/data-contracts.git
 ```
 
 ### Runner compatibility check
 
 ```sh
-make compat-check
+cargo xtask compat-check
 ```
 
 ## Exit Behavior
 
-Runner command contract (via `/runner_adapter.sh`):
+Runner command contract (canonical Rust CLI with temporary `/runner_adapter.sh` shim):
 
 - `0`: success
 - `1`: runtime/tool failure
@@ -60,7 +60,7 @@ for required-lane flows.
 
 | Symptom | Likely Cause | Action |
 |---|---|---|
-| `spec-sync-check` fails manifest drift | Snapshot changed without lock/manifest update | Re-run `make spec-sync TAG=...` and commit lock+manifest+snapshot |
-| `compat-check` fails missing required subcommand | Adapter surface drifted from upstream contract | Compare `/runner_adapter.sh` against required subcommands in `/specs/upstream/data-contracts/specs/contract/12_runner_interface.md` |
+| `spec-sync-check` fails manifest drift | Snapshot changed without lock/manifest update | Re-run `cargo xtask spec-sync --tag ...` and commit lock+manifest+snapshot |
+| `compat-check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `spec_runner_cli` behavior against `/specs/upstream/data-contracts/specs/contract/12_runner_interface.md` |
 | `compat-check` fails lock tag resolution with `SOURCE=` | Upstream ref/tag changed or unavailable | Verify upstream tag exists or use local source path |
-| `make verify` fails in build/test | Rust compile/test regression | Fix code/test failures before snapshot updates |
+| `cargo xtask verify` fails in build/test | Rust compile/test regression | Fix code/test failures before snapshot updates |

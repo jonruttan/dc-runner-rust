@@ -1,0 +1,3 @@
+[workspace]
+members = ["spec_runner_cli", "xtask"]
+resolver = "2"

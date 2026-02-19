@@ -26,7 +26,8 @@ upstream snapshot.
 
 ## Stable Interface Contract
 
-- Public runner entrypoint: `/runner_adapter.sh`
+- Canonical runner entrypoint: Rust CLI (`spec_runner_cli`)
+- Compatibility shim (one-release deprecation): `/runner_adapter.sh`
 - Stable exit code semantics:
   - `0` success
   - `1` runtime/tool failure
@@ -38,20 +39,20 @@ upstream snapshot.
 Build and test:
 
 ```sh
-make build
-make test
+cargo xtask build
+cargo xtask test
 ```
 
 Smoke:
 
 ```sh
-make smoke
+cargo xtask smoke
 ```
 
 Full local verification:
 
 ```sh
-make verify
+cargo xtask verify
 ```
 
 ## Upstream Snapshot Workflow
@@ -65,19 +66,19 @@ Pinned upstream compatibility artifacts:
 Update pinned snapshot:
 
 ```sh
-make spec-sync TAG=<upstream-tag> SOURCE=<path-or-url>
+cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
 ```
 
 Validate lock/snapshot integrity:
 
 ```sh
-make spec-sync-check
+cargo xtask spec-sync-check
 ```
 
 Run compatibility verification:
 
 ```sh
-make compat-check
+cargo xtask compat-check
 ```
 
 ## Documentation Map

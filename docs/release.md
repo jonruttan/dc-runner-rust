@@ -5,7 +5,7 @@
 Before tagging a release:
 
 ```sh
-make verify
+cargo xtask verify
 ```
 
 This ensures build/test integrity plus upstream compatibility validation.
@@ -16,11 +16,12 @@ This ensures build/test integrity plus upstream compatibility validation.
 2. Run:
 
 ```sh
-make verify
+cargo xtask verify
 ```
 
 3. Update `/CHANGELOG.md` with user-visible release notes.
-4. Commit release changes.
+4. Keep `runner_adapter.sh` deprecation note until shim removal release.
+5. Commit release changes.
 
 ## Tagging Policy
 
@@ -62,8 +63,8 @@ Release associated with the tag.
 
 When Data Contracts compatibility version changes:
 
-1. update pinned upstream snapshot (`/make spec-sync`)
-2. verify compatibility (`/make verify`)
+1. update pinned upstream snapshot (`cargo xtask spec-sync`)
+2. verify compatibility (`cargo xtask verify`)
 3. include lock/manifest/snapshot diff in release review
 
 Do not release runner changes that implicitly drift from pinned upstream

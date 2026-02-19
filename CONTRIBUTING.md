@@ -4,15 +4,14 @@
 
 Required local tools:
 
-- `bash`
 - `cargo`
 - `git`
 
 Core setup check:
 
 ```sh
-make build
-make test
+cargo xtask build
+cargo xtask test
 ```
 
 ## Required Local Checks
@@ -20,7 +19,7 @@ make test
 Before opening a PR, run the canonical verification flow:
 
 ```sh
-make verify
+cargo xtask verify
 ```
 
 This runs build, tests, upstream snapshot integrity checks, and compatibility
@@ -32,8 +31,8 @@ Canonical specs are owned by `data-contracts`. To bump this runner against a
 new upstream version:
 
 ```sh
-make spec-sync TAG=<upstream-tag> SOURCE=<path-or-url>
-make verify
+cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
+cargo xtask verify
 ```
 
 Review and commit all resulting changes together:
@@ -54,7 +53,7 @@ Review and commit all resulting changes together:
 
 Do not regress these invariants:
 
-- Stable public command surface in `/runner_adapter.sh`
+- Stable public command surface in `spec_runner_cli` (with temporary `/runner_adapter.sh` shim compatibility)
 - Stable exit code semantics (`0/1/2`)
 - Rust-first required-lane execution (no Python runtime dependency)
 - Compatibility checks remain pinned to `/specs/upstream/data-contracts/`

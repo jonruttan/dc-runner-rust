@@ -234,7 +234,9 @@ fn rewrite_case_refs(case: &mut Mapping, rename_map: &HashMap<String, String>) -
         if let Some(use_seq) = harness.get_mut(&key("use")).and_then(as_sequence_mut) {
             for item in use_seq.iter_mut() {
                 if let Some(use_item) = as_mapping_mut(item) {
-                    if let Some(symbols) = use_item.get_mut(&key("symbols")).and_then(as_sequence_mut) {
+                    if let Some(symbols) =
+                        use_item.get_mut(&key("symbols")).and_then(as_sequence_mut)
+                    {
                         for symbol in symbols.iter_mut() {
                             if let Some(raw) = symbol.as_str() {
                                 if let Some(new_name) = rename_map.get(raw) {
@@ -292,7 +294,11 @@ pub fn run_migrate_case_doc_metadata_v1(root: &Path, args: &[String]) -> i32 {
     };
     let mut changed_files: Vec<String> = Vec::new();
     for rel in files {
-        let path = if rel.is_absolute() { rel } else { root.join(rel) };
+        let path = if rel.is_absolute() {
+            rel
+        } else {
+            root.join(rel)
+        };
         let raw = match fs::read_to_string(&path) {
             Ok(v) => v,
             Err(e) => {
@@ -330,7 +336,10 @@ pub fn run_migrate_case_doc_metadata_v1(root: &Path, args: &[String]) -> i32 {
                         .to_string(),
                 ),
             );
-            doc.insert(key("audience"), YamlValue::String("spec-authors".to_string()));
+            doc.insert(
+                key("audience"),
+                YamlValue::String("spec-authors".to_string()),
+            );
             doc.insert(key("since"), YamlValue::String("v1".to_string()));
             doc.insert(
                 key("tags"),
@@ -398,7 +407,11 @@ pub fn run_migrate_library_docs_metadata_v1(root: &Path, args: &[String]) -> i32
     };
     let mut changed_files: Vec<String> = Vec::new();
     for rel in files {
-        let path = if rel.is_absolute() { rel } else { root.join(rel) };
+        let path = if rel.is_absolute() {
+            rel
+        } else {
+            root.join(rel)
+        };
         let raw = match fs::read_to_string(&path) {
             Ok(v) => v,
             Err(e) => {
@@ -434,7 +447,10 @@ pub fn run_migrate_library_docs_metadata_v1(root: &Path, args: &[String]) -> i32
                 lib.insert(key("id"), YamlValue::String(library_id.clone()));
                 lib.insert(key("module"), YamlValue::String(module.clone()));
                 lib.insert(key("stability"), YamlValue::String("alpha".to_string()));
-                lib.insert(key("owner"), YamlValue::String("data-contracts".to_string()));
+                lib.insert(
+                    key("owner"),
+                    YamlValue::String("data-contracts".to_string()),
+                );
                 lib.insert(
                     key("tags"),
                     YamlValue::Sequence(vec![YamlValue::String(module.clone())]),
@@ -511,7 +527,10 @@ pub fn run_migrate_library_docs_metadata_v1(root: &Path, args: &[String]) -> i32
                     ),
                 );
                 error.insert(key("category"), YamlValue::String("schema".to_string()));
-                doc.insert(key("errors"), YamlValue::Sequence(vec![YamlValue::Mapping(error)]));
+                doc.insert(
+                    key("errors"),
+                    YamlValue::Sequence(vec![YamlValue::Mapping(error)]),
+                );
                 let mut input = Mapping::new();
                 for p in &params {
                     input.insert(key(p), YamlValue::String(format!("<{p}>")));
@@ -524,7 +543,10 @@ pub fn run_migrate_library_docs_metadata_v1(root: &Path, args: &[String]) -> i32
                     key("notes"),
                     YamlValue::String("Replace with a concrete scenario.".to_string()),
                 );
-                doc.insert(key("examples"), YamlValue::Sequence(vec![YamlValue::Mapping(ex)]));
+                doc.insert(
+                    key("examples"),
+                    YamlValue::Sequence(vec![YamlValue::Mapping(ex)]),
+                );
                 let mut portability = Mapping::new();
                 portability.insert(key("python"), YamlValue::Bool(true));
                 portability.insert(key("php"), YamlValue::Bool(true));
@@ -735,7 +757,11 @@ pub fn run_migrate_case_domain_prefix_v1(root: &Path, args: &[String]) -> i32 {
     let mut updated_contracts = 0_i64;
     let mut rewritten_symbols = 0_i64;
     for rel in files {
-        let path = if rel.is_absolute() { rel } else { root.join(rel) };
+        let path = if rel.is_absolute() {
+            rel
+        } else {
+            root.join(rel)
+        };
         let text = match fs::read_to_string(&path) {
             Ok(v) => v,
             Err(e) => {
@@ -808,5 +834,9 @@ pub fn run_migrate_case_domain_prefix_v1(root: &Path, args: &[String]) -> i32 {
     }
     println!("updated contract.export domain blocks: {updated_contracts}");
     println!("rewritten symbol references: {rewritten_symbols}");
-    if unresolved.is_empty() { 0 } else { 1 }
+    if unresolved.is_empty() {
+        0
+    } else {
+        1
+    }
 }

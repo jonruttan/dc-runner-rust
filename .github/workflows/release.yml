@@ -10,9 +10,19 @@ permissions:
   contents: write
 
 jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Verify
+        run: cargo xtask verify
+
   build-artifacts:
     name: Build (${{ matrix.platform }})
     runs-on: ${{ matrix.runner }}
+    needs: verify
     strategy:
       fail-fast: false
       matrix:
@@ -41,7 +51,7 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           BIN_NAME="dc-runner-rust-${{ matrix.platform }}"
-          BIN_PATH="spec_runner_cli/target/${{ matrix.target }}/release/spec_runner_cli"
+          BIN_PATH="target/${{ matrix.target }}/release/spec_runner_cli"
           cp "${BIN_PATH}" "dist/${BIN_NAME}"
           chmod +x "dist/${BIN_NAME}"
           shasum -a 256 "dist/${BIN_NAME}" > "dist/${BIN_NAME}.sha256"

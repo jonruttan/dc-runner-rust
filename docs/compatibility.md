@@ -30,20 +30,20 @@ Lock file records:
 2. Sync snapshot:
 
 ```sh
-make spec-sync TAG=<upstream-tag> SOURCE=<path-or-url>
+cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
 ```
 
 3. Run full checks:
 
 ```sh
-make verify
+cargo xtask verify
 ```
 
 4. Review and commit lock + manifest + snapshot changes with any runtime updates.
 
 ## What `compat-check` Validates
 
-`/make compat-check` enforces at least:
+`cargo xtask compat-check` enforces at least:
 
 1. Lock/snapshot/manifest integrity coherence.
 2. Presence of required upstream contract/schema/governance artifacts.
@@ -57,8 +57,8 @@ make verify
 
 CI runs:
 
-- `make spec-sync-check`
-- `make compat-check`
+- `cargo xtask spec-sync-check`
+- `cargo xtask compat-check`
 
 Rationale:
 

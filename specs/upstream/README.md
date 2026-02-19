@@ -12,14 +12,14 @@ Source of truth:
 Update flow:
 
 ```sh
-make spec-sync TAG=<upstream-tag> SOURCE=<path-or-url>
-make verify
+cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
+cargo xtask verify
 ```
 
 Integrity check:
 
 ```sh
-make spec-sync-check
+cargo xtask spec-sync-check
 ```
 
 Related docs:

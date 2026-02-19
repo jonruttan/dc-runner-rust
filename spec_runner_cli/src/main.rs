@@ -1,8 +1,8 @@
 mod governance;
 mod job_helpers;
+mod migrators;
 mod profiler;
 mod spec_lang;
-mod migrators;
 
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -16,14 +16,14 @@ use governance::{
     run_critical_gate_native, run_governance_broad_native, run_governance_heavy_native,
     run_governance_native,
 };
-use profiler::{profile_options_from_env, RunProfiler};
-use serde_json::{json, Value};
-use serde_yaml::Value as YamlValue;
-use spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
 use migrators::{
     run_migrate_case_doc_metadata_v1, run_migrate_case_domain_prefix_v1,
     run_migrate_library_docs_metadata_v1,
 };
+use profiler::{profile_options_from_env, RunProfiler};
+use serde_json::{json, Value};
+use serde_yaml::Value as YamlValue;
+use spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
 
 static ACTIVE_PROFILER: OnceLock<Mutex<Option<RunProfiler>>> = OnceLock::new();
 
@@ -632,7 +632,10 @@ fn run_docs_generate_native(root: &Path, forwarded: &[String], check: bool) -> i
         }
         return run_cmd("python3", &args, root);
     }
-    let manifest = root.join("docs").join("book").join("reference_manifest.yaml");
+    let manifest = root
+        .join("docs")
+        .join("book")
+        .join("reference_manifest.yaml");
     if !manifest.exists() {
         eprintln!(
             "ERROR: docs-generate fallback failed: missing {}",
@@ -655,7 +658,10 @@ fn run_docs_lint_native(root: &Path, forwarded: &[String]) -> i32 {
         eprintln!("ERROR: docs-lint does not accept extra args");
         return 2;
     }
-    let manifest = root.join("docs").join("book").join("reference_manifest.yaml");
+    let manifest = root
+        .join("docs")
+        .join("book")
+        .join("reference_manifest.yaml");
     let docs_quality_contract = root
         .join("specs")
         .join("contract")
@@ -2686,7 +2692,7 @@ fn run_spec_eval_native(root: &Path, forwarded: &[String]) -> i32 {
 
 fn runner_command(runner_bin: &str, runner_impl: &str, subcommand: &str) -> Vec<String> {
     let normalized = runner_bin.replace('\\', "/");
-    let adapter_rel = format!("{}/{}/{}", "runners", "public", "runner_adapter.sh");
+    let adapter_rel = "runners/public/runner_adapter.sh".to_string();
     let adapter_prefixed = format!("./{}", adapter_rel);
     let adapter_suffix = format!("/{}", adapter_rel);
     if normalized.ends_with(&adapter_suffix)
@@ -2713,7 +2719,7 @@ fn runner_command_with_liveness(
     hard_cap_ms: &str,
 ) -> Vec<String> {
     let normalized = runner_bin.replace('\\', "/");
-    let adapter_rel = format!("{}/{}/{}", "runners", "public", "runner_adapter.sh");
+    let adapter_rel = "runners/public/runner_adapter.sh".to_string();
     let adapter_prefixed = format!("./{}", adapter_rel);
     let adapter_suffix = format!("/{}", adapter_rel);
     if normalized.ends_with(&adapter_suffix)
@@ -2867,7 +2873,7 @@ fn collect_unit_test_opt_out(root: &Path) -> Value {
 
 fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
     let mut out = ".artifacts/gate-summary.json".to_string();
-    let mut runner_bin = format!("./{}/{}/{}", "runners", "public", "runner_adapter.sh");
+    let mut runner_bin = "./target/debug/spec_runner_cli".to_string();
     let mut runner_impl = env::var("SPEC_RUNNER_IMPL").unwrap_or_else(|_| "rust".to_string());
     let mut trace_out = env::var("SPEC_RUNNER_TRACE_OUT").unwrap_or_default();
     let mut fail_fast = env_bool("SPEC_RUNNER_FAIL_FAST", true);
@@ -3569,7 +3575,9 @@ fn main() {
         "spec-lang-format" => run_spec_lang_format_native(&root, &forwarded),
         "migrate-contract-step-imports-v1" => run_spec_lang_format_native(&root, &forwarded),
         "migrate-case-doc-metadata-v1" => run_migrate_case_doc_metadata_v1(&root, &forwarded),
-        "migrate-library-docs-metadata-v1" => run_migrate_library_docs_metadata_v1(&root, &forwarded),
+        "migrate-library-docs-metadata-v1" => {
+            run_migrate_library_docs_metadata_v1(&root, &forwarded)
+        }
         "migrate-case-domain-prefix-v1" => run_migrate_case_domain_prefix_v1(&root, &forwarded),
         "normalize-check" => run_normalize_mode(&root, &forwarded, false),
         "normalize-fix" => run_normalize_mode(&root, &forwarded, true),
