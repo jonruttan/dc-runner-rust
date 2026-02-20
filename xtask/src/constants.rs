@@ -41,6 +41,7 @@ pub const REQUIRED_SNAPSHOT_FILES: &[&str] = &[
 pub const RUNNER_SPEC_INCLUDE_PATTERNS: &[&str] = &[
     "specs/index.md",
     "specs/contract_sets/**",
+    "specs/libraries/policy/**",
     "specs/impl/shared/**",
     "specs/impl/rust/index.md",
     "specs/impl/rust/jobs/**",
