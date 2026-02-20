@@ -9,8 +9,9 @@ To reduce CLI overload, required compatibility commands remain executable but
 are hidden from default `--help` output. This does not change contract
 compatibility requirements.
 
-Canonical contracts are authored upstream in Data Contracts and consumed here
-via a pinned vendored snapshot.
+Canonical global contracts are authored upstream in Data Contracts and consumed
+here via a pinned vendored snapshot. Canonical Rust-specific specs are consumed
+from a second pinned upstream source (`dc-runner-spec`).
 
 ## Upstream Pinning Artifacts
 
@@ -19,6 +20,10 @@ Primary artifacts:
 - `/specs/upstream/data_contracts_lock_v1.yaml`
 - `/specs/upstream/data-contracts.manifest.sha256`
 - `/specs/upstream/data-contracts/**`
+- `/specs/upstream/dc_runner_spec_lock_v1.yaml`
+- `/specs/upstream/dc-runner-spec.manifest.sha256`
+- `/specs/upstream/dc-runner-spec/**`
+- `/specs/impl/rust/runner_spec_registry_v1.yaml`
 
 Lock file records:
 
@@ -34,20 +39,21 @@ Lock file records:
 2. Sync snapshot:
 
 ```sh
-cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
+cargo xtask spec sync --tag <upstream-tag> --source <path-or-url>
+cargo xtask runner-spec sync --tag <runner-spec-tag> --source <path-or-url>
 ```
 
 3. Run full checks:
 
 ```sh
-cargo xtask verify
+cargo xtask verify all
 ```
 
 4. Review and commit lock + manifest + snapshot changes with any runtime updates.
 
 ## What `compat-check` Validates
 
-`cargo xtask compat-check` enforces at least:
+`cargo xtask compat check` enforces at least:
 
 1. Lock/snapshot/manifest integrity coherence.
 2. Presence of required upstream contract/schema/governance artifacts.
@@ -57,12 +63,20 @@ cargo xtask verify
 5. Rust required-lane execution policy (no direct Python runtime execution in
    adapter path).
 
+`cargo xtask runner-spec check` enforces:
+
+1. Runner-specific lock/snapshot/manifest integrity coherence.
+2. Presence of required Rust-specific upstream artifacts.
+3. Rust case registry ID uniqueness and path existence in vendored snapshot.
+4. Registry ID-to-file consistency (`id: ...` must exist in mapped spec files).
+
 ## CI Behavior and Rationale
 
 CI runs:
 
-- `cargo xtask spec-sync-check`
-- `cargo xtask compat-check`
+- `cargo xtask spec check`
+- `cargo xtask runner-spec check`
+- `cargo xtask compat check`
 
 Rationale:
 

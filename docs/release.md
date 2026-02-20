@@ -5,7 +5,7 @@
 Before tagging a release:
 
 ```sh
-cargo xtask verify
+cargo xtask verify all
 ```
 
 This ensures build/test integrity plus upstream compatibility validation.
@@ -16,7 +16,7 @@ This ensures build/test integrity plus upstream compatibility validation.
 2. Run:
 
 ```sh
-cargo xtask verify
+cargo xtask verify all
 ```
 
 3. Update `/CHANGELOG.md` with user-visible release notes.
@@ -81,9 +81,10 @@ publish attempt is made.
 
 When Data Contracts compatibility version changes:
 
-1. update pinned upstream snapshot (`cargo xtask spec-sync`)
-2. verify compatibility (`cargo xtask verify`)
-3. include lock/manifest/snapshot diff in release review
+1. update pinned upstream snapshot (`cargo xtask spec sync`)
+2. update pinned runner-specific snapshot (`cargo xtask runner-spec sync`)
+3. verify compatibility (`cargo xtask verify all`)
+4. include lock/manifest/snapshot diffs in release review
 
 Do not release runner changes that implicitly drift from pinned upstream
 contracts without an explicit snapshot bump.

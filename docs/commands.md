@@ -41,31 +41,55 @@ cargo xtask smoke
 ### Full verification
 
 ```sh
-cargo xtask verify
+cargo xtask verify all
 ```
 
 ### Upstream compatibility snapshot update
 
 ```sh
-cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
+cargo xtask spec sync --tag <upstream-tag> --source <path-or-url>
+```
+
+Non-tag refs are rejected unless explicitly enabled:
+
+```sh
+cargo xtask spec sync --tag <commit-or-branch> --source <path-or-url> --allow-ref
 ```
 
 ### Upstream snapshot integrity check
 
 ```sh
-cargo xtask spec-sync-check
+cargo xtask spec check
 ```
 
 Optional explicit source resolution check:
 
 ```sh
-cargo xtask spec-sync-check --source https://github.com/jonruttan/data-contracts.git
+cargo xtask spec check --source https://github.com/jonruttan/data-contracts.git
 ```
 
 ### Runner compatibility check
 
 ```sh
-cargo xtask compat-check
+cargo xtask compat check
+```
+
+### Runner-specific snapshot update (`dc-runner-spec`)
+
+```sh
+cargo xtask runner-spec sync --tag <runner-spec-tag> --source <path-or-url>
+```
+
+Non-tag refs are rejected unless explicitly enabled:
+
+```sh
+cargo xtask runner-spec sync --tag <commit-or-branch> --source <path-or-url> --allow-ref
+```
+
+### Runner-specific snapshot and registry check
+
+```sh
+cargo xtask runner-spec check
 ```
 
 ## Exit Behavior
@@ -87,7 +111,9 @@ for required-lane flows.
 
 | Symptom | Likely Cause | Action |
 |---|---|---|
-| `spec-sync-check` fails manifest drift | Snapshot changed without lock/manifest update | Re-run `cargo xtask spec-sync --tag ...` and commit lock+manifest+snapshot |
-| `compat-check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `spec_runner_cli` behavior against `/specs/upstream/data-contracts/specs/contract/12_runner_interface.md` |
-| `compat-check` fails lock tag resolution with `SOURCE=` | Upstream ref/tag changed or unavailable | Verify upstream tag exists or use local source path |
-| `cargo xtask verify` fails in build/test | Rust compile/test regression | Fix code/test failures before snapshot updates |
+| `spec check` fails manifest drift | Snapshot changed without lock/manifest update | Re-run `cargo xtask spec sync --tag ...` and commit lock+manifest+snapshot |
+| `runner-spec check` fails manifest drift | Runner-specific snapshot changed without lock/manifest update | Re-run `cargo xtask runner-spec sync --tag ...` and commit lock+manifest+snapshot |
+| `runner-spec check` fails registry validation | Rust case registry IDs or paths drifted from vendored source | Fix `/specs/impl/rust/runner_spec_registry_v1.yaml` to match vendored `dc-runner-spec` |
+| `compat check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `spec_runner_cli` behavior against `/specs/upstream/data-contracts/specs/contract/12_runner_interface.md` |
+| `compat check` fails lock tag resolution with `--source` | Upstream ref/tag changed or unavailable | Verify upstream tag exists or use local source path |
+| `cargo xtask verify all` fails in build/test | Rust compile/test regression | Fix code/test failures before snapshot updates |

@@ -11,7 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Runner Spec Check
+        run: cargo xtask runner-spec check
       - name: Verify
-        run: cargo xtask verify
+        run: cargo xtask verify all
       - name: Package Check
         run: cargo package -p dc_runner_cli --allow-dirty

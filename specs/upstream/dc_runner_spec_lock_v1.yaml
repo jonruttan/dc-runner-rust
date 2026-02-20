@@ -1,0 +1,22 @@
+---
+version: 1
+upstream:
+  repo: "https://github.com/jonruttan/dc-runner-spec.git"
+  tag: v0.1.0
+  commit: 05d28030518f8fbeb934590f907ba49f7b4b83a5
+  synced_at_utc: "2026-02-20T03:03:38Z"
+snapshot:
+  root: specs/upstream/dc-runner-spec
+  include:
+    - specs/index.md
+    - specs/impl/rust/index.md
+    - specs/impl/rust/jobs/**
+    - specs/impl/python/index.md
+    - specs/impl/php/index.md
+  exclude:
+    - "**/pending/**"
+    - "**/reviews/**"
+    - "**/snapshots/**"
+integrity:
+  file_count: 5
+  sha256_manifest: f8ed1716acc06754638fd8c660a673e9f732781eda9b6cac4dc7b3b8f70bc010

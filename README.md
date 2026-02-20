@@ -15,12 +15,13 @@ contracts/specifications project for the runner ecosystem. It owns normative
 contracts, schemas, conformance surfaces, and governance policy.
 
 This repository does not redefine those canonical contracts. Instead, it
-implements the Rust required lane and verifies compatibility against a pinned
-upstream snapshot.
+implements the Rust required lane and verifies compatibility against pinned
+upstream snapshots.
 
 ## Responsibility Boundary
 
-- `data-contracts` owns canonical runner specs/contracts and their evolution.
+- `data-contracts` owns canonical global runner specs/contracts and their evolution.
+- `dc-runner-spec` owns canonical runner-specific implementation specs.
 - `dc-runner-rust` owns the Rust implementation and compatibility verification
   against pinned upstream versions.
 
@@ -73,7 +74,7 @@ cargo xtask smoke
 Full local verification:
 
 ```sh
-cargo xtask verify
+cargo xtask verify all
 ```
 
 Emit local status exchange artifact:
@@ -82,7 +83,7 @@ Emit local status exchange artifact:
 ./scripts/emit_runner_status_report.sh
 ```
 
-## Upstream Snapshot Workflow
+## Upstream Snapshot Workflows
 
 Pinned upstream compatibility artifacts:
 
@@ -93,19 +94,43 @@ Pinned upstream compatibility artifacts:
 Update pinned snapshot:
 
 ```sh
-cargo xtask spec-sync --tag <upstream-tag> --source <path-or-url>
+cargo xtask spec sync --tag <upstream-tag> --source <path-or-url>
+```
+
+For local development only, non-tag refs require `--allow-ref`:
+
+```sh
+cargo xtask spec sync --tag <commit-or-branch> --source <path-or-url> --allow-ref
 ```
 
 Validate lock/snapshot integrity:
 
 ```sh
-cargo xtask spec-sync-check
+cargo xtask spec check
 ```
 
 Run compatibility verification:
 
 ```sh
-cargo xtask compat-check
+cargo xtask compat check
+```
+
+Pinned runner-specific artifacts (`dc-runner-spec`):
+
+- `/specs/upstream/dc_runner_spec_lock_v1.yaml`
+- `/specs/upstream/dc-runner-spec.manifest.sha256`
+- `/specs/upstream/dc-runner-spec/`
+
+Update runner-specific snapshot:
+
+```sh
+cargo xtask runner-spec sync --tag <runner-spec-tag> --source <path-or-url>
+```
+
+Validate runner-specific lock/snapshot integrity and Rust case registry:
+
+```sh
+cargo xtask runner-spec check
 ```
 
 ## Documentation Map
@@ -125,12 +150,13 @@ cargo xtask compat-check
 ## Specs Map
 
 - Local runner-owned implementation specs:
-  - `/specs/impl/rust/jobs/`
+  - `/specs/impl/rust/runner_spec_registry_v1.yaml`
+  - `/specs/impl/rust/jobs/` (Phase 1 compatibility copies)
 - Upstream pinned compatibility snapshot:
   - `/specs/upstream/data-contracts/`
+  - `/specs/upstream/dc-runner-spec/`
 
-## Source Moved From data-contracts
+## Source Ownership
 
-Implementation job specs under `/specs/impl/rust/jobs/` are canonical in this
-repository. Any legacy copies from `data-contracts/specs/impl/rust/jobs/` are
-deprecated and removed from control-plane scope.
+Rust-specific implementation specs are canonically owned in `dc-runner-spec` and
+consumed here via pinned vendored snapshot at `/specs/upstream/dc-runner-spec/`.

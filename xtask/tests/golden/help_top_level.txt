@@ -1,0 +1,12 @@
+Rust-native task runner for dc-runner-rust
+
+Usage: xtask <COMMAND>
+
+Commands:
+  build
+  test
+  smoke
+  spec
+  runner-spec
+  compat
+  verify
