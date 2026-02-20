@@ -160,16 +160,31 @@ fn ci_gate_summary_writes_outputs() {
     let trace = repo_root().join(".artifacts/test-ci-gate-trace.json");
     let out_s = out.to_string_lossy().to_string();
     let trace_s = trace.to_string_lossy().to_string();
+    let runner_bin = env!("CARGO_BIN_EXE_spec_runner_cli");
     let (code, _stdout, _stderr) = run_cli(&[
         "ci-gate-summary",
         "--out",
         &out_s,
         "--trace-out",
         &trace_s,
+        "--runner-bin",
+        runner_bin,
     ]);
     assert_ne!(code, 2, "ci-gate-summary should not fail as usage/config error");
     assert!(out.is_file());
     assert!(trace.is_file());
+}
+
+#[test]
+fn ci_gate_summary_invalid_runner_bin_fails_with_runtime_error() {
+    let (code, _stdout, stderr) = run_cli(&[
+        "ci-gate-summary",
+        "--runner-bin",
+        "/does/not/exist/spec_runner_cli",
+    ]);
+    assert_ne!(code, 2);
+    assert_ne!(code, 0);
+    assert!(stderr.contains("runner binary"));
 }
 
 #[test]

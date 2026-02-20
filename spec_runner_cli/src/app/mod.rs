@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::{self, Command};
 use std::sync::{Mutex, OnceLock};
@@ -2861,7 +2863,15 @@ fn collect_unit_test_opt_out(root: &Path) -> Value {
 
 fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
     let mut out = ".artifacts/gate-summary.json".to_string();
-    let mut runner_bin = "./target/debug/spec_runner_cli".to_string();
+    let mut runner_bin = env::var("SPEC_CI_RUNNER_BIN")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| {
+            env::current_exe()
+                .ok()
+                .and_then(|p| p.to_str().map(|s| s.to_string()))
+        })
+        .unwrap_or_else(|| "./target/debug/spec_runner_cli".to_string());
     let mut runner_impl = env::var("SPEC_RUNNER_IMPL").unwrap_or_else(|_| "rust".to_string());
     let mut trace_out = env::var("SPEC_RUNNER_TRACE_OUT").unwrap_or_default();
     let mut fail_fast = env_bool("SPEC_RUNNER_FAIL_FAST", true);
@@ -2940,6 +2950,45 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
         }
         eprintln!("ERROR: unsupported ci-gate-summary arg: {arg}");
         return 2;
+    }
+
+    if runner_impl == "rust" {
+        let runner_path = Path::new(&runner_bin);
+        if !runner_path.exists() {
+            eprintln!(
+                "ERROR: ci-gate-summary runner binary not found: {} (set --runner-bin or SPEC_CI_RUNNER_BIN)",
+                runner_bin
+            );
+            return 1;
+        }
+        if !runner_path.is_file() {
+            eprintln!(
+                "ERROR: ci-gate-summary runner binary is not a file: {} (set --runner-bin or SPEC_CI_RUNNER_BIN)",
+                runner_bin
+            );
+            return 1;
+        }
+        #[cfg(unix)]
+        {
+            match fs::metadata(runner_path) {
+                Ok(meta) => {
+                    if meta.permissions().mode() & 0o111 == 0 {
+                        eprintln!(
+                            "ERROR: ci-gate-summary runner binary is not executable: {} (set --runner-bin or SPEC_CI_RUNNER_BIN)",
+                            runner_bin
+                        );
+                        return 1;
+                    }
+                }
+                Err(e) => {
+                    eprintln!(
+                        "ERROR: ci-gate-summary unable to inspect runner binary '{}': {}",
+                        runner_bin, e
+                    );
+                    return 1;
+                }
+            }
+        }
     }
 
     let broad_liveness_level =
