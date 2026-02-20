@@ -158,10 +158,12 @@ fn spec_eval_usage_error_returns_two() {
 fn ci_gate_summary_writes_outputs() {
     let out = repo_root().join(".artifacts/test-ci-gate-summary.json");
     let trace = repo_root().join(".artifacts/test-ci-gate-trace.json");
+    let _ = fs::remove_file(&out);
+    let _ = fs::remove_file(&trace);
     let out_s = out.to_string_lossy().to_string();
     let trace_s = trace.to_string_lossy().to_string();
     let runner_bin = env!("CARGO_BIN_EXE_spec_runner_cli");
-    let (code, _stdout, _stderr) = run_cli(&[
+    let (code, _stdout, stderr) = run_cli(&[
         "ci-gate-summary",
         "--out",
         &out_s,
@@ -171,8 +173,8 @@ fn ci_gate_summary_writes_outputs() {
         runner_bin,
     ]);
     assert_ne!(code, 2, "ci-gate-summary should not fail as usage/config error");
-    assert!(out.is_file());
-    assert!(trace.is_file());
+    assert!(out.is_file(), "missing gate summary at {} ; stderr: {}", out.display(), stderr);
+    assert!(trace.is_file(), "missing gate trace at {} ; stderr: {}", trace.display(), stderr);
 }
 
 #[test]

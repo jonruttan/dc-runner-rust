@@ -3285,7 +3285,11 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
         }
     }
 
-    let out_path = root.join(out.trim_start_matches('/'));
+    let out_path = if Path::new(&out).is_absolute() {
+        PathBuf::from(&out)
+    } else {
+        root.join(&out)
+    };
     if let Some(parent) = out_path.parent() {
         if let Err(e) = fs::create_dir_all(parent) {
             eprintln!(
@@ -3309,7 +3313,11 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
         return 1;
     }
     if !trace_out.trim().is_empty() {
-        let trace_path = root.join(trace_out.trim_start_matches('/'));
+        let trace_path = if Path::new(&trace_out).is_absolute() {
+            PathBuf::from(&trace_out)
+        } else {
+            root.join(&trace_out)
+        };
         if let Some(parent) = trace_path.parent() {
             if let Err(e) = fs::create_dir_all(parent) {
                 eprintln!(
