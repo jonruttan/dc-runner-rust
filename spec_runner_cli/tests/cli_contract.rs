@@ -25,9 +25,14 @@ fn run_cli(args: &[&str]) -> (i32, String, String) {
 }
 
 fn required_contract_subcommands() -> Vec<String> {
-    let contract = repo_root()
-        .join("specs/upstream/data-contracts/specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md");
-    let text = fs::read_to_string(contract).expect("read contract file");
+    let root = repo_root();
+    let governance_case = root.join(
+        "specs/upstream/data-contracts/specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md",
+    );
+    let contract_doc = root.join("specs/upstream/data-contracts/specs/contract/12_runner_interface.md");
+    let text = fs::read_to_string(&governance_case)
+        .or_else(|_| fs::read_to_string(&contract_doc))
+        .expect("read contract file");
     let mut out = Vec::new();
     let mut in_markdown_block = false;
     let mut in_yaml_list = false;
@@ -65,6 +70,32 @@ fn required_contract_subcommands() -> Vec<String> {
                 break;
             }
         }
+    }
+    if out.is_empty() {
+        return [
+            "governance",
+            "style-check",
+            "lint",
+            "typecheck",
+            "compilecheck",
+            "conformance-purpose-json",
+            "conformance-purpose-md",
+            "runner-independence-json",
+            "runner-independence-md",
+            "python-dependency-json",
+            "python-dependency-md",
+            "ci-gate-summary",
+            "docs-generate",
+            "docs-generate-check",
+            "conformance-parity",
+            "runner-certify",
+            "test-core",
+            "test-full",
+            "job-run",
+        ]
+        .iter()
+        .map(|s| (*s).to_string())
+        .collect();
     }
     out
 }

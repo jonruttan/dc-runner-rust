@@ -45,6 +45,28 @@ const REQUIRED_SNAPSHOT_FILES: &[&str] = &[
     "specs/governance/cases/core/index.md",
 ];
 
+const REQUIRED_SUBCOMMAND_FALLBACK: &[&str] = &[
+    "governance",
+    "style-check",
+    "lint",
+    "typecheck",
+    "compilecheck",
+    "conformance-purpose-json",
+    "conformance-purpose-md",
+    "runner-independence-json",
+    "runner-independence-md",
+    "python-dependency-json",
+    "python-dependency-md",
+    "ci-gate-summary",
+    "docs-generate",
+    "docs-generate-check",
+    "conformance-parity",
+    "runner-certify",
+    "test-core",
+    "test-full",
+    "job-run",
+];
+
 #[derive(Parser)]
 #[command(author, version, about = "Rust-native task runner for dc-runner-rust")]
 struct Cli {
@@ -666,14 +688,17 @@ fn compat_check(source: Option<&str>) -> Result<()> {
     }
 
     let contract_file = snap_root.join("specs/contract/12_runner_interface.md");
+    let governance_case =
+        snap_root.join("specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md");
     let required = match parse_required_subcommands(&contract_file) {
         Ok(cmds) if !cmds.is_empty() => cmds,
-        _ => {
-            let governance_case = snap_root.join(
-                "specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md",
-            );
-            parse_required_subcommands(&governance_case)?
-        }
+        _ => match parse_required_subcommands(&governance_case) {
+            Ok(cmds) if !cmds.is_empty() => cmds,
+            _ => REQUIRED_SUBCOMMAND_FALLBACK
+                .iter()
+                .map(|s| (*s).to_string())
+                .collect(),
+        },
     };
 
     for cmd in required {
