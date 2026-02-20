@@ -92,6 +92,17 @@ cargo xtask runner-spec sync --tag <commit-or-branch> --source <path-or-url> --a
 cargo xtask runner-spec check
 ```
 
+### Shell compatibility wrappers (thin, xtask-backed)
+
+```sh
+./scripts/sync_data_contracts_specs.sh --check [--source <path-or-url>]
+./scripts/sync_data_contracts_specs.sh --tag <tag-or-ref> [--source <path-or-url>] [--allow-ref]
+./scripts/verify_upstream_compat.sh --strict --runner-bin <path> [--source <path-or-url>]
+./scripts/sync_runner_specs.sh --check [--source <path-or-url>]
+./scripts/sync_runner_specs.sh --tag <tag-or-ref> [--source <path-or-url>] [--allow-ref]
+./scripts/verify_runner_specs.sh [--source <path-or-url>]
+```
+
 ## Exit Behavior
 
 Runner command contract (canonical Rust CLI with temporary `/runner_adapter.sh` shim):

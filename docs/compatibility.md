@@ -78,6 +78,13 @@ CI runs:
 - `cargo xtask runner-spec check`
 - `cargo xtask compat check`
 
+Compatibility wrapper scripts delegate to these same checks:
+
+- `/scripts/sync_data_contracts_specs.sh`
+- `/scripts/verify_upstream_compat.sh`
+- `/scripts/sync_runner_specs.sh`
+- `/scripts/verify_runner_specs.sh`
+
 Rationale:
 
 - detect snapshot drift immediately

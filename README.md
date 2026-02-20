@@ -133,6 +133,15 @@ Validate runner-specific lock/snapshot integrity and Rust case registry:
 cargo xtask runner-spec check
 ```
 
+Shell compatibility wrappers (xtask-backed):
+
+```sh
+./scripts/sync_data_contracts_specs.sh --check
+./scripts/verify_upstream_compat.sh --strict --runner-bin ./runner_adapter.sh
+./scripts/sync_runner_specs.sh --check
+./scripts/verify_runner_specs.sh
+```
+
 ## Documentation Map
 
 - Architecture: `/docs/architecture.md`
