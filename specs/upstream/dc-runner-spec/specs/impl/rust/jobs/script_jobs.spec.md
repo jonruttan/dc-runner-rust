@@ -8,6 +8,12 @@ title: governance scan bundle helper smoke
 purpose: Contract job entrypoint for Rust-native helper dispatch and scalar path#id job refs.
 type: contract.job
 harness:
+  use:
+  - ref: /specs/libraries/policy/policy_job.spec.md
+    as: lib_policy_job
+    symbols:
+    - policy.job.dispatch_ok
+    - policy.job.written_path_contains
   spec_lang:
     capabilities:
     - ops.helper
@@ -69,6 +75,12 @@ id: DCIMPL-RUST-JOB-002
 title: conformance parity command via contract.job
 type: contract.job
 harness:
+  use:
+  - ref: /specs/libraries/policy/policy_job.spec.md
+    as: lib_policy_job
+    symbols:
+    - policy.job.dispatch_ok
+    - policy.job.written_path_contains
   spec_lang:
     capabilities:
     - ops.helper
@@ -107,11 +119,9 @@ contract:
     assert:
     - ops.job.dispatch:
       - main
-    - std.logic.eq:
-      - std.object.get:
-        - {var: summary_json}
-        - ok
-      - true
+    - call:
+      - {var: policy.job.dispatch_ok}
+      - {var: summary_json}
 when:
   fail:
   - ops.job.dispatch:
@@ -128,6 +138,12 @@ id: DCIMPL-RUST-JOB-003
 title: perf smoke command via contract.job
 type: contract.job
 harness:
+  use:
+  - ref: /specs/libraries/policy/policy_job.spec.md
+    as: lib_policy_job
+    symbols:
+    - policy.job.dispatch_ok
+    - policy.job.written_path_contains
   spec_lang:
     capabilities:
     - ops.helper
@@ -164,11 +180,9 @@ contract:
     assert:
     - ops.job.dispatch:
       - main
-    - std.logic.eq:
-      - std.object.get:
-        - {var: summary_json}
-        - ok
-      - true
+    - call:
+      - {var: policy.job.dispatch_ok}
+      - {var: summary_json}
 when:
   fail:
   - ops.job.dispatch:
@@ -177,4 +191,3 @@ when:
   - ops.job.dispatch:
     - on_complete
 ```
-

@@ -2,14 +2,15 @@
 version: 1
 upstream:
   repo: "https://github.com/jonruttan/dc-runner-spec.git"
-  tag: 05802ae7b5513be34f08afab9c5d92b7b79a661d
-  commit: 05802ae7b5513be34f08afab9c5d92b7b79a661d
-  synced_at_utc: "2026-02-20T06:00:26Z"
+  tag: 1f2393c2085c26cb69542134eadfb43b910306cd
+  commit: 1f2393c2085c26cb69542134eadfb43b910306cd
+  synced_at_utc: "2026-02-20T15:42:56Z"
 snapshot:
   root: specs/upstream/dc-runner-spec
   include:
     - specs/index.md
     - specs/contract_sets/**
+    - specs/libraries/policy/**
     - specs/impl/shared/**
     - specs/impl/rust/index.md
     - specs/impl/rust/jobs/**
@@ -20,5 +21,5 @@ snapshot:
     - "**/reviews/**"
     - "**/snapshots/**"
 integrity:
-  file_count: 16
-  sha256_manifest: 374b1989cd10254cb119a83508103060508a2b0059aec237b3d3943de78d8a49
+  file_count: 20
+  sha256_manifest: da7944563429b8d06401d21a5ebe826b01354c99575b593ebea39ce0f77fd244
