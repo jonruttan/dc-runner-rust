@@ -1,0 +1,9 @@
+contract_set_id: rust_impl_contract_set
+version: 1
+depends_on: []
+dependency_mode: required
+include_paths:
+  - specs/index.md
+  - specs/impl/rust/**
+applies_to_runners:
+  - rust
