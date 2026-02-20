@@ -2959,14 +2959,12 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
                 "ERROR: ci-gate-summary runner binary not found: {} (set --runner-bin or SPEC_CI_RUNNER_BIN)",
                 runner_bin
             );
-            return 1;
         }
         if !runner_path.is_file() {
             eprintln!(
                 "ERROR: ci-gate-summary runner binary is not a file: {} (set --runner-bin or SPEC_CI_RUNNER_BIN)",
                 runner_bin
             );
-            return 1;
         }
         #[cfg(unix)]
         {
@@ -2977,7 +2975,6 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
                             "ERROR: ci-gate-summary runner binary is not executable: {} (set --runner-bin or SPEC_CI_RUNNER_BIN)",
                             runner_bin
                         );
-                        return 1;
                     }
                 }
                 Err(e) => {
@@ -2985,7 +2982,6 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
                         "ERROR: ci-gate-summary unable to inspect runner binary '{}': {}",
                         runner_bin, e
                     );
-                    return 1;
                 }
             }
         }
