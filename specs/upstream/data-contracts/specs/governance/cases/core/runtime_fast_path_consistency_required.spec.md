@@ -14,11 +14,11 @@ harness:
   root: .
   fast_path_consistency:
     file_token_sets:
-    - path: /scripts/local_ci_parity.sh
+    - path: /scripts/ci_gate.sh
       required_tokens:
       - paths_all_in_list "specs/governance/check_sets_v1.yaml"
       - is_fast_path_script_only_change
-      - paths_all_in_list "scripts/local_ci_parity.sh" "scripts/ci_gate.sh"
+      - paths_all_in_list "scripts/ci_gate.sh" "scripts/ci_gate.sh"
       - skip normalize-check (check_sets-only change)
       - skip docs-generate-check (check_sets-only change)
       - skip normalize-check (gate-script-only change)
@@ -30,14 +30,14 @@ harness:
       - only_gate_script_changes
       - specs/governance/check_sets_v1.yaml
       - CI:-}
-      - 'local fast path: check_sets-only change; delegating to local_ci_parity.sh'
-      - 'local fast path: gate-script-only change; delegating to local_ci_parity.sh'
+      - 'local fast path: check_sets-only change; delegating to ci_gate.sh'
+      - 'local fast path: gate-script-only change; delegating to ci_gate.sh'
     - path: /.githooks/pre-push
       required_tokens:
       - is_check_sets_only_change
       - is_gate_script_only_change
       - specs/governance/check_sets_v1.yaml
-      - scripts/local_ci_parity.sh
+      - scripts/ci_gate.sh
       - scripts/ci_gate.sh
       - 'fast path: check_sets-only change'
       - 'fast path: gate-script-only change'

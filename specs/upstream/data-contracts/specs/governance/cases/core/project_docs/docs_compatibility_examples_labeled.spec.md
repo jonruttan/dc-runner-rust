@@ -23,7 +23,7 @@ harness:
     - compatibility lanes
     - non-blocking
     forbidden_tokens:
-    - ./scripts/core_gate.sh
+    - ./scripts/ci_gate.sh
   check:
     profile: governance.scan
     config:

@@ -15,8 +15,8 @@ harness:
     files:
     - /.github/workflows/ci.yml
     - /scripts/ci_gate.sh
-    - /scripts/core_gate.sh
-    - /scripts/local_ci_parity.sh
+    - /scripts/ci_gate.sh
+    - /scripts/ci_gate.sh
     forbidden_tokens:
     - scripts/runner_bin.sh
   check:

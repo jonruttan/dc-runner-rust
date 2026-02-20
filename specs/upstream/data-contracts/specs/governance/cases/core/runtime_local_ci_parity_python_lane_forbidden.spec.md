@@ -12,7 +12,7 @@ type: contract.check
 harness:
   root: .
   local_ci_parity_python_lane:
-    path: /scripts/local_ci_parity.sh
+    path: /scripts/ci_gate.sh
     required_tokens:
     - MODE="${SPEC_PREPUSH_MODE:-critical}"
     - 'mode=critical: rust-only critical path'

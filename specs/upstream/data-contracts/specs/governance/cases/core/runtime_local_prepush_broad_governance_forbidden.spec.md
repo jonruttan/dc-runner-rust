@@ -12,7 +12,7 @@ purpose: Ensures local parity flow keeps broad governance out of default prepush
 harness:
   root: .
   local_prepush_broad_forbidden:
-    path: /scripts/local_ci_parity.sh
+    path: /scripts/ci_gate.sh
     required_tokens:
     - skip broad governance (set SPEC_PREPUSH_REQUIRE_BROAD=1 to enable)
     - SPEC_PREPUSH_REQUIRE_BROAD=1

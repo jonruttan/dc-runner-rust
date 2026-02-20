@@ -45,6 +45,8 @@ Read in order:
 31. `/specs/contract/25_compatibility_matrix.md`
 32. `/specs/contract/26_review_output_contract.md`
 33. `/specs/contract/27_runner_status_exchange.md`
+34. `/specs/contract/28_spec_lang_policy_execution.md`
+35. `/specs/contract/29_runner_cli_interface.md`
 
 Type contracts:
 

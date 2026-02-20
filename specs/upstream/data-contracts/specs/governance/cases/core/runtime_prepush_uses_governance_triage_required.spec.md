@@ -12,7 +12,7 @@ type: contract.check
 harness:
   root: .
   prepush_governance_triage:
-    path: /scripts/local_ci_parity.sh
+    path: /scripts/ci_gate.sh
     required_tokens:
     - governance-triage
     - ./scripts/governance_triage.sh

@@ -14,7 +14,7 @@ harness:
   root: .
   git_hook_prepush:
     hook_path: /.githooks/pre-push
-    install_script: /scripts/install_git_hooks.sh
+    install_script: /scripts/ci_gate.sh
     makefile_path: /Makefile
   check:
     profile: governance.scan
