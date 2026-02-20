@@ -76,6 +76,12 @@ Full local verification:
 cargo xtask verify
 ```
 
+Emit local status exchange artifact:
+
+```sh
+./scripts/emit_runner_status_report.sh
+```
+
 ## Upstream Snapshot Workflow
 
 Pinned upstream compatibility artifacts:
