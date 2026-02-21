@@ -30,7 +30,7 @@ pub const REQUIRED_SNAPSHOT_FILES: &[&str] = &[
     "specs/contract/policy_v1.yaml",
     "specs/contract/traceability_v1.yaml",
     "specs/schema/index.md",
-    "specs/schema/runner_certification_registry_v1.yaml",
+    "specs/schema/runner_certification_registry_v2.yaml",
     "specs/schema/dc_runner_rust_lock_v1.yaml",
     "specs/governance/index.md",
     "specs/governance/check_sets_v1.yaml",

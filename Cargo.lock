@@ -240,9 +240,11 @@ dependencies = [
 name = "dc_runner_cli"
 version = "0.2.0"
 dependencies = [
+ "chrono",
  "clap",
  "serde_json",
  "serde_yaml",
+ "sha2",
 ]
 
 [[package]]

@@ -19,9 +19,11 @@ use crate::migrators::{
 use crate::profiler::{profile_options_from_env, RunProfiler};
 use crate::services::gate_summary::summarize as summarize_gate;
 use crate::services::specs_ui;
+use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
+use chrono::{SecondsFormat, Utc};
 use serde_json::{json, Value};
 use serde_yaml::Value as YamlValue;
-use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
+use sha2::{Digest, Sha256};
 
 mod dispatch;
 mod entry;
@@ -940,6 +942,69 @@ fn yaml_as_string_list(node: Option<&YamlValue>, field: &str) -> Result<Vec<Stri
     Ok(out)
 }
 
+fn canonicalize_json_value(value: &Value) -> String {
+    match value {
+        Value::Null => "null".to_string(),
+        Value::Bool(v) => {
+            if *v {
+                "true".to_string()
+            } else {
+                "false".to_string()
+            }
+        }
+        Value::Number(n) => n.to_string(),
+        Value::String(s) => serde_json::to_string(s).unwrap_or_else(|_| "\"\"".to_string()),
+        Value::Array(items) => {
+            let mut out = String::from("[");
+            for (idx, item) in items.iter().enumerate() {
+                if idx > 0 {
+                    out.push(',');
+                }
+                out.push_str(&canonicalize_json_value(item));
+            }
+            out.push(']');
+            out
+        }
+        Value::Object(map) => {
+            let mut keys: Vec<&str> = map.keys().map(|k| k.as_str()).collect();
+            keys.sort_unstable();
+            let mut out = String::from("{");
+            for (idx, key) in keys.iter().enumerate() {
+                if idx > 0 {
+                    out.push(',');
+                }
+                out.push_str(&serde_json::to_string(key).unwrap_or_else(|_| "\"\"".to_string()));
+                out.push(':');
+                if let Some(v) = map.get(*key) {
+                    out.push_str(&canonicalize_json_value(v));
+                } else {
+                    out.push_str("null");
+                }
+            }
+            out.push('}');
+            out
+        }
+    }
+}
+
+fn sha256_hex(input: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(input.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
+fn git_commit_sha(root: &Path) -> String {
+    let output = Command::new("git")
+        .arg("rev-parse")
+        .arg("HEAD")
+        .current_dir(root)
+        .output();
+    match output {
+        Ok(out) if out.status.success() => String::from_utf8_lossy(&out.stdout).trim().to_string(),
+        _ => "unknown".to_string(),
+    }
+}
+
 fn run_cert_command(root: &Path, command: &str, args: &[String]) -> i32 {
     match command {
         "governance" => run_governance_native(root, args),
@@ -996,16 +1061,35 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
         return 2;
     }
 
-    let registry_path = root.join("specs/schema/runner_certification_registry_v1.yaml");
-    let registry_text = match fs::read_to_string(&registry_path) {
-        Ok(v) => v,
-        Err(e) => {
-            eprintln!(
-                "ERROR: failed to read runner certification registry {}: {e}",
-                registry_path.display()
-            );
-            return 2;
+    let registry_candidates = [
+        root.join("specs/schema/runner_certification_registry_v2.yaml"),
+        root.join(
+            "specs/upstream/data-contracts/specs/schema/runner_certification_registry_v2.yaml",
+        ),
+    ];
+    let mut registry_path: Option<PathBuf> = None;
+    let mut registry_text = String::new();
+    for candidate in registry_candidates {
+        if candidate.exists() {
+            match fs::read_to_string(&candidate) {
+                Ok(v) => {
+                    registry_path = Some(candidate);
+                    registry_text = v;
+                    break;
+                }
+                Err(e) => {
+                    eprintln!(
+                        "ERROR: failed to read runner certification registry {}: {e}",
+                        candidate.display()
+                    );
+                    return 2;
+                }
+            }
         }
+    }
+    let Some(registry_path) = registry_path else {
+        eprintln!("ERROR: runner certification registry v2 not found");
+        return 2;
     };
     let registry_yaml: YamlValue = match serde_yaml::from_str(&registry_text) {
         Ok(v) => v,
@@ -1024,6 +1108,16 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
             return 2;
         }
     };
+    let registry_version = yaml_map_get(registry_map, "version")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0);
+    if registry_version != 2 {
+        eprintln!(
+            "ERROR: unsupported runner certification registry version {}; expected 2",
+            registry_version
+        );
+        return 2;
+    }
     let runners = match yaml_map_get(registry_map, "runners").and_then(|v| v.as_sequence()) {
         Some(v) => v,
         None => {
@@ -1071,13 +1165,28 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
             return 2;
         }
     };
-    if runner_status != "active" && runner_status != "planned" && runner_status != "retired" {
+    if runner_status != "active"
+        && runner_status != "planned"
+        && runner_status != "retired"
+        && runner_status != "disabled"
+    {
         eprintln!(
-            "ERROR: invalid runner status for {}: {} (expected active|planned|retired)",
+            "ERROR: invalid runner status for {}: {} (expected active|planned|retired|disabled)",
             runner_id, runner_status
         );
         return 2;
     }
+    let implementation_repo = match yaml_map_get(entry, "entrypoints")
+        .and_then(|v| v.as_mapping())
+        .and_then(|m| yaml_map_get(m, "implementation_repo"))
+        .and_then(|v| v.as_str())
+    {
+        Some(v) if !v.trim().is_empty() => v.trim().to_string(),
+        _ => {
+            eprintln!("ERROR: invalid runner registry entry for {runner_id}: missing entrypoints.implementation_repo");
+            return 2;
+        }
+    };
 
     let required_core_checks = match yaml_as_string_list(
         yaml_map_get(entry, "required_core_checks"),
@@ -1411,13 +1520,116 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
     }
 
     let status = if failed == 0 { "pass" } else { "fail" };
-    let payload = json!({
-        "version": 1,
+
+    let mut required_core_checks_norm = required_core_checks.clone();
+    required_core_checks_norm.sort();
+    required_core_checks_norm.dedup();
+
+    let mut required_core_cases_norm = required_core_cases.clone();
+    required_core_cases_norm.sort();
+    required_core_cases_norm.dedup();
+
+    let mut command_contract_subset_norm: Vec<Value> = command_specs
+        .iter()
+        .map(|(name, args, expect_exit)| {
+            let mut exits = expect_exit.clone();
+            exits.sort_unstable();
+            exits.dedup();
+            json!({
+                "name": name,
+                "args": args,
+                "expect_exit": exits,
+            })
+        })
+        .collect();
+    command_contract_subset_norm.sort_by(|a, b| {
+        let an = a.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        let bn = b.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        if an != bn {
+            return an.cmp(bn);
+        }
+        let aa = a
+            .get("args")
+            .and_then(|v| v.as_array())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|v| v.as_str())
+                    .collect::<Vec<&str>>()
+                    .join("\u{1f}")
+            })
+            .unwrap_or_default();
+        let ba = b
+            .get("args")
+            .and_then(|v| v.as_array())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|v| v.as_str())
+                    .collect::<Vec<&str>>()
+                    .join("\u{1f}")
+            })
+            .unwrap_or_default();
+        if aa != ba {
+            return aa.cmp(&ba);
+        }
+        let ae = a
+            .get("expect_exit")
+            .and_then(|v| v.as_array())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|v| v.as_i64())
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+            })
+            .unwrap_or_default();
+        let be = b
+            .get("expect_exit")
+            .and_then(|v| v.as_array())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|v| v.as_i64())
+                    .map(|v| v.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+            })
+            .unwrap_or_default();
+        ae.cmp(&be)
+    });
+
+    let execution_intent = json!({
+        "required_core_checks": required_core_checks_norm,
+        "required_core_cases": required_core_cases_norm,
+        "command_contract_subset": command_contract_subset_norm,
+        "registry_ref": {
+            "path": "/specs/schema/runner_certification_registry_v2.yaml",
+            "version": 2
+        }
+    });
+    let intent_hash = sha256_hex(&canonicalize_json_value(&execution_intent));
+
+    let commit_sha = git_commit_sha(root);
+    let certified_at = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
+
+    let mut payload = json!({
+        "version": 2,
         "runner": {
             "runner_id": runner_id,
             "class": runner_class,
             "status": runner_status,
-            "blocking": blocking
+            "blocking": blocking,
+            "implementation_repo": implementation_repo,
+            "commit_sha": commit_sha,
+            "certified_at": certified_at
+        },
+        "execution_intent": execution_intent,
+        "equivalence": {
+            "normalization_version": "intent-v1",
+            "hash_algorithm": "sha256",
+            "intent_hash": intent_hash
         },
         "summary": {
             "status": status,
@@ -1426,8 +1638,16 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
             "skipped": skipped,
             "blocking": blocking
         },
-        "checks": check_results
+        "checks": check_results,
+        "proof": {
+            "canonicalization": "json-c14n-v1",
+            "payload_sha256": ""
+        }
     });
+    let payload_hash = sha256_hex(&canonicalize_json_value(&payload));
+    if let Some(proof) = payload.get_mut("proof").and_then(|v| v.as_object_mut()) {
+        proof.insert("payload_sha256".to_string(), Value::String(payload_hash));
+    }
 
     if let Err(e) = fs::write(
         &json_out_path,
@@ -1445,6 +1665,7 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
 
     let mut md = String::new();
     md.push_str("# Runner Certification Report\n\n");
+    md.push_str(&format!("- version: `{}`\n", payload["version"]));
     md.push_str(&format!(
         "- runner_id: `{}`\n",
         payload["runner"]["runner_id"]
@@ -1454,6 +1675,26 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
     md.push_str(&format!(
         "- blocking: `{}`\n",
         payload["runner"]["blocking"]
+    ));
+    md.push_str(&format!(
+        "- implementation_repo: `{}`\n",
+        payload["runner"]["implementation_repo"]
+    ));
+    md.push_str(&format!(
+        "- commit_sha: `{}`\n",
+        payload["runner"]["commit_sha"]
+    ));
+    md.push_str(&format!(
+        "- certified_at: `{}`\n",
+        payload["runner"]["certified_at"]
+    ));
+    md.push_str(&format!(
+        "- equivalence.intent_hash: `{}`\n",
+        payload["equivalence"]["intent_hash"]
+    ));
+    md.push_str(&format!(
+        "- proof.payload_sha256: `{}`\n",
+        payload["proof"]["payload_sha256"]
     ));
     md.push_str(&format!(
         "- summary.status: `{}`\n",
@@ -1544,8 +1785,12 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
         ));
     }
     for block in blocks {
-        let parsed: YamlValue = serde_yaml::from_str(&block)
-            .map_err(|e| format!("failed to parse contract-spec block in {}: {e}", path.display()))?;
+        let parsed: YamlValue = serde_yaml::from_str(&block).map_err(|e| {
+            format!(
+                "failed to parse contract-spec block in {}: {e}",
+                path.display()
+            )
+        })?;
         if let Some(map) = parsed.as_mapping() {
             if map.contains_key(&YamlValue::String("contracts".to_string())) {
                 let suite_defaults = map
@@ -1553,8 +1798,12 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
                     .and_then(|v| v.as_mapping())
                     .cloned()
                     .unwrap_or_default();
-                let suite_spec_version = map.get(&YamlValue::String("spec_version".to_string())).cloned();
-                let suite_schema_ref = map.get(&YamlValue::String("schema_ref".to_string())).cloned();
+                let suite_spec_version = map
+                    .get(&YamlValue::String("spec_version".to_string()))
+                    .cloned();
+                let suite_schema_ref = map
+                    .get(&YamlValue::String("schema_ref".to_string()))
+                    .cloned();
                 let suite_title = map.get(&YamlValue::String("title".to_string())).cloned();
                 let suite_purpose = map.get(&YamlValue::String("purpose".to_string())).cloned();
                 let suite_domain = map.get(&YamlValue::String("domain".to_string())).cloned();
@@ -1618,8 +1867,13 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
                     }
                 }
                 if let Some(found) = selected {
-                    let rendered = serde_yaml::to_string(&YamlValue::Mapping(found))
-                        .map_err(|e| format!("failed to render expanded suite case in {}: {e}", path.display()))?;
+                    let rendered =
+                        serde_yaml::to_string(&YamlValue::Mapping(found)).map_err(|e| {
+                            format!(
+                                "failed to render expanded suite case in {}: {e}",
+                                path.display()
+                            )
+                        })?;
                     return Ok(rendered);
                 }
                 continue;
@@ -2112,7 +2366,9 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 || step_map.contains_key(&YamlValue::String("on".to_string()))
             {
                 restore_env();
-                eprintln!("ERROR: clauses.predicates[{step_idx}] target/on is forbidden; use imports");
+                eprintln!(
+                    "ERROR: clauses.predicates[{step_idx}] target/on is forbidden; use imports"
+                );
                 return 1;
             }
             if step_map.contains_key(&YamlValue::String("class".to_string())) {
@@ -2136,10 +2392,9 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             let parse_positive_int = |field: &str| -> Result<i64, String> {
                 match step_map.get(&YamlValue::String(field.to_string())) {
                     None => Ok(1),
-                    Some(raw) => raw
-                        .as_i64()
-                        .filter(|v| *v >= 1)
-                        .ok_or_else(|| format!("clauses.predicates[{step_idx}].{field} must be integer >= 1")),
+                    Some(raw) => raw.as_i64().filter(|v| *v >= 1).ok_or_else(|| {
+                        format!("clauses.predicates[{step_idx}].{field} must be integer >= 1")
+                    }),
                 }
             };
             if let Err(err) = parse_positive_int("priority") {
@@ -2155,7 +2410,9 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             if let Some(raw_purpose) = step_map.get(&YamlValue::String("purpose".to_string())) {
                 if raw_purpose.as_str().map(str::trim).unwrap_or("").is_empty() {
                     restore_env();
-                    eprintln!("ERROR: clauses.predicates[{step_idx}].purpose must be non-empty string");
+                    eprintln!(
+                        "ERROR: clauses.predicates[{step_idx}].purpose must be non-empty string"
+                    );
                     return 1;
                 }
             }
@@ -3528,10 +3785,7 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
         );
         let mut summary_md = String::new();
         summary_md.push_str("# Run Trace Summary\n\n");
-        summary_md.push_str(&format!(
-            "- status: `{}`\n",
-            gate_summary.status
-        ));
+        summary_md.push_str(&format!("- status: `{}`\n", gate_summary.status));
         summary_md.push_str(&format!(
             "- first_failure_step: `{}`\n",
             gate_summary.failed_step.as_deref().unwrap_or("")
