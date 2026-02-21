@@ -1592,16 +1592,15 @@ fn run_job_hook_event(
     event: &str,
     step_idx: usize,
     step_id: Option<&str>,
-    class_name: &str,
+    requirement: &str,
     assert_path: &str,
     target: Option<&str>,
     status: &str,
     failure_message: Option<&str>,
     passed_clauses: i64,
     failed_clauses: i64,
-    must_passed: i64,
-    may_passed: i64,
-    must_not_passed: i64,
+    required_passed: i64,
+    optional_passed: i64,
     summary_json: &mut Value,
     case_id: &str,
     case_type: &str,
@@ -1620,7 +1619,8 @@ fn run_job_hook_event(
         "clause": {
             "index": step_idx,
             "id": step_id,
-            "class": class_name,
+            "requirement": requirement,
+            "required": requirement == "required",
             "assert_path": assert_path,
             "target": target,
         },
@@ -1639,9 +1639,8 @@ fn run_job_hook_event(
         "totals": {
             "passed_clauses": passed_clauses,
             "failed_clauses": failed_clauses,
-            "must_passed": must_passed,
-            "may_passed": may_passed,
-            "must_not_passed": must_not_passed,
+            "required_passed": required_passed,
+            "optional_passed": optional_passed,
         }
     });
     for (hook_idx, expr) in exprs.iter().enumerate() {
@@ -1843,10 +1842,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
         };
         for (raw_key, raw_values) in raw_when {
             let key = raw_key.as_str().unwrap_or("").trim().to_string();
-            if !matches!(
-                key.as_str(),
-                "must" | "may" | "must_not" | "fail" | "complete"
-            ) {
+            if !matches!(key.as_str(), "required" | "optional" | "fail" | "complete") {
                 eprintln!("ERROR: when.unknown_key: {key}");
                 return 1;
             }
@@ -1894,9 +1890,8 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
     let mut summary_json = Value::Null;
     let mut passed_clauses = 0_i64;
     let mut failed_clauses = 0_i64;
-    let mut must_passed = 0_i64;
-    let mut may_passed = 0_i64;
-    let mut must_not_passed = 0_i64;
+    let mut required_passed = 0_i64;
+    let mut optional_passed = 0_i64;
 
     if let Some(contract_map) = case_map
         .get(&YamlValue::String("contract".to_string()))
@@ -1983,14 +1978,12 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             Ok(out)
         };
 
-        let default_class = contract_map
+        let default_required = contract_map
             .get(&YamlValue::String("defaults".to_string()))
             .and_then(|v| v.as_mapping())
-            .and_then(|m| m.get(&YamlValue::String("class".to_string())))
-            .and_then(|v| v.as_str())
-            .unwrap_or("MUST")
-            .trim()
-            .to_string();
+            .and_then(|m| m.get(&YamlValue::String("required".to_string())))
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
         let default_imports = match parse_imports(
             contract_map.get(&YamlValue::String("imports".to_string())),
             "contract",
@@ -2020,16 +2013,49 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 eprintln!("ERROR: contract.steps[{step_idx}] target/on is forbidden; use imports");
                 return 1;
             }
-            let class_name = step_map
-                .get(&YamlValue::String("class".to_string()))
-                .and_then(|v| v.as_str())
-                .unwrap_or(default_class.as_str())
-                .trim()
-                .to_string();
-            if !matches!(class_name.as_str(), "MUST" | "MAY" | "MUST_NOT") {
+            if step_map.contains_key(&YamlValue::String("class".to_string())) {
                 restore_env();
-                eprintln!("ERROR: contract.steps[{step_idx}].class must be MUST, MAY, or MUST_NOT");
+                eprintln!(
+                    "ERROR: contract.steps[{step_idx}].class is removed; use required/priority/severity"
+                );
                 return 1;
+            }
+            let required = match step_map.get(&YamlValue::String("required".to_string())) {
+                None => default_required,
+                Some(v) => {
+                    let Some(val) = v.as_bool() else {
+                        restore_env();
+                        eprintln!("ERROR: contract.steps[{step_idx}].required must be boolean");
+                        return 1;
+                    };
+                    val
+                }
+            };
+            let parse_positive_int = |field: &str| -> Result<i64, String> {
+                match step_map.get(&YamlValue::String(field.to_string())) {
+                    None => Ok(1),
+                    Some(raw) => raw
+                        .as_i64()
+                        .filter(|v| *v >= 1)
+                        .ok_or_else(|| format!("contract.steps[{step_idx}].{field} must be integer >= 1")),
+                }
+            };
+            if let Err(err) = parse_positive_int("priority") {
+                restore_env();
+                eprintln!("ERROR: {err}");
+                return 1;
+            }
+            if let Err(err) = parse_positive_int("severity") {
+                restore_env();
+                eprintln!("ERROR: {err}");
+                return 1;
+            }
+            if let Some(raw_purpose) = step_map.get(&YamlValue::String("purpose".to_string())) {
+                if raw_purpose.as_str().map(str::trim).unwrap_or("").is_empty() {
+                    restore_env();
+                    eprintln!("ERROR: contract.steps[{step_idx}].purpose must be non-empty string");
+                    return 1;
+                }
             }
             let step_id = step_map
                 .get(&YamlValue::String("id".to_string()))
@@ -2076,9 +2102,8 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 vec![raw_assert]
             };
 
-            let mut clause_pass = matches!(class_name.as_str(), "MUST" | "MUST_NOT");
+            let mut clause_pass = true;
             let mut clause_error: Option<String> = None;
-            let mut any_passed = false;
             let target_name: Option<String> = effective_imports.get("subject").cloned();
 
             for (assert_idx, raw_expr) in assert_items.iter().enumerate() {
@@ -2125,61 +2150,35 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                     summary_json = dispatched;
                 }
                 let ok = json_truthy(&result.value);
-                match class_name.as_str() {
-                    "MUST" => {
-                        if !ok {
-                            clause_pass = false;
-                            break;
-                        }
-                    }
-                    "MAY" => {
-                        if ok {
-                            any_passed = true;
-                            break;
-                        }
-                    }
-                    "MUST_NOT" => {
-                        if ok {
-                            clause_pass = false;
-                            break;
-                        }
-                    }
-                    _ => {}
+                if !ok {
+                    clause_pass = false;
+                    break;
                 }
             }
-            if class_name == "MAY" {
-                clause_pass = any_passed && clause_error.is_none();
-            }
+            clause_pass = clause_pass && clause_error.is_none();
+            let requirement_name = if required { "required" } else { "optional" };
 
             if clause_pass {
                 passed_clauses += 1;
-                match class_name.as_str() {
-                    "MUST" => must_passed += 1,
-                    "MAY" => may_passed += 1,
-                    "MUST_NOT" => must_not_passed += 1,
-                    _ => {}
+                if required {
+                    required_passed += 1;
+                } else {
+                    optional_passed += 1;
                 }
-                let hook_event = match class_name.as_str() {
-                    "MUST" => "must",
-                    "MAY" => "may",
-                    "MUST_NOT" => "must_not",
-                    _ => class_name.as_str(),
-                };
                 if let Err(e) = run_job_hook_event(
                     &hook_exprs,
-                    hook_event,
+                    requirement_name,
                     step_idx,
                     step_id,
-                    class_name.as_str(),
+                    requirement_name,
                     &assert_path,
                     target_name.as_deref(),
                     "pass",
                     None,
                     passed_clauses,
                     failed_clauses,
-                    must_passed,
-                    may_passed,
-                    must_not_passed,
+                    required_passed,
+                    optional_passed,
                     &mut summary_json,
                     &case_id,
                     case_type,
@@ -2191,16 +2190,15 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                         "fail",
                         step_idx,
                         step_id,
-                        class_name.as_str(),
+                        requirement_name,
                         &assert_path,
                         target_name.as_deref(),
                         "fail",
                         Some(&e),
                         passed_clauses,
                         failed_clauses,
-                        must_passed,
-                        may_passed,
-                        must_not_passed,
+                        required_passed,
+                        optional_passed,
                         &mut summary_json,
                         &case_id,
                         case_type,
@@ -2218,23 +2216,30 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             }
 
             failed_clauses += 1;
-            let fail_message = clause_error
-                .unwrap_or_else(|| format!("contract clause failed: {}", class_name.as_str()));
+            let fail_message = clause_error.unwrap_or_else(|| {
+                if required {
+                    "contract clause failed: required".to_string()
+                } else {
+                    "contract clause failed: optional".to_string()
+                }
+            });
+            if !required {
+                continue;
+            }
             if let Err(hook_err) = run_job_hook_event(
                 &hook_exprs,
                 "fail",
                 step_idx,
                 step_id,
-                class_name.as_str(),
+                requirement_name,
                 &assert_path,
                 target_name.as_deref(),
                 "fail",
                 Some(&fail_message),
                 passed_clauses,
                 failed_clauses,
-                must_passed,
-                may_passed,
-                must_not_passed,
+                required_passed,
+                optional_passed,
                 &mut summary_json,
                 &case_id,
                 case_type,
@@ -2256,16 +2261,15 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             "complete",
             passed_clauses.saturating_sub(1) as usize,
             None,
-            "MUST",
+            "required",
             "contract",
             None,
             "pass",
             None,
             passed_clauses,
             failed_clauses,
-            must_passed,
-            may_passed,
-            must_not_passed,
+            required_passed,
+            optional_passed,
             &mut summary_json,
             &case_id,
             case_type,
