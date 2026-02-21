@@ -1843,24 +1843,45 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
         .cloned()
         .unwrap_or_default();
     if harness.contains_key(&YamlValue::String("job".to_string())) {
-        eprintln!("ERROR: contract.job requires harness.jobs metadata map");
+        eprintln!("ERROR: contract.job requires harness.jobs metadata list");
         return 1;
     }
     let jobs_yaml = match harness.get(&YamlValue::String("jobs".to_string())) {
         Some(v) => v,
         None => {
-            eprintln!("ERROR: contract.job requires harness.jobs metadata map");
+            eprintln!("ERROR: contract.job requires harness.jobs metadata list");
             return 1;
         }
     };
     let jobs_json = yaml_to_json(jobs_yaml);
-    let jobs_obj = match jobs_json.as_object() {
-        Some(m) if !m.is_empty() => m.clone(),
+    let jobs_list = match jobs_json.as_array() {
+        Some(v) if !v.is_empty() => v,
         _ => {
-            eprintln!("ERROR: harness.jobs must be a non-empty mapping");
+            eprintln!("ERROR: harness.jobs must be a non-empty list");
             return 1;
         }
     };
+    let mut jobs_obj = serde_json::Map::<String, Value>::new();
+    for (idx, row) in jobs_list.iter().enumerate() {
+        let Some(row_obj) = row.as_object() else {
+            eprintln!("ERROR: harness.jobs[{idx}] must be mapping");
+            return 1;
+        };
+        let job_id = row_obj
+            .get("id")
+            .and_then(|v| v.as_str())
+            .map(str::trim)
+            .unwrap_or("");
+        if job_id.is_empty() {
+            eprintln!("ERROR: harness.jobs[{idx}].id is required");
+            return 1;
+        }
+        if jobs_obj.contains_key(job_id) {
+            eprintln!("ERROR: harness.jobs id must be unique: {job_id}");
+            return 1;
+        }
+        jobs_obj.insert(job_id.to_string(), Value::Object(row_obj.clone()));
+    }
 
     let mut input_override = serde_json::Map::<String, Value>::new();
     for (k, v) in input_pairs {
