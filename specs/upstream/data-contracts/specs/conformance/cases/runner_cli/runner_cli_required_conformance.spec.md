@@ -1,5 +1,3 @@
-# Runner CLI Required Conformance
-
 ```yaml contract-spec
 id: DCCONF-RCLI-003
 spec_version: 1

@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-DOCS_OPERABILITY_METRIC
-
 ```yaml contract-spec
 id: DCGOV-STUB-DOCS_OPERABILITY_METRIC
 spec_version: 1

@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-RUNTIME_PYTHON_DEPENDENCY_METRIC
-
 ```yaml contract-spec
 id: DCGOV-STUB-RUNTIME_PYTHON_DEPENDENCY_METRIC
 spec_version: 1

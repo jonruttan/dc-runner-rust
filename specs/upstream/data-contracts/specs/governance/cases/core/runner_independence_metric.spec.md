@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-RUNNER_INDEPENDENCE_METRIC
-
 ```yaml contract-spec
 id: DCGOV-STUB-RUNNER_INDEPENDENCE_METRIC
 spec_version: 1

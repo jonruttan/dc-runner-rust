@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-PACK-003
-
 ```yaml contract-spec
 id: DCGOV-PACK-003
 spec_version: 1

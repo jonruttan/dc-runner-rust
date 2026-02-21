@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-PIPE-INGEST-002
-
 ```yaml contract-spec
 id: DCGOV-PIPE-INGEST-002
 spec_version: 1

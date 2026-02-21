@@ -1,5 +1,3 @@
-# Runner CLI Required Help
-
 ```yaml contract-spec
 id: DCCONF-RCLI-001
 spec_version: 1

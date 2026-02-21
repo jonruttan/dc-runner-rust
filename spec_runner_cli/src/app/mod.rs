@@ -1544,6 +1544,87 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
         ));
     }
     for block in blocks {
+        let parsed: YamlValue = serde_yaml::from_str(&block)
+            .map_err(|e| format!("failed to parse contract-spec block in {}: {e}", path.display()))?;
+        if let Some(map) = parsed.as_mapping() {
+            if map.contains_key(&YamlValue::String("contracts".to_string())) {
+                let suite_defaults = map
+                    .get(&YamlValue::String("defaults".to_string()))
+                    .and_then(|v| v.as_mapping())
+                    .cloned()
+                    .unwrap_or_default();
+                let suite_spec_version = map.get(&YamlValue::String("spec_version".to_string())).cloned();
+                let suite_schema_ref = map.get(&YamlValue::String("schema_ref".to_string())).cloned();
+                let suite_title = map.get(&YamlValue::String("title".to_string())).cloned();
+                let suite_purpose = map.get(&YamlValue::String("purpose".to_string())).cloned();
+                let suite_domain = map.get(&YamlValue::String("domain".to_string())).cloned();
+                let Some(contracts) = map
+                    .get(&YamlValue::String("contracts".to_string()))
+                    .and_then(|v| v.as_sequence())
+                else {
+                    return Err(format!(
+                        "contract-spec suite in {} must include non-empty contracts list",
+                        path.display()
+                    ));
+                };
+                let mut selected: Option<serde_yaml::Mapping> = None;
+                for item in contracts {
+                    let Some(item_map) = item.as_mapping() else {
+                        continue;
+                    };
+                    let item_id = item_map
+                        .get(&YamlValue::String("id".to_string()))
+                        .and_then(|v| v.as_str())
+                        .map(str::to_string);
+                    if let Some(want) = &case_id {
+                        if item_id.as_deref() != Some(want.as_str()) {
+                            continue;
+                        }
+                    } else if selected.is_some() {
+                        continue;
+                    }
+                    let mut merged = suite_defaults.clone();
+                    for (k, v) in item_map {
+                        merged.insert(k.clone(), v.clone());
+                    }
+                    if !merged.contains_key(&YamlValue::String("spec_version".to_string())) {
+                        if let Some(v) = suite_spec_version.clone() {
+                            merged.insert(YamlValue::String("spec_version".to_string()), v);
+                        }
+                    }
+                    if !merged.contains_key(&YamlValue::String("schema_ref".to_string())) {
+                        if let Some(v) = suite_schema_ref.clone() {
+                            merged.insert(YamlValue::String("schema_ref".to_string()), v);
+                        }
+                    }
+                    if !merged.contains_key(&YamlValue::String("title".to_string())) {
+                        if let Some(v) = suite_title.clone() {
+                            merged.insert(YamlValue::String("title".to_string()), v);
+                        }
+                    }
+                    if !merged.contains_key(&YamlValue::String("purpose".to_string())) {
+                        if let Some(v) = suite_purpose.clone() {
+                            merged.insert(YamlValue::String("purpose".to_string()), v);
+                        }
+                    }
+                    if !merged.contains_key(&YamlValue::String("domain".to_string())) {
+                        if let Some(v) = suite_domain.clone() {
+                            merged.insert(YamlValue::String("domain".to_string()), v);
+                        }
+                    }
+                    selected = Some(merged);
+                    if case_id.is_some() {
+                        break;
+                    }
+                }
+                if let Some(found) = selected {
+                    let rendered = serde_yaml::to_string(&YamlValue::Mapping(found))
+                        .map_err(|e| format!("failed to render expanded suite case in {}: {e}", path.display()))?;
+                    return Ok(rendered);
+                }
+                continue;
+            }
+        }
         if let Some(want) = &case_id {
             if block_id(&block).as_deref() != Some(want.as_str()) {
                 continue;
@@ -1894,7 +1975,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
     let mut optional_passed = 0_i64;
 
     if let Some(contract_map) = case_map
-        .get(&YamlValue::String("contract".to_string()))
+        .get(&YamlValue::String("clauses".to_string()))
         .and_then(|v| v.as_mapping())
     {
         let parse_imports = |raw: Option<&YamlValue>,
@@ -1986,7 +2067,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             .unwrap_or(true);
         let default_imports = match parse_imports(
             contract_map.get(&YamlValue::String("imports".to_string())),
-            "contract",
+            "clauses",
         ) {
             Ok(v) => v,
             Err(err) => {
@@ -1996,7 +2077,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             }
         };
         let contract_steps = contract_map
-            .get(&YamlValue::String("steps".to_string()))
+            .get(&YamlValue::String("predicates".to_string()))
             .and_then(|v| v.as_sequence())
             .cloned()
             .unwrap_or_default();
@@ -2010,13 +2091,13 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 || step_map.contains_key(&YamlValue::String("on".to_string()))
             {
                 restore_env();
-                eprintln!("ERROR: contract.steps[{step_idx}] target/on is forbidden; use imports");
+                eprintln!("ERROR: clauses.predicates[{step_idx}] target/on is forbidden; use imports");
                 return 1;
             }
             if step_map.contains_key(&YamlValue::String("class".to_string())) {
                 restore_env();
                 eprintln!(
-                    "ERROR: contract.steps[{step_idx}].class is removed; use required/priority/severity"
+                    "ERROR: clauses.predicates[{step_idx}].class is removed; use required/priority/severity"
                 );
                 return 1;
             }
@@ -2025,7 +2106,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 Some(v) => {
                     let Some(val) = v.as_bool() else {
                         restore_env();
-                        eprintln!("ERROR: contract.steps[{step_idx}].required must be boolean");
+                        eprintln!("ERROR: clauses.predicates[{step_idx}].required must be boolean");
                         return 1;
                     };
                     val
@@ -2037,7 +2118,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                     Some(raw) => raw
                         .as_i64()
                         .filter(|v| *v >= 1)
-                        .ok_or_else(|| format!("contract.steps[{step_idx}].{field} must be integer >= 1")),
+                        .ok_or_else(|| format!("clauses.predicates[{step_idx}].{field} must be integer >= 1")),
                 }
             };
             if let Err(err) = parse_positive_int("priority") {
@@ -2053,7 +2134,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             if let Some(raw_purpose) = step_map.get(&YamlValue::String("purpose".to_string())) {
                 if raw_purpose.as_str().map(str::trim).unwrap_or("").is_empty() {
                     restore_env();
-                    eprintln!("ERROR: contract.steps[{step_idx}].purpose must be non-empty string");
+                    eprintln!("ERROR: clauses.predicates[{step_idx}].purpose must be non-empty string");
                     return 1;
                 }
             }
@@ -2063,13 +2144,13 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 .map(str::trim)
                 .filter(|s| !s.is_empty());
             let assert_path = if let Some(id) = step_id {
-                format!("contract.steps[{step_idx}]<{id}>")
+                format!("clauses.predicates[{step_idx}]<{id}>")
             } else {
-                format!("contract.steps[{step_idx}]")
+                format!("clauses.predicates[{step_idx}]")
             };
             let step_imports = match parse_imports(
                 step_map.get(&YamlValue::String("imports".to_string())),
-                &format!("contract.steps[{step_idx}]"),
+                &format!("clauses.predicates[{step_idx}]"),
             ) {
                 Ok(v) => v,
                 Err(err) => {
@@ -2087,14 +2168,14 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 Some(v) => v,
                 None => {
                     restore_env();
-                    eprintln!("ERROR: contract.steps[{step_idx}].assert is required");
+                    eprintln!("ERROR: clauses.predicates[{step_idx}].assert is required");
                     return 1;
                 }
             };
             let assert_items: Vec<&YamlValue> = if let Some(seq) = raw_assert.as_sequence() {
                 if seq.is_empty() {
                     restore_env();
-                    eprintln!("ERROR: contract.steps[{step_idx}].assert must be non-empty");
+                    eprintln!("ERROR: clauses.predicates[{step_idx}].assert must be non-empty");
                     return 1;
                 }
                 seq.iter().collect()
@@ -2362,12 +2443,23 @@ fn parse_validate_report_expr_from_case(case_block: &str, spec_ref: &str) -> Res
             ))
         }
     };
-    let assert_node = root
-        .get(&YamlValue::String("contract".to_string()))
-        .ok_or_else(|| format!("missing contract in producer case: {spec_ref}"))?;
-    let assert_seq = match assert_node {
+    let clauses_node = root
+        .get(&YamlValue::String("clauses".to_string()))
+        .ok_or_else(|| format!("missing clauses in producer case: {spec_ref}"))?;
+    let clauses_map = match clauses_node {
+        YamlValue::Mapping(m) => m,
+        _ => return Err(format!("producer clauses must be mapping: {spec_ref}")),
+    };
+    let assert_seq = clauses_map
+        .get(&YamlValue::String("predicates".to_string()))
+        .ok_or_else(|| format!("missing clauses.predicates in producer case: {spec_ref}"))?;
+    let assert_seq = match assert_seq {
         YamlValue::Sequence(seq) => seq,
-        _ => return Err(format!("producer contract must be sequence: {spec_ref}")),
+        _ => {
+            return Err(format!(
+                "producer clauses.predicates must be sequence: {spec_ref}"
+            ))
+        }
     };
     let target_step_id = "__export__domain.conformance.validate_report_errors";
     for step in assert_seq {
@@ -2386,19 +2478,20 @@ fn parse_validate_report_expr_from_case(case_block: &str, spec_ref: &str) -> Res
             continue;
         }
         let checks = step_map
-            .get(&YamlValue::String("asserts".to_string()))
-            .ok_or_else(|| format!("producer step missing asserts: {target_step_id}"))?;
-        let check_seq = match checks {
-            YamlValue::Sequence(seq) => seq,
+            .get(&YamlValue::String("assert".to_string()))
+            .ok_or_else(|| format!("producer predicate missing assert: {target_step_id}"))?;
+        let check_seq: Vec<YamlValue> = match checks {
+            YamlValue::Sequence(seq) => seq.clone(),
+            YamlValue::Mapping(_) => vec![checks.clone()],
             _ => {
                 return Err(format!(
-                    "producer asserts must be sequence: {target_step_id}"
+                    "producer predicate assert must be mapping or sequence: {target_step_id}"
                 ))
             }
         };
         if check_seq.len() != 1 {
             return Err(format!(
-                "producer asserts must contain exactly one expression: {target_step_id}"
+                "producer predicate assert must contain exactly one expression: {target_step_id}"
             ));
         }
         return Ok(yaml_to_json(&normalize_evaluate_yaml_expr(&check_seq[0])));

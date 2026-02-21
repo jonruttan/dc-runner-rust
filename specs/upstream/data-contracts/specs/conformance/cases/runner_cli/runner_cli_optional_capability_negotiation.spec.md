@@ -1,5 +1,3 @@
-# Runner CLI Optional Capability Negotiation
-
 ```yaml contract-spec
 id: DCCONF-RCLI-005
 spec_version: 1

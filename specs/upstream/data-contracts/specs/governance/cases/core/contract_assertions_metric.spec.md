@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-CONTRACT_ASSERTIONS_METRIC
-
 ```yaml contract-spec
 id: DCGOV-STUB-CONTRACT_ASSERTIONS_METRIC
 spec_version: 1

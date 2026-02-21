@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-RUNTIME-SHELL-002
-
 ```yaml contract-spec
 id: DCGOV-RUNTIME-SHELL-002
 spec_version: 1

@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-SPEC_LANG_ADOPTION_METRIC
-
 ```yaml contract-spec
 id: DCGOV-STUB-SPEC_LANG_ADOPTION_METRIC
 spec_version: 1

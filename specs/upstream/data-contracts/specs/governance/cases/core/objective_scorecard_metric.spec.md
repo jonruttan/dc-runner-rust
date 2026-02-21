@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-OBJECTIVE_SCORECARD_METRIC
-
 ```yaml contract-spec
 id: DCGOV-STUB-OBJECTIVE_SCORECARD_METRIC
 spec_version: 1

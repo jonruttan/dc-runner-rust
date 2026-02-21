@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-CONFORMANCE_SPEC_LANG_PREFERRED
-
 ```yaml contract-spec
 id: DCGOV-STUB-CONFORMANCE_SPEC_LANG_PREFERRED
 spec_version: 1

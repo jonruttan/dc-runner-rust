@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-PIPE-SCHEMA-001
-
 ```yaml contract-spec
 id: DCGOV-PIPE-SCHEMA-001
 spec_version: 1

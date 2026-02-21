@@ -1,7 +1,3 @@
-# Governance Cases
-
-## DCGOV-STUB-CONFORMANCE_NO_AMBIENT_ASSUMPTIONS
-
 ```yaml contract-spec
 id: DCGOV-STUB-CONFORMANCE_NO_AMBIENT_ASSUMPTIONS
 spec_version: 1

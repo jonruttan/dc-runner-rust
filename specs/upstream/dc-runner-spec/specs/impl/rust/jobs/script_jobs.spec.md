@@ -1,7 +1,3 @@
-# Rust Job Script Cases
-
-## DCIMPL-RUST-JOB-001
-
 ```yaml contract-spec
 id: DCIMPL-RUST-JOB-001
 title: governance scan bundle helper smoke
@@ -68,7 +64,6 @@ when:
     - on_complete
 ```
 
-## DCIMPL-RUST-JOB-002
 
 ```yaml contract-spec
 id: DCIMPL-RUST-JOB-002
@@ -131,7 +126,6 @@ when:
     - on_complete
 ```
 
-## DCIMPL-RUST-JOB-003
 
 ```yaml contract-spec
 id: DCIMPL-RUST-JOB-003

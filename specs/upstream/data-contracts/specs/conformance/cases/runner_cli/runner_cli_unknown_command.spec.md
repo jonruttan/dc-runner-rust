@@ -1,5 +1,3 @@
-# Runner CLI Unknown Command
-
 ```yaml contract-spec
 id: DCCONF-RCLI-004
 spec_version: 1

@@ -1,5 +1,3 @@
-# Runner CLI Required Governance
-
 ```yaml contract-spec
 id: DCCONF-RCLI-002
 spec_version: 1
