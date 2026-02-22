@@ -106,9 +106,8 @@ mod tests {
 
     #[test]
     fn parse_job_ref_accepts_path_and_fragment() {
-        let got =
-            parse_job_ref("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001")
-                .expect("parse");
+        let got = parse_job_ref("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001")
+            .expect("parse");
         assert_eq!(
             got.0.as_deref(),
             Some("/specs/impl/rust/jobs/script_jobs.spec.md")

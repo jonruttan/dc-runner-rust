@@ -165,6 +165,8 @@ pub enum CommandGroup {
     DocsLint(PassthroughArgs),
     #[command(name = "docs-graph", hide = true)]
     DocsGraph(PassthroughArgs),
+    #[command(name = "service-plugin-check", hide = true)]
+    ServicePluginCheck(PassthroughArgs),
     #[command(name = "help-advanced")]
     HelpAdvanced,
 }

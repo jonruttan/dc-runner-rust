@@ -16,7 +16,10 @@ pub struct ParsedEntry {
 }
 
 fn looks_like_governance_group_subcommand(token: &str) -> bool {
-    matches!(token, "run" | "heavy" | "broad" | "critical" | "--help" | "-h")
+    matches!(
+        token,
+        "run" | "heavy" | "broad" | "critical" | "--help" | "-h"
+    )
 }
 
 fn apply_global_env(cli: &Cli) {
@@ -128,20 +131,34 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             ReportsSubcommand::ConformancePurposeJson => {
                 map_passthrough("conformance-purpose-json", vec![])
             }
-            ReportsSubcommand::ConformancePurposeMd => map_passthrough("conformance-purpose-md", vec![]),
+            ReportsSubcommand::ConformancePurposeMd => {
+                map_passthrough("conformance-purpose-md", vec![])
+            }
             ReportsSubcommand::RunnerIndependenceJson => {
                 map_passthrough("runner-independence-json", vec![])
             }
             ReportsSubcommand::RunnerIndependenceMd => {
                 map_passthrough("runner-independence-md", vec![])
             }
-            ReportsSubcommand::PythonDependencyJson => map_passthrough("python-dependency-json", vec![]),
-            ReportsSubcommand::PythonDependencyMd => map_passthrough("python-dependency-md", vec![]),
-            ReportsSubcommand::SpecPortabilityJson => map_passthrough("spec-portability-json", vec![]),
+            ReportsSubcommand::PythonDependencyJson => {
+                map_passthrough("python-dependency-json", vec![])
+            }
+            ReportsSubcommand::PythonDependencyMd => {
+                map_passthrough("python-dependency-md", vec![])
+            }
+            ReportsSubcommand::SpecPortabilityJson => {
+                map_passthrough("spec-portability-json", vec![])
+            }
             ReportsSubcommand::SpecPortabilityMd => map_passthrough("spec-portability-md", vec![]),
-            ReportsSubcommand::SpecLangAdoptionJson => map_passthrough("spec-lang-adoption-json", vec![]),
-            ReportsSubcommand::SpecLangAdoptionMd => map_passthrough("spec-lang-adoption-md", vec![]),
-            ReportsSubcommand::DocsOperabilityJson => map_passthrough("docs-operability-json", vec![]),
+            ReportsSubcommand::SpecLangAdoptionJson => {
+                map_passthrough("spec-lang-adoption-json", vec![])
+            }
+            ReportsSubcommand::SpecLangAdoptionMd => {
+                map_passthrough("spec-lang-adoption-md", vec![])
+            }
+            ReportsSubcommand::DocsOperabilityJson => {
+                map_passthrough("docs-operability-json", vec![])
+            }
             ReportsSubcommand::DocsOperabilityMd => map_passthrough("docs-operability-md", vec![]),
             ReportsSubcommand::ContractAssertionsJson => {
                 map_passthrough("contract-assertions-json", vec![])
@@ -152,8 +169,12 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             ReportsSubcommand::ObjectiveScorecardJson => {
                 map_passthrough("objective-scorecard-json", vec![])
             }
-            ReportsSubcommand::ObjectiveScorecardMd => map_passthrough("objective-scorecard-md", vec![]),
-            ReportsSubcommand::SpecLangStdlibJson => map_passthrough("spec-lang-stdlib-json", vec![]),
+            ReportsSubcommand::ObjectiveScorecardMd => {
+                map_passthrough("objective-scorecard-md", vec![])
+            }
+            ReportsSubcommand::SpecLangStdlibJson => {
+                map_passthrough("spec-lang-stdlib-json", vec![])
+            }
             ReportsSubcommand::SpecLangStdlibMd => map_passthrough("spec-lang-stdlib-md", vec![]),
         },
         CommandGroup::Ci(c) => match c.command {
@@ -166,9 +187,13 @@ fn from_cli(cli: Cli) -> ParsedEntry {
         CommandGroup::Lint(x) => map_passthrough("lint", x.args),
         CommandGroup::Typecheck(x) => map_passthrough("typecheck", x.args),
         CommandGroup::Compilecheck(x) => map_passthrough("compilecheck", x.args),
-        CommandGroup::ConformancePurposeJson(x) => map_passthrough("conformance-purpose-json", x.args),
+        CommandGroup::ConformancePurposeJson(x) => {
+            map_passthrough("conformance-purpose-json", x.args)
+        }
         CommandGroup::ConformancePurposeMd(x) => map_passthrough("conformance-purpose-md", x.args),
-        CommandGroup::RunnerIndependenceJson(x) => map_passthrough("runner-independence-json", x.args),
+        CommandGroup::RunnerIndependenceJson(x) => {
+            map_passthrough("runner-independence-json", x.args)
+        }
         CommandGroup::RunnerIndependenceMd(x) => map_passthrough("runner-independence-md", x.args),
         CommandGroup::PythonDependencyJson(x) => map_passthrough("python-dependency-json", x.args),
         CommandGroup::PythonDependencyMd(x) => map_passthrough("python-dependency-md", x.args),
@@ -182,7 +207,9 @@ fn from_cli(cli: Cli) -> ParsedEntry {
         CommandGroup::JobRun(x) => map_passthrough("job-run", x.args),
         CommandGroup::SpecEval(x) => map_passthrough("spec-eval", x.args),
         CommandGroup::CriticalGate(x) => map_passthrough("critical-gate", x.args),
-        CommandGroup::GovernanceBroadNative(x) => map_passthrough("governance-broad-native", x.args),
+        CommandGroup::GovernanceBroadNative(x) => {
+            map_passthrough("governance-broad-native", x.args)
+        }
         CommandGroup::SpecRef(x) => map_passthrough("spec-ref", x.args),
         CommandGroup::ValidateReport(x) => map_passthrough("validate-report", x.args),
         CommandGroup::GovernanceHeavy(x) => map_passthrough("governance-heavy", x.args),
@@ -212,9 +239,13 @@ fn from_cli(cli: Cli) -> ParsedEntry {
         CommandGroup::SpecLangAdoptionMd(x) => map_passthrough("spec-lang-adoption-md", x.args),
         CommandGroup::DocsOperabilityJson(x) => map_passthrough("docs-operability-json", x.args),
         CommandGroup::DocsOperabilityMd(x) => map_passthrough("docs-operability-md", x.args),
-        CommandGroup::ContractAssertionsJson(x) => map_passthrough("contract-assertions-json", x.args),
+        CommandGroup::ContractAssertionsJson(x) => {
+            map_passthrough("contract-assertions-json", x.args)
+        }
         CommandGroup::ContractAssertionsMd(x) => map_passthrough("contract-assertions-md", x.args),
-        CommandGroup::ObjectiveScorecardJson(x) => map_passthrough("objective-scorecard-json", x.args),
+        CommandGroup::ObjectiveScorecardJson(x) => {
+            map_passthrough("objective-scorecard-json", x.args)
+        }
         CommandGroup::ObjectiveScorecardMd(x) => map_passthrough("objective-scorecard-md", x.args),
         CommandGroup::SpecLangStdlibJson(x) => map_passthrough("spec-lang-stdlib-json", x.args),
         CommandGroup::SpecLangStdlibMd(x) => map_passthrough("spec-lang-stdlib-md", x.args),
@@ -224,6 +255,7 @@ fn from_cli(cli: Cli) -> ParsedEntry {
         CommandGroup::DocsBuildCheck(x) => map_passthrough("docs-build-check", x.args),
         CommandGroup::DocsLint(x) => map_passthrough("docs-lint", x.args),
         CommandGroup::DocsGraph(x) => map_passthrough("docs-graph", x.args),
+        CommandGroup::ServicePluginCheck(x) => map_passthrough("service-plugin-check", x.args),
         CommandGroup::HelpAdvanced => map_passthrough("help-advanced", vec![]),
     }
 }
@@ -236,7 +268,9 @@ pub fn parse_entry(args: &[String]) -> Result<ParsedEntry, i32> {
         println!("  spec_runner_cli --help");
         return Err(0);
     }
-    if args.iter().any(|arg| arg == "--help-advanced") || (args.len() > 1 && args[1] == "help-advanced") {
+    if args.iter().any(|arg| arg == "--help-advanced")
+        || (args.len() > 1 && args[1] == "help-advanced")
+    {
         println!("{}", crate::cli::help::ADVANCED_HELP);
         return Err(0);
     }
@@ -285,7 +319,10 @@ mod tests {
         let args = argv(&["spec_runner_cli", "job-run", "--ref", "#CASE"]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "job-run");
-        assert_eq!(parsed.forwarded, vec!["--ref".to_string(), "#CASE".to_string()]);
+        assert_eq!(
+            parsed.forwarded,
+            vec!["--ref".to_string(), "#CASE".to_string()]
+        );
     }
 
     #[test]

@@ -110,17 +110,15 @@ pub fn print_specs(cases: &[SpecCase], format: OutputFormat) {
             }
         }
         OutputFormat::Json => {
-            let payload = json!(
-                cases
-                    .iter()
-                    .map(|c| {
-                        json!({
-                            "ref": format!("{}#{}", c.spec_file, c.case_id),
-                            "type": c.case_type
-                        })
+            let payload = json!(cases
+                .iter()
+                .map(|c| {
+                    json!({
+                        "ref": format!("{}#{}", c.spec_file, c.case_id),
+                        "type": c.case_type
                     })
-                    .collect::<Vec<_>>()
-            );
+                })
+                .collect::<Vec<_>>());
             println!(
                 "{}",
                 serde_json::to_string_pretty(&payload).unwrap_or_else(|_| "[]".to_string())
@@ -173,7 +171,13 @@ mod tests {
 
     #[test]
     fn normalize_ref_adds_root_slash() {
-        assert_eq!(normalize_spec_ref("specs/a.spec.md#ID"), "/specs/a.spec.md#ID");
-        assert_eq!(normalize_spec_ref("/specs/a.spec.md#ID"), "/specs/a.spec.md#ID");
+        assert_eq!(
+            normalize_spec_ref("specs/a.spec.md#ID"),
+            "/specs/a.spec.md#ID"
+        );
+        assert_eq!(
+            normalize_spec_ref("/specs/a.spec.md#ID"),
+            "/specs/a.spec.md#ID"
+        );
     }
 }

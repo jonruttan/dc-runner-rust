@@ -17,6 +17,11 @@ use crate::migrators::{
     run_migrate_library_docs_metadata_v1,
 };
 use crate::profiler::{profile_options_from_env, RunProfiler};
+use crate::service_registry::{resolve_exact, validate_imports_subset};
+use crate::service_runtime::{
+    parse_lock, parse_manifest, resolve_implementation_lock_opt_in, validate_lock,
+    validate_manifest, verify_local_binary_digest, ServiceImplementationKind,
+};
 use crate::services::gate_summary::summarize as summarize_gate;
 use crate::services::specs_ui;
 use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
@@ -626,6 +631,206 @@ fn run_normalize_mode(root: &Path, forwarded: &[String], fix: bool) -> i32 {
         eprintln!("ERROR: normalization check failed: {violations} file(s) require fixes");
         1
     }
+}
+
+pub(super) fn run_service_plugin_check_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut manifest_path: Option<PathBuf> = None;
+    let mut lock_path: Option<PathBuf> = None;
+    let mut service_type: Option<String> = None;
+    let mut profile: Option<String> = None;
+    let mut imports_csv: Option<String> = None;
+
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--manifest" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --manifest requires value");
+                    return 2;
+                }
+                manifest_path = Some(root.join(&forwarded[i + 1]));
+                i += 2;
+            }
+            "--lock" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --lock requires value");
+                    return 2;
+                }
+                lock_path = Some(root.join(&forwarded[i + 1]));
+                i += 2;
+            }
+            "--service-type" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --service-type requires value");
+                    return 2;
+                }
+                service_type = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--profile" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --profile requires value");
+                    return 2;
+                }
+                profile = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--imports" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --imports requires value");
+                    return 2;
+                }
+                imports_csv = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--help" | "-h" => {
+                println!(
+                    "usage: service-plugin-check [--manifest <path>] [--lock <path>] [--service-type <io.*>] [--profile <name>] [--imports a,b,c]"
+                );
+                return 0;
+            }
+            other => {
+                eprintln!("ERROR: unsupported service-plugin-check arg: {other}");
+                return 2;
+            }
+        }
+    }
+
+    if manifest_path.is_none() {
+        let default = root.join("specs/schema/service_plugin_manifest_v1.yaml");
+        if default.exists() {
+            manifest_path = Some(default);
+        }
+    }
+    if lock_path.is_none() {
+        let default = root.join("specs/schema/service_plugin_lock_v1.yaml");
+        if default.exists() {
+            lock_path = Some(default);
+        }
+    }
+
+    let manifest = if let Some(path) = manifest_path.as_ref() {
+        match parse_manifest(path) {
+            Ok(manifest) => {
+                if let Err(e) = validate_manifest(&manifest) {
+                    eprintln!("ERROR: {e}");
+                    return 2;
+                }
+                Some(manifest)
+            }
+            Err(e) => {
+                eprintln!("ERROR: {e}");
+                return 2;
+            }
+        }
+    } else {
+        None
+    };
+
+    let lock = if let Some(path) = lock_path.as_ref() {
+        match parse_lock(path) {
+            Ok(lock) => {
+                if let Err(e) = validate_lock(&lock) {
+                    eprintln!("ERROR: {e}");
+                    return 2;
+                }
+                Some(lock)
+            }
+            Err(e) => {
+                eprintln!("ERROR: {e}");
+                return 2;
+            }
+        }
+    } else {
+        None
+    };
+
+    if let (Some(st), Some(pf)) = (service_type.as_ref(), profile.as_ref()) {
+        let builtin = match resolve_exact(st, pf) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: {e}");
+                return 2;
+            }
+        };
+        let resolved = match resolve_implementation_lock_opt_in(
+            st,
+            pf,
+            &builtin,
+            lock.as_ref(),
+            manifest.as_ref(),
+        ) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: {e}");
+                return 2;
+            }
+        };
+
+        let declared_imports: Vec<String> = imports_csv
+            .as_ref()
+            .map(|raw| {
+                raw.split(',')
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let import_check_target = crate::service_registry::ResolvedServiceImplementation {
+            implementation_id: resolved.implementation_id.clone(),
+            service_type: resolved.service_type.clone(),
+            profile: resolved.profile.clone(),
+            imports: resolved.imports.clone(),
+            packaging_mode: match resolved.kind {
+                ServiceImplementationKind::Builtin => "builtin".to_string(),
+                ServiceImplementationKind::Plugin => "plugin".to_string(),
+            },
+        };
+        if let Err(e) = validate_imports_subset(&import_check_target, &declared_imports) {
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+
+        if resolved.kind == ServiceImplementationKind::Plugin {
+            let Some(manifest_ref) = manifest.as_ref() else {
+                eprintln!("ERROR: runtime.plugin.manifest.required_for_locked_service: {st}/{pf}");
+                return 2;
+            };
+            let Some(digest) = resolved.digest.as_ref() else {
+                eprintln!("ERROR: runtime.plugin.lock.digest_required: {st}/{pf}");
+                return 2;
+            };
+            let binary_path = if Path::new(&manifest_ref.binary.path).is_absolute() {
+                PathBuf::from(&manifest_ref.binary.path)
+            } else if let Some(manifest_file) = manifest_path.as_ref() {
+                manifest_file
+                    .parent()
+                    .unwrap_or(root)
+                    .join(&manifest_ref.binary.path)
+            } else {
+                root.join(&manifest_ref.binary.path)
+            };
+            if let Err(e) = verify_local_binary_digest(&binary_path, digest) {
+                eprintln!("ERROR: {e}");
+                return 2;
+            }
+        }
+        println!(
+            "OK: service-plugin-check resolved {} {} via {} ({})",
+            st,
+            pf,
+            resolved.implementation_id,
+            match resolved.kind {
+                ServiceImplementationKind::Builtin => "builtin",
+                ServiceImplementationKind::Plugin => "plugin",
+            }
+        );
+        return 0;
+    }
+
+    println!("OK: service-plugin-check passed");
+    0
 }
 
 fn normalize_step_metadata_from_command(root: &Path, command: &[String]) -> (String, Option<i64>) {

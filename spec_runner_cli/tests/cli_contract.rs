@@ -29,7 +29,8 @@ fn required_contract_subcommands() -> Vec<String> {
     let governance_case = root.join(
         "specs/upstream/data-contracts/specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md",
     );
-    let contract_doc = root.join("specs/upstream/data-contracts/specs/contract/12_runner_interface.md");
+    let contract_doc =
+        root.join("specs/upstream/data-contracts/specs/contract/12_runner_interface.md");
     let text = fs::read_to_string(&governance_case)
         .or_else(|_| fs::read_to_string(&contract_doc))
         .expect("read contract file");
@@ -101,8 +102,8 @@ fn required_contract_subcommands() -> Vec<String> {
 }
 
 fn dispatched_subcommands_from_source() -> HashSet<String> {
-    let src =
-        fs::read_to_string(repo_root().join("spec_runner_cli/src/app/dispatch.rs")).expect("read app source");
+    let src = fs::read_to_string(repo_root().join("spec_runner_cli/src/app/dispatch.rs"))
+        .expect("read app source");
     let mut set = HashSet::new();
     for line in src.lines() {
         let trimmed = line.trim_start();
@@ -122,10 +123,16 @@ fn dispatched_subcommands_from_source() -> HashSet<String> {
 #[test]
 fn required_contract_subcommands_are_dispatched() {
     let required = required_contract_subcommands();
-    assert!(!required.is_empty(), "expected non-empty required subcommands");
+    assert!(
+        !required.is_empty(),
+        "expected non-empty required subcommands"
+    );
     let dispatched = dispatched_subcommands_from_source();
     for cmd in required {
-        assert!(dispatched.contains(&cmd), "missing dispatch handler for required command: {cmd}");
+        assert!(
+            dispatched.contains(&cmd),
+            "missing dispatch handler for required command: {cmd}"
+        );
     }
 }
 
@@ -172,9 +179,22 @@ fn ci_gate_summary_writes_outputs() {
         "--runner-bin",
         runner_bin,
     ]);
-    assert_ne!(code, 2, "ci-gate-summary should not fail as usage/config error");
-    assert!(out.is_file(), "missing gate summary at {} ; stderr: {}", out.display(), stderr);
-    assert!(trace.is_file(), "missing gate trace at {} ; stderr: {}", trace.display(), stderr);
+    assert_ne!(
+        code, 2,
+        "ci-gate-summary should not fail as usage/config error"
+    );
+    assert!(
+        out.is_file(),
+        "missing gate summary at {} ; stderr: {}",
+        out.display(),
+        stderr
+    );
+    assert!(
+        trace.is_file(),
+        "missing gate trace at {} ; stderr: {}",
+        trace.display(),
+        stderr
+    );
 }
 
 #[test]
