@@ -1976,6 +1976,48 @@ fn block_id(block: &str) -> Option<String> {
     crate::domain::refs::block_id(block)
 }
 
+fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> Result<(), String> {
+    let path_text = path.to_string_lossy();
+    if !path_text.contains("dc-runner-spec") {
+        return Ok(());
+    }
+
+    let expected_schema_ref = "/specs/01_schema/schema_v1.md";
+    let schema_ref = case_map
+        .get(&YamlValue::String("schema_ref".to_string()))
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| {
+            format!(
+                "dc-runner-spec cases must set `schema_ref: {expected_schema_ref}` in {}",
+                path.display()
+            )
+        })?;
+    if schema_ref != expected_schema_ref {
+        return Err(format!(
+            "dc-runner-spec cases must set canonical schema authority via `schema_ref: {expected_schema_ref}` (found `{schema_ref}` in {})",
+            path.display()
+        ));
+    }
+
+    let spec_version = case_map
+        .get(&YamlValue::String("spec_version".to_string()))
+        .and_then(|v| v.as_i64())
+        .ok_or_else(|| {
+            format!(
+                "dc-runner-spec cases must set `spec_version: 1` in {}",
+                path.display()
+            )
+        })?;
+    if spec_version != 1 {
+        return Err(format!(
+            "dc-runner-spec cases must set `spec_version: 1` (found `{spec_version}` in {})",
+            path.display()
+        ));
+    }
+
+    Ok(())
+}
+
 fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, String> {
     let (path_raw, case_id) = parse_spec_ref(spec_ref)?;
     let rel = path_raw.trim_start_matches('/');
@@ -2108,6 +2150,7 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
                     }
                 }
                 if let Some(found) = selected {
+                    enforce_runner_spec_boundary(&path, &found)?;
                     let rendered =
                         serde_yaml::to_string(&YamlValue::Mapping(found)).map_err(|e| {
                             format!(
@@ -2124,6 +2167,9 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
             if block_id(&block).as_deref() != Some(want.as_str()) {
                 continue;
             }
+        }
+        if let Some(map) = parsed.as_mapping() {
+            enforce_runner_spec_boundary(&path, map)?;
         }
         return Ok(block);
     }
@@ -4290,6 +4336,39 @@ contracts:
                 .expect("load case");
         assert!(out.contains("id: CASE-LEGACY-001"));
         assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn load_case_block_rejects_runner_spec_non_canonical_schema_ref() {
+        let base = std::env::temp_dir().join(format!(
+            "dc-runner-spec-boundary-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        let spec_dir = base.join("specs");
+        std::fs::create_dir_all(&spec_dir).expect("mkdir");
+        let spec_path = spec_dir.join("shape.spec.md");
+        let md = r#"```yaml contract-spec
+spec_version: 1
+schema_ref: /specs/local/schema.md
+contracts:
+  clauses:
+  - id: CASE-001
+    asserts:
+      checks:
+      - id: assert_1
+        assert:
+          lit: true
+```"#;
+        std::fs::write(&spec_path, md).expect("write");
+
+        let err = load_case_block_from_spec_ref(&base, "/specs/shape.spec.md#CASE-001")
+            .expect_err("expected boundary error");
+        assert!(err.contains("canonical schema authority"));
 
         let _ = std::fs::remove_dir_all(&base);
     }
