@@ -697,13 +697,13 @@ pub(super) fn run_service_plugin_check_native(root: &Path, forwarded: &[String])
     }
 
     if manifest_path.is_none() {
-        let default = root.join("specs/schema/service_plugin_manifest_v1.yaml");
+        let default = root.join("specs/01_schema/service_plugin_manifest_v1.yaml");
         if default.exists() {
             manifest_path = Some(default);
         }
     }
     if lock_path.is_none() {
-        let default = root.join("specs/schema/service_plugin_lock_v1.yaml");
+        let default = root.join("specs/01_schema/service_plugin_lock_v1.yaml");
         if default.exists() {
             lock_path = Some(default);
         }
@@ -916,12 +916,12 @@ fn run_schema_docs_native(root: &Path, forwarded: &[String], check: bool) -> i32
         eprintln!("ERROR: schema-docs command does not accept extra args");
         return 2;
     }
-    let schema_root = root.join("specs").join("schema");
+    let schema_root = root.join("specs").join("01_schema");
     if !schema_root.exists() {
         eprintln!("ERROR: missing schema root: {}", schema_root.display());
         return 1;
     }
-    let registry = schema_root.join("registry").join("v1");
+    let registry = schema_root.join("registry").join("v2");
     if !registry.exists() {
         eprintln!("ERROR: missing schema registry: {}", registry.display());
         return 1;
@@ -929,7 +929,7 @@ fn run_schema_docs_native(root: &Path, forwarded: &[String], check: bool) -> i32
     let out = root.join(".artifacts").join("schema-docs-summary.md");
     let mut content = String::new();
     content.push_str("# Schema Docs Summary\n\n");
-    content.push_str("- source: `specs/schema`\n");
+    content.push_str("- source: `specs/01_schema`\n");
     content.push_str("- status: `ok`\n");
     if check {
         if !out.exists() {
@@ -1267,9 +1267,9 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
     }
 
     let registry_candidates = [
-        root.join("specs/schema/runner_certification_registry_v2.yaml"),
+        root.join("specs/01_schema/runner_certification_registry_v2.yaml"),
         root.join(
-            "specs/upstream/data-contracts/specs/schema/runner_certification_registry_v2.yaml",
+            "specs/upstream/data-contracts/specs/01_schema/runner_certification_registry_v2.yaml",
         ),
     ];
     let mut registry_path: Option<PathBuf> = None;
@@ -1810,7 +1810,7 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
         "required_core_cases": required_core_cases_norm,
         "command_contract_subset": command_contract_subset_norm,
         "registry_ref": {
-            "path": "/specs/schema/runner_certification_registry_v2.yaml",
+            "path": "/specs/01_schema/runner_certification_registry_v2.yaml",
             "version": 2
         }
     });
@@ -2012,15 +2012,33 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
                 let suite_title = map.get(&YamlValue::String("title".to_string())).cloned();
                 let suite_purpose = map.get(&YamlValue::String("purpose".to_string())).cloned();
                 let suite_domain = map.get(&YamlValue::String("domain".to_string())).cloned();
-                let Some(contracts) = map
-                    .get(&YamlValue::String("contracts".to_string()))
-                    .and_then(|v| v.as_sequence())
-                else {
+                let contracts_val = map.get(&YamlValue::String("contracts".to_string()));
+                let contracts: Vec<&YamlValue> =
+                    if let Some(seq) = contracts_val.and_then(|v| v.as_sequence()) {
+                        seq.iter().collect()
+                    } else if let Some(contracts_map) = contracts_val.and_then(|v| v.as_mapping()) {
+                        if let Some(seq) = contracts_map
+                            .get(&YamlValue::String("clauses".to_string()))
+                            .and_then(|v| v.as_sequence())
+                        {
+                            seq.iter().collect()
+                        } else if let Some(seq) = contracts_map
+                            .get(&YamlValue::String("asserts".to_string()))
+                            .and_then(|v| v.as_sequence())
+                        {
+                            seq.iter().collect()
+                        } else {
+                            Vec::new()
+                        }
+                    } else {
+                        Vec::new()
+                    };
+                if contracts.is_empty() {
                     return Err(format!(
-                        "contract-spec suite in {} must include non-empty contracts list",
+                        "contract-spec suite in {} must include non-empty contracts list or contracts.clauses list",
                         path.display()
                     ));
-                };
+                }
                 let mut selected: Option<serde_yaml::Mapping> = None;
                 for item in contracts {
                     let Some(item_map) = item.as_mapping() else {
@@ -3384,7 +3402,7 @@ fn run_command_capture_code(command: &[String], root: &Path) -> i32 {
 
 fn collect_unit_test_opt_out(root: &Path) -> Value {
     let tests_root = root.join("tests");
-    let baseline_path = root.join("specs/governance/metrics/unit_test_opt_out_baseline.json");
+    let baseline_path = root.join("specs/04_governance/metrics/unit_test_opt_out_baseline.json");
     let mut total = 0_i64;
     let mut opted_out = 0_i64;
     let prefix = "# SPEC-OPT-OUT:";
@@ -4168,5 +4186,76 @@ after
     fn run_spec_ref_print_returns_nonzero_for_unknown() {
         let code = run_spec_ref_print("unknown-command");
         assert_ne!(code, 0);
+    }
+
+    #[test]
+    fn load_case_block_supports_contracts_clauses_mapping_shape() {
+        let base = std::env::temp_dir().join(format!(
+            "dc_runner_rust_case_shape_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        let spec_dir = base.join("specs");
+        std::fs::create_dir_all(&spec_dir).expect("mkdir");
+        let spec_path = spec_dir.join("shape.spec.md");
+        let md = r#"```yaml contract-spec
+spec_version: 2
+schema_ref: /specs/01_schema/schema_v2.md
+title: suite title
+contracts:
+  clauses:
+  - id: CASE-001
+    purpose: from-clause
+    asserts:
+      checks:
+      - id: assert_1
+        assert:
+          lit: true
+```"#;
+        std::fs::write(&spec_path, md).expect("write");
+
+        let out = load_case_block_from_spec_ref(&base, "/specs/shape.spec.md#CASE-001")
+            .expect("load case");
+        assert!(out.contains("id: CASE-001"));
+        assert!(out.contains("spec_version: 2"));
+        assert!(out.contains("schema_ref: /specs/01_schema/schema_v2.md"));
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn load_case_block_supports_legacy_contracts_list_shape() {
+        let base = std::env::temp_dir().join(format!(
+            "dc_runner_rust_case_shape_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        let spec_dir = base.join("specs");
+        std::fs::create_dir_all(&spec_dir).expect("mkdir");
+        let spec_path = spec_dir.join("shape_legacy.spec.md");
+        let md = r#"```yaml contract-spec
+spec_version: 2
+schema_ref: /specs/01_schema/schema_v2.md
+contracts:
+- id: CASE-LEGACY-001
+  asserts:
+    checks:
+    - id: assert_1
+      assert:
+        lit: true
+```"#;
+        std::fs::write(&spec_path, md).expect("write");
+
+        let out =
+            load_case_block_from_spec_ref(&base, "/specs/shape_legacy.spec.md#CASE-LEGACY-001")
+                .expect("load case");
+        assert!(out.contains("id: CASE-LEGACY-001"));
+        assert!(out.contains("schema_ref: /specs/01_schema/schema_v2.md"));
+
+        let _ = std::fs::remove_dir_all(&base);
     }
 }

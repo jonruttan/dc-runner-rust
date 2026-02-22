@@ -391,7 +391,7 @@ pub fn run_migrate_case_doc_metadata_v1(root: &Path, args: &[String]) -> i32 {
 }
 
 pub fn run_migrate_library_docs_metadata_v1(root: &Path, args: &[String]) -> i32 {
-    let opts = match parse_common_opts(args, "specs/libraries") {
+    let opts = match parse_common_opts(args, "specs/05_libraries") {
         Ok(v) => v,
         Err(msg) => {
             eprintln!("ERROR: {msg}");
