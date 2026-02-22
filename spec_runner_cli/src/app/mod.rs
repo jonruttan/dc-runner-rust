@@ -2059,6 +2059,24 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
                     for (k, v) in item_map {
                         merged.insert(k.clone(), v.clone());
                     }
+                    // Carry suite-level runtime context into extracted clause docs.
+                    for suite_key in [
+                        "harness",
+                        "artifacts",
+                        "adapters",
+                        "services",
+                        "exports",
+                        "when",
+                        "library",
+                        "expect",
+                    ] {
+                        let k = YamlValue::String(suite_key.to_string());
+                        if !merged.contains_key(&k) {
+                            if let Some(v) = map.get(&k).cloned() {
+                                merged.insert(k, v);
+                            }
+                        }
+                    }
                     if !merged.contains_key(&YamlValue::String("spec_version".to_string())) {
                         if let Some(v) = suite_spec_version.clone() {
                             merged.insert(YamlValue::String("spec_version".to_string()), v);
@@ -2303,11 +2321,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
     let case_type = case_map
         .get(&YamlValue::String("type".to_string()))
         .and_then(|v| v.as_str())
-        .unwrap_or("");
-    if case_type != "contract.job" {
-        eprintln!("ERROR: referenced case is not type contract.job: {resolved_ref}");
-        return 1;
-    }
+        .unwrap_or("contract.job");
     let case_id = case_map
         .get(&YamlValue::String("id".to_string()))
         .and_then(|v| v.as_str())
@@ -2319,11 +2333,16 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
         .and_then(|v| v.as_mapping())
         .cloned()
         .unwrap_or_default();
-    if harness.contains_key(&YamlValue::String("job".to_string())) {
+    let harness_runtime = harness
+        .get(&YamlValue::String("config".to_string()))
+        .and_then(|v| v.as_mapping())
+        .cloned()
+        .unwrap_or_else(|| harness.clone());
+    if harness_runtime.contains_key(&YamlValue::String("job".to_string())) {
         eprintln!("ERROR: contract.job requires harness.jobs metadata list");
         return 1;
     }
-    let jobs_yaml = match harness.get(&YamlValue::String("jobs".to_string())) {
+    let jobs_yaml = match harness_runtime.get(&YamlValue::String("jobs".to_string())) {
         Some(v) => v,
         None => {
             eprintln!("ERROR: contract.job requires harness.jobs metadata list");
@@ -2366,7 +2385,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
     }
 
     let mut caps = Vec::<String>::new();
-    if let Some(spec_lang) = harness
+    if let Some(spec_lang) = harness_runtime
         .get(&YamlValue::String("spec_lang".to_string()))
         .and_then(|v| v.as_mapping())
     {
@@ -2404,11 +2423,11 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
     }
 
     let mut hook_exprs: HashMap<String, Vec<Value>> = HashMap::new();
-    if harness.contains_key(&YamlValue::String("on".to_string())) {
+    if harness_runtime.contains_key(&YamlValue::String("on".to_string())) {
         eprintln!("ERROR: when.harness_on_forbidden: harness.on is not supported; use case.when");
         return 1;
     }
-    if harness.contains_key(&YamlValue::String("when".to_string())) {
+    if harness_runtime.contains_key(&YamlValue::String("when".to_string())) {
         eprintln!(
             "ERROR: when.harness_when_forbidden: harness.when is not supported; use case.when"
         );
@@ -2472,10 +2491,17 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
     let mut required_passed = 0_i64;
     let mut optional_passed = 0_i64;
 
-    if let Some(contract_map) = case_map
+    let contract_container = case_map
         .get(&YamlValue::String("clauses".to_string()))
         .and_then(|v| v.as_mapping())
-    {
+        .map(|m| ("clauses", m))
+        .or_else(|| {
+            case_map
+                .get(&YamlValue::String("asserts".to_string()))
+                .and_then(|v| v.as_mapping())
+                .map(|m| ("asserts", m))
+        });
+    if let Some((container_name, contract_map)) = contract_container {
         let parse_imports = |raw: Option<&YamlValue>,
                              where_path: &str|
          -> Result<HashMap<String, String>, String> {
@@ -2565,7 +2591,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             .unwrap_or(true);
         let default_imports = match parse_imports(
             contract_map.get(&YamlValue::String("imports".to_string())),
-            "clauses",
+            container_name,
         ) {
             Ok(v) => v,
             Err(err) => {
@@ -2574,8 +2600,13 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 return 1;
             }
         };
+        let (steps_key, step_path_label) = if container_name == "asserts" {
+            ("checks", "asserts.checks")
+        } else {
+            ("predicates", "clauses.predicates")
+        };
         let contract_steps = contract_map
-            .get(&YamlValue::String("predicates".to_string()))
+            .get(&YamlValue::String(steps_key.to_string()))
             .and_then(|v| v.as_sequence())
             .cloned()
             .unwrap_or_default();
@@ -2590,14 +2621,14 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             {
                 restore_env();
                 eprintln!(
-                    "ERROR: clauses.predicates[{step_idx}] target/on is forbidden; use imports"
+                    "ERROR: {step_path_label}[{step_idx}] target/on is forbidden; use imports"
                 );
                 return 1;
             }
             if step_map.contains_key(&YamlValue::String("class".to_string())) {
                 restore_env();
                 eprintln!(
-                    "ERROR: clauses.predicates[{step_idx}].class is removed; use required/priority/severity"
+                    "ERROR: {step_path_label}[{step_idx}].class is removed; use required/priority/severity"
                 );
                 return 1;
             }
@@ -2606,7 +2637,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 Some(v) => {
                     let Some(val) = v.as_bool() else {
                         restore_env();
-                        eprintln!("ERROR: clauses.predicates[{step_idx}].required must be boolean");
+                        eprintln!("ERROR: {step_path_label}[{step_idx}].required must be boolean");
                         return 1;
                     };
                     val
@@ -2616,7 +2647,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 match step_map.get(&YamlValue::String(field.to_string())) {
                     None => Ok(1),
                     Some(raw) => raw.as_i64().filter(|v| *v >= 1).ok_or_else(|| {
-                        format!("clauses.predicates[{step_idx}].{field} must be integer >= 1")
+                        format!("{step_path_label}[{step_idx}].{field} must be integer >= 1")
                     }),
                 }
             };
@@ -2634,7 +2665,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 if raw_purpose.as_str().map(str::trim).unwrap_or("").is_empty() {
                     restore_env();
                     eprintln!(
-                        "ERROR: clauses.predicates[{step_idx}].purpose must be non-empty string"
+                        "ERROR: {step_path_label}[{step_idx}].purpose must be non-empty string"
                     );
                     return 1;
                 }
@@ -2651,7 +2682,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
             };
             let step_imports = match parse_imports(
                 step_map.get(&YamlValue::String("imports".to_string())),
-                &format!("clauses.predicates[{step_idx}]"),
+                &format!("{step_path_label}[{step_idx}]"),
             ) {
                 Ok(v) => v,
                 Err(err) => {
@@ -2669,14 +2700,14 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
                 Some(v) => v,
                 None => {
                     restore_env();
-                    eprintln!("ERROR: clauses.predicates[{step_idx}].assert is required");
+                    eprintln!("ERROR: {step_path_label}[{step_idx}].assert is required");
                     return 1;
                 }
             };
             let assert_items: Vec<&YamlValue> = if let Some(seq) = raw_assert.as_sequence() {
                 if seq.is_empty() {
                     restore_env();
-                    eprintln!("ERROR: clauses.predicates[{step_idx}].assert must be non-empty");
+                    eprintln!("ERROR: {step_path_label}[{step_idx}].assert must be non-empty");
                     return 1;
                 }
                 seq.iter().collect()
@@ -2946,14 +2977,18 @@ fn parse_validate_report_expr_from_case(case_block: &str, spec_ref: &str) -> Res
     };
     let clauses_node = root
         .get(&YamlValue::String("clauses".to_string()))
-        .ok_or_else(|| format!("missing clauses in producer case: {spec_ref}"))?;
-    let clauses_map = match clauses_node {
-        YamlValue::Mapping(m) => m,
-        _ => return Err(format!("producer clauses must be mapping: {spec_ref}")),
-    };
+        .and_then(|v| v.as_mapping())
+        .map(|m| ("predicates", m))
+        .or_else(|| {
+            root.get(&YamlValue::String("asserts".to_string()))
+                .and_then(|v| v.as_mapping())
+                .map(|m| ("checks", m))
+        })
+        .ok_or_else(|| format!("missing clauses/asserts in producer case: {spec_ref}"))?;
+    let (pred_key, clauses_map) = clauses_node;
     let assert_seq = clauses_map
-        .get(&YamlValue::String("predicates".to_string()))
-        .ok_or_else(|| format!("missing clauses.predicates in producer case: {spec_ref}"))?;
+        .get(&YamlValue::String(pred_key.to_string()))
+        .ok_or_else(|| format!("missing {pred_key} in producer case: {spec_ref}"))?;
     let assert_seq = match assert_seq {
         YamlValue::Sequence(seq) => seq,
         _ => {

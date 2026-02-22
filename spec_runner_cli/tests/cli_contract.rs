@@ -26,13 +26,15 @@ fn run_cli(args: &[&str]) -> (i32, String, String) {
 
 fn required_contract_subcommands() -> Vec<String> {
     let root = repo_root();
-    let governance_case = root.join(
-        "specs/upstream/data-contracts/specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md",
-    );
-    let contract_doc =
-        root.join("specs/upstream/data-contracts/specs/contract/12_runner_interface.md");
-    let text = fs::read_to_string(&governance_case)
-        .or_else(|_| fs::read_to_string(&contract_doc))
+    let candidates = [
+        "specs/upstream/data-contracts/specs/04_governance/cases/core/runner_contract/runtime_runner_interface_subcommands.spec.md",
+        "specs/upstream/data-contracts/specs/governance/cases/core/runner_contract/runtime_runner_interface_subcommands.spec.md",
+        "specs/upstream/data-contracts/specs/02_contracts/12_runner_interface.md",
+        "specs/upstream/data-contracts/specs/contract/12_runner_interface.md",
+    ];
+    let text = candidates
+        .iter()
+        .find_map(|p| fs::read_to_string(root.join(p)).ok())
         .expect("read contract file");
     let mut out = Vec::new();
     let mut in_markdown_block = false;
