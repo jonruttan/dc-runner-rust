@@ -96,7 +96,7 @@ fn helper_schema_compile_registry(root: &Path, payload: &Value) -> Result<Value,
     let rel = payload
         .get("path")
         .and_then(|v| v.as_str())
-        .unwrap_or("/specs/01_schema/registry/v2");
+        .unwrap_or("/specs/01_schema/registry/v1");
     let base = resolve(root, rel);
     if !base.exists() {
         return Err(format!(
@@ -400,7 +400,7 @@ fn helper_schema_registry_report(root: &Path, payload: &Value) -> Result<Value, 
         .and_then(|v| v.as_bool())
         .unwrap_or(false);
     let compiled =
-        helper_schema_compile_registry(root, &json!({"path": "/specs/01_schema/registry/v2"}))?;
+        helper_schema_compile_registry(root, &json!({"path": "/specs/01_schema/registry/v1"}))?;
     let out_path = resolve(root, &out);
     if let Some(parent) = out_path.parent() {
         let _ = fs::create_dir_all(parent);

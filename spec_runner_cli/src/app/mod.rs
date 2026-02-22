@@ -921,7 +921,7 @@ fn run_schema_docs_native(root: &Path, forwarded: &[String], check: bool) -> i32
         eprintln!("ERROR: missing schema root: {}", schema_root.display());
         return 1;
     }
-    let registry = schema_root.join("registry").join("v2");
+    let registry = schema_root.join("registry").join("v1");
     if !registry.exists() {
         eprintln!("ERROR: missing schema registry: {}", registry.display());
         return 1;
@@ -1267,9 +1267,9 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
     }
 
     let registry_candidates = [
-        root.join("specs/01_schema/runner_certification_registry_v2.yaml"),
+        root.join("specs/01_schema/runner_certification_registry_v1.yaml"),
         root.join(
-            "specs/upstream/data-contracts/specs/01_schema/runner_certification_registry_v2.yaml",
+            "specs/upstream/data-contracts/specs/01_schema/runner_certification_registry_v1.yaml",
         ),
     ];
     let mut registry_path: Option<PathBuf> = None;
@@ -1293,7 +1293,7 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
         }
     }
     let Some(registry_path) = registry_path else {
-        eprintln!("ERROR: runner certification registry v2 not found");
+        eprintln!("ERROR: runner certification registry v1 not found");
         return 2;
     };
     let registry_yaml: YamlValue = match serde_yaml::from_str(&registry_text) {
@@ -1316,9 +1316,9 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
     let registry_version = yaml_map_get(registry_map, "version")
         .and_then(|v| v.as_i64())
         .unwrap_or(0);
-    if registry_version != 2 {
+    if registry_version != 1 {
         eprintln!(
-            "ERROR: unsupported runner certification registry version {}; expected 2",
+            "ERROR: unsupported runner certification registry version {}; expected 1",
             registry_version
         );
         return 2;
@@ -1810,8 +1810,8 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
         "required_core_cases": required_core_cases_norm,
         "command_contract_subset": command_contract_subset_norm,
         "registry_ref": {
-            "path": "/specs/01_schema/runner_certification_registry_v2.yaml",
-            "version": 2
+            "path": "/specs/01_schema/runner_certification_registry_v1.yaml",
+            "version": 1
         }
     });
     let intent_hash = sha256_hex(&canonicalize_json_value(&execution_intent));
@@ -4201,8 +4201,8 @@ after
         std::fs::create_dir_all(&spec_dir).expect("mkdir");
         let spec_path = spec_dir.join("shape.spec.md");
         let md = r#"```yaml contract-spec
-spec_version: 2
-schema_ref: /specs/01_schema/schema_v2.md
+spec_version: 1
+schema_ref: /specs/01_schema/schema_v1.md
 title: suite title
 contracts:
   clauses:
@@ -4219,8 +4219,8 @@ contracts:
         let out = load_case_block_from_spec_ref(&base, "/specs/shape.spec.md#CASE-001")
             .expect("load case");
         assert!(out.contains("id: CASE-001"));
-        assert!(out.contains("spec_version: 2"));
-        assert!(out.contains("schema_ref: /specs/01_schema/schema_v2.md"));
+        assert!(out.contains("spec_version: 1"));
+        assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
 
         let _ = std::fs::remove_dir_all(&base);
     }
@@ -4238,8 +4238,8 @@ contracts:
         std::fs::create_dir_all(&spec_dir).expect("mkdir");
         let spec_path = spec_dir.join("shape_legacy.spec.md");
         let md = r#"```yaml contract-spec
-spec_version: 2
-schema_ref: /specs/01_schema/schema_v2.md
+spec_version: 1
+schema_ref: /specs/01_schema/schema_v1.md
 contracts:
 - id: CASE-LEGACY-001
   asserts:
@@ -4254,7 +4254,7 @@ contracts:
             load_case_block_from_spec_ref(&base, "/specs/shape_legacy.spec.md#CASE-LEGACY-001")
                 .expect("load case");
         assert!(out.contains("id: CASE-LEGACY-001"));
-        assert!(out.contains("schema_ref: /specs/01_schema/schema_v2.md"));
+        assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
 
         let _ = std::fs::remove_dir_all(&base);
     }
