@@ -371,6 +371,7 @@ fn run_governance_profile_native(
             "file_tokens" => run_file_tokens(root, &def),
             "file_ordered_tokens" => run_file_ordered_tokens(root, &def),
             "manifest_non_empty" => run_manifest_non_empty(root, &def),
+            "report_only" => (true, vec!["report-only".to_string()]),
             _ => (false, vec![format!("unsupported check kind: {kind}")]),
         };
         let status = if ok { "pass" } else { "fail" }.to_string();
