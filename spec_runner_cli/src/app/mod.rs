@@ -26,6 +26,7 @@ use crate::services::gate_summary::summarize as summarize_gate;
 use crate::services::specs_ui;
 use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
 use chrono::{SecondsFormat, Utc};
+use serde::Serialize;
 use serde_json::{json, Value};
 use serde_yaml::Value as YamlValue;
 use sha2::{Digest, Sha256};
@@ -631,6 +632,585 @@ fn run_normalize_mode(root: &Path, forwarded: &[String], fix: bool) -> i32 {
         eprintln!("ERROR: normalization check failed: {violations} file(s) require fixes");
         1
     }
+}
+
+#[derive(Debug, Clone)]
+enum ProjectScaffoldMode {
+    Canonical {
+        bundle_id: String,
+        bundle_version: String,
+    },
+    External {
+        bundle_url: String,
+        sha256: String,
+    },
+}
+
+#[derive(Debug, Clone)]
+struct ProjectScaffoldArgs {
+    project_root: PathBuf,
+    mode: ProjectScaffoldMode,
+    runner: String,
+    overwrite: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct ProjectBundleLockV1 {
+    version: i32,
+    project_id: String,
+    bundles: Vec<ProjectBundleLockEntry>,
+    updated_at: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ProjectBundleLockEntry {
+    bundle_id: String,
+    bundle_version: String,
+    role: String,
+    source: ProjectBundleLockSource,
+    install_dir: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ProjectBundleLockSource {
+    repo: String,
+    release_tag: String,
+    asset_url: String,
+    sha256: String,
+}
+
+fn parse_project_scaffold_args(forwarded: &[String]) -> Result<ProjectScaffoldArgs, String> {
+    let mut project_root: Option<PathBuf> = None;
+    let mut bundle_id: Option<String> = None;
+    let mut bundle_version: Option<String> = None;
+    let mut bundle_url: Option<String> = None;
+    let mut sha256: Option<String> = None;
+    let mut allow_external = false;
+    let mut runner: Option<String> = None;
+    let mut overwrite = false;
+
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--project-root" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--project-root requires value".to_string());
+                }
+                project_root = Some(PathBuf::from(forwarded[i + 1].clone()));
+                i += 2;
+            }
+            "--bundle-id" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-id requires value".to_string());
+                }
+                bundle_id = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--bundle-version" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-version requires value".to_string());
+                }
+                bundle_version = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--bundle-url" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-url requires value".to_string());
+                }
+                bundle_url = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--sha256" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--sha256 requires value".to_string());
+                }
+                sha256 = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--allow-external" => {
+                allow_external = true;
+                i += 1;
+            }
+            "--runner" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--runner requires value".to_string());
+                }
+                runner = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--overwrite" => {
+                overwrite = true;
+                i += 1;
+            }
+            other => return Err(format!("unsupported project-scaffold arg: {other}")),
+        }
+    }
+
+    let project_root = project_root.ok_or_else(|| "--project-root is required".to_string())?;
+    let runner = runner.unwrap_or_else(|| "rust".to_string());
+    if !matches!(runner.as_str(), "rust" | "python" | "php") {
+        return Err(format!(
+            "invalid --runner value: {} (expected rust|python|php)",
+            runner
+        ));
+    }
+
+    let mode = match (bundle_id, bundle_version, bundle_url, sha256) {
+        (Some(id), Some(version), None, None) => {
+            if !is_valid_bundle_id(&id) {
+                return Err(format!(
+                    "invalid --bundle-id `{}` (expected lowercase id token)",
+                    id
+                ));
+            }
+            if !is_semver_like(&version) {
+                return Err(format!(
+                    "invalid --bundle-version `{}` (expected semver-like x.y.z)",
+                    version
+                ));
+            }
+            ProjectScaffoldMode::Canonical {
+                bundle_id: id,
+                bundle_version: version,
+            }
+        }
+        (None, None, Some(url), Some(sum)) => {
+            if !allow_external {
+                return Err(
+                    "external bundle URLs require --allow-external with --bundle-url and --sha256"
+                        .to_string(),
+                );
+            }
+            let sum = normalize_sha256_hex(&sum)
+                .ok_or_else(|| "invalid --sha256 (expected 64 lowercase/uppercase hex chars)".to_string())?;
+            ProjectScaffoldMode::External {
+                bundle_url: url,
+                sha256: sum,
+            }
+        }
+        _ => {
+            return Err(
+                "use canonical mode (--bundle-id + --bundle-version) or external mode (--bundle-url + --sha256 + --allow-external)"
+                    .to_string(),
+            )
+        }
+    };
+
+    Ok(ProjectScaffoldArgs {
+        project_root,
+        mode,
+        runner,
+        overwrite,
+    })
+}
+
+fn is_valid_bundle_id(value: &str) -> bool {
+    if value.is_empty() {
+        return false;
+    }
+    value
+        .chars()
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_')
+}
+
+fn is_semver_like(value: &str) -> bool {
+    let mut parts = value.split('.');
+    let (Some(major), Some(minor), Some(rest)) = (parts.next(), parts.next(), parts.next()) else {
+        return false;
+    };
+    if parts.next().is_some() {
+        return false;
+    }
+    if major.parse::<u64>().is_err() || minor.parse::<u64>().is_err() {
+        return false;
+    }
+    let patch_end = rest
+        .find(|c: char| !(c.is_ascii_digit()))
+        .unwrap_or(rest.len());
+    if patch_end == 0 {
+        return false;
+    }
+    if rest[..patch_end].parse::<u64>().is_err() {
+        return false;
+    }
+    if patch_end == rest.len() {
+        return true;
+    }
+    let suffix = &rest[patch_end..];
+    (suffix.starts_with('-') || suffix.starts_with('+'))
+        && suffix
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-' || c == '+')
+}
+
+fn normalize_sha256_hex(value: &str) -> Option<String> {
+    let trimmed = value.trim();
+    if trimmed.len() != 64 || !trimmed.chars().all(|c| c.is_ascii_hexdigit()) {
+        return None;
+    }
+    Some(trimmed.to_ascii_lowercase())
+}
+
+fn read_url_to_string(url: &str) -> Result<String, String> {
+    let output = Command::new("curl")
+        .args(["--fail", "--location", "--silent", "--show-error", url])
+        .output()
+        .map_err(|e| format!("failed to execute curl for {url}: {e}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "failed fetching URL {} (curl exit: {})",
+            url,
+            output.status.code().unwrap_or(1)
+        ));
+    }
+    String::from_utf8(output.stdout).map_err(|e| format!("invalid UTF-8 from {}: {e}", url))
+}
+
+fn download_url_to_file(url: &str, out_path: &Path) -> Result<(), String> {
+    let status = Command::new("curl")
+        .args([
+            "--fail",
+            "--location",
+            "--silent",
+            "--show-error",
+            "--output",
+            &out_path.to_string_lossy(),
+            url,
+        ])
+        .status()
+        .map_err(|e| format!("failed to execute curl for {url}: {e}"))?;
+    if !status.success() {
+        return Err(format!(
+            "failed downloading URL {} (curl exit: {})",
+            url,
+            status.code().unwrap_or(1)
+        ));
+    }
+    Ok(())
+}
+
+fn parse_sha256_sidecar(raw: &str) -> Result<String, String> {
+    for line in raw.lines() {
+        let token = line.split_whitespace().next().unwrap_or_default();
+        if let Some(sum) = normalize_sha256_hex(token) {
+            return Ok(sum);
+        }
+    }
+    Err("invalid .sha256 sidecar: expected 64 hex checksum".to_string())
+}
+
+fn sha256_file(path: &Path) -> Result<String, String> {
+    let bytes = fs::read(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?;
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn canonical_bundle_release(
+    bundle_id: &str,
+    bundle_version: &str,
+) -> (String, String, String, String, String) {
+    let asset_name = format!(
+        "data-contract-bundle-{}-v{}.tar.gz",
+        bundle_id, bundle_version
+    );
+    let sidecar_name = format!("{}.sha256", asset_name);
+    let release_tag = format!("v{}", bundle_version);
+    let base = format!(
+        "https://github.com/jonruttan/data-contracts-bundles/releases/download/{}",
+        release_tag
+    );
+    let asset_url = format!("{}/{}", base, asset_name);
+    let sidecar_url = format!("{}/{}", base, sidecar_name);
+    (
+        asset_name,
+        sidecar_name,
+        release_tag,
+        asset_url,
+        sidecar_url,
+    )
+}
+
+fn run_bundler_bundle_subcommand(
+    root: &Path,
+    subcommand: &str,
+    project_root: &Path,
+    lock_path: &Path,
+) -> Result<(), String> {
+    let run_and_check = |program: &str, args: &[String]| -> Result<(), String> {
+        let status = Command::new(program)
+            .args(args)
+            .current_dir(root)
+            .stdin(process::Stdio::inherit())
+            .stdout(process::Stdio::inherit())
+            .stderr(process::Stdio::inherit())
+            .status()
+            .map_err(|e| format!("failed to execute {}: {}", program, e))?;
+        if !status.success() {
+            return Err(format!(
+                "{} exited non-zero for bundle {}",
+                program, subcommand
+            ));
+        }
+        Ok(())
+    };
+
+    let bundler_args = vec![
+        "bundle".to_string(),
+        subcommand.to_string(),
+        "--project-root".to_string(),
+        project_root.to_string_lossy().to_string(),
+        "--lock".to_string(),
+        lock_path.to_string_lossy().to_string(),
+    ];
+
+    if let Ok(bin) = env::var("DATA_CONTRACTS_BUNDLER_BIN") {
+        return run_and_check(bin.as_str(), &bundler_args);
+    }
+    if run_and_check("data-contracts-bundler", &bundler_args).is_ok() {
+        return Ok(());
+    }
+
+    let manifest_path = root.join("../data-contracts-bundler-rust/Cargo.toml");
+    if manifest_path.exists() {
+        let mut cargo_args = vec![
+            "run".to_string(),
+            "--quiet".to_string(),
+            "--manifest-path".to_string(),
+            manifest_path.to_string_lossy().to_string(),
+            "--".to_string(),
+        ];
+        cargo_args.extend(bundler_args);
+        return run_and_check("cargo", &cargo_args);
+    }
+
+    Err("unable to execute data-contracts-bundler (set DATA_CONTRACTS_BUNDLER_BIN or install binary)".to_string())
+}
+
+pub(super) fn run_project_scaffold_native(root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!(
+            "usage: project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>] [--overwrite]"
+        );
+        println!(
+            "   or: project scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external [--runner <rust|python|php>] [--overwrite]"
+        );
+        return 0;
+    }
+
+    let args = match parse_project_scaffold_args(forwarded) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {}", e);
+            return 2;
+        }
+    };
+
+    let project_root = if args.project_root.is_absolute() {
+        args.project_root.clone()
+    } else {
+        root.join(&args.project_root)
+    };
+    if let Err(e) = fs::create_dir_all(&project_root) {
+        eprintln!(
+            "ERROR: failed to create project root {}: {}",
+            project_root.display(),
+            e
+        );
+        return 1;
+    }
+
+    let lock_path = project_root.join("bundles.lock.yaml");
+    if lock_path.exists() && !args.overwrite {
+        eprintln!(
+            "ERROR: bundles.lock.yaml already exists at {} (use --overwrite)",
+            lock_path.display()
+        );
+        return 1;
+    }
+
+    let artifacts_dir = project_root.join(".artifacts");
+    if let Err(e) = fs::create_dir_all(&artifacts_dir) {
+        eprintln!("ERROR: failed to create {}: {}", artifacts_dir.display(), e);
+        return 1;
+    }
+
+    let (bundle_id, bundle_version, release_tag, asset_url, sha256) = match &args.mode {
+        ProjectScaffoldMode::Canonical {
+            bundle_id,
+            bundle_version,
+        } => {
+            let (asset_name, _sidecar_name, release_tag, asset_url, sidecar_url) =
+                canonical_bundle_release(bundle_id, bundle_version);
+            let sidecar_raw = match read_url_to_string(&sidecar_url) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: canonical checksum sidecar fetch failed: {}", e);
+                    return 1;
+                }
+            };
+            let sidecar_sha = match parse_sha256_sidecar(&sidecar_raw) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: {}", e);
+                    return 1;
+                }
+            };
+
+            let cache_dir = artifacts_dir.join("bundle_cache");
+            if let Err(e) = fs::create_dir_all(&cache_dir) {
+                eprintln!("ERROR: failed to create {}: {}", cache_dir.display(), e);
+                return 1;
+            }
+            let local_tarball = cache_dir.join(asset_name);
+            if let Err(e) = download_url_to_file(&asset_url, &local_tarball) {
+                eprintln!("ERROR: canonical bundle fetch failed: {}", e);
+                return 1;
+            }
+            let local_sum = match sha256_file(&local_tarball) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: {}", e);
+                    return 1;
+                }
+            };
+            if local_sum != sidecar_sha {
+                eprintln!(
+                    "ERROR: checksum mismatch for canonical bundle (expected {}, got {})",
+                    sidecar_sha, local_sum
+                );
+                return 1;
+            }
+            (
+                bundle_id.clone(),
+                bundle_version.clone(),
+                release_tag,
+                format!("file://{}", local_tarball.display()),
+                sidecar_sha,
+            )
+        }
+        ProjectScaffoldMode::External { bundle_url, sha256 } => {
+            let cache_dir = artifacts_dir.join("bundle_cache");
+            if let Err(e) = fs::create_dir_all(&cache_dir) {
+                eprintln!("ERROR: failed to create {}: {}", cache_dir.display(), e);
+                return 1;
+            }
+            let local_tarball = cache_dir.join("external_bundle.tar.gz");
+            if let Err(e) = download_url_to_file(bundle_url, &local_tarball) {
+                eprintln!("ERROR: external bundle fetch failed: {}", e);
+                return 1;
+            }
+            let local_sum = match sha256_file(&local_tarball) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: {}", e);
+                    return 1;
+                }
+            };
+            if local_sum != *sha256 {
+                eprintln!(
+                    "ERROR: checksum mismatch for external bundle (expected {}, got {})",
+                    sha256, local_sum
+                );
+                return 1;
+            }
+            (
+                "external".to_string(),
+                "0.0.0".to_string(),
+                "external".to_string(),
+                format!("file://{}", local_tarball.display()),
+                sha256.clone(),
+            )
+        }
+    };
+
+    let install_dir = format!(".bundles/{}", bundle_id);
+    let lock = ProjectBundleLockV1 {
+        version: 1,
+        project_id: project_root
+            .file_name()
+            .and_then(|v| v.to_str())
+            .filter(|v| !v.trim().is_empty())
+            .unwrap_or("project")
+            .to_string(),
+        bundles: vec![ProjectBundleLockEntry {
+            bundle_id: bundle_id.clone(),
+            bundle_version: bundle_version.clone(),
+            role: "primary".to_string(),
+            source: ProjectBundleLockSource {
+                repo: "jonruttan/data-contracts-bundles".to_string(),
+                release_tag,
+                asset_url: asset_url.clone(),
+                sha256: sha256.clone(),
+            },
+            install_dir: install_dir.clone(),
+        }],
+        updated_at: Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true),
+    };
+
+    let lock_yaml = match serde_yaml::to_string(&lock) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to encode bundles.lock.yaml: {}", e);
+            return 1;
+        }
+    };
+    if let Err(e) = fs::write(&lock_path, lock_yaml) {
+        eprintln!("ERROR: failed writing {}: {}", lock_path.display(), e);
+        return 1;
+    }
+
+    if let Err(e) = run_bundler_bundle_subcommand(root, "install", &project_root, &lock_path) {
+        eprintln!("ERROR: bundle install failed: {}", e);
+        return 1;
+    }
+    if let Err(e) = run_bundler_bundle_subcommand(root, "check", &project_root, &lock_path) {
+        eprintln!("ERROR: bundle check failed: {}", e);
+        return 1;
+    }
+
+    let summary_json_path = artifacts_dir.join("project-scaffold.json");
+    let summary_md_path = artifacts_dir.join("project-scaffold.md");
+    let payload = json!({
+        "version": 1,
+        "status": "ok",
+        "project_root": project_root.display().to_string(),
+        "runner": args.runner,
+        "bundle": {
+            "id": bundle_id,
+            "version": bundle_version,
+            "asset_url": asset_url,
+            "sha256": sha256
+        },
+        "lock_path": lock_path.display().to_string(),
+        "install_dir": install_dir
+    });
+    let pretty_json = serde_json::to_string_pretty(&payload).unwrap_or_else(|_| "{}".to_string());
+    if let Err(e) = fs::write(&summary_json_path, pretty_json) {
+        eprintln!(
+            "ERROR: failed writing {}: {}",
+            summary_json_path.display(),
+            e
+        );
+        return 1;
+    }
+    let markdown = format!(
+        "# Project Scaffold\n\n- status: `ok`\n- project_root: `{}`\n- lock: `{}`\n- install_dir: `{}`\n",
+        project_root.display(),
+        lock_path.display(),
+        project_root.join(".bundles").display()
+    );
+    if let Err(e) = fs::write(&summary_md_path, markdown) {
+        eprintln!("ERROR: failed writing {}: {}", summary_md_path.display(), e);
+        return 1;
+    }
+
+    println!(
+        "OK: project scaffold complete (lock: {}, install: {})",
+        lock_path.display(),
+        project_root.join(".bundles").display()
+    );
+    0
 }
 
 pub(super) fn run_service_plugin_check_native(root: &Path, forwarded: &[String]) -> i32 {
@@ -4371,5 +4951,75 @@ contracts:
         assert!(err.contains("canonical schema authority"));
 
         let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn parse_project_scaffold_args_accepts_canonical_mode() {
+        let args = vec![
+            "--project-root".to_string(),
+            "tmp/demo".to_string(),
+            "--bundle-id".to_string(),
+            "core".to_string(),
+            "--bundle-version".to_string(),
+            "1.2.3".to_string(),
+        ];
+        let parsed = parse_project_scaffold_args(&args).expect("parse");
+        assert_eq!(parsed.project_root, PathBuf::from("tmp/demo"));
+        match parsed.mode {
+            ProjectScaffoldMode::Canonical {
+                bundle_id,
+                bundle_version,
+            } => {
+                assert_eq!(bundle_id, "core");
+                assert_eq!(bundle_version, "1.2.3");
+            }
+            _ => panic!("expected canonical mode"),
+        }
+    }
+
+    #[test]
+    fn parse_project_scaffold_args_rejects_external_without_flag() {
+        let args = vec![
+            "--project-root".to_string(),
+            "tmp/demo".to_string(),
+            "--bundle-url".to_string(),
+            "https://example.invalid/bundle.tar.gz".to_string(),
+            "--sha256".to_string(),
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_string(),
+        ];
+        let err = parse_project_scaffold_args(&args).expect_err("expected error");
+        assert!(err.contains("--allow-external"));
+    }
+
+    #[test]
+    fn parse_sha256_sidecar_supports_common_formats() {
+        let flat = parse_sha256_sidecar(
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n",
+        )
+        .expect("flat checksum");
+        assert_eq!(
+            flat,
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        );
+
+        let with_file = parse_sha256_sidecar(
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef  bundle.tar.gz\n",
+        )
+        .expect("checksum with filename");
+        assert_eq!(flat, with_file);
+    }
+
+    #[test]
+    fn canonical_bundle_release_builds_expected_paths() {
+        let (asset_name, sidecar_name, release_tag, asset_url, sidecar_url) =
+            canonical_bundle_release("core", "1.2.3");
+        assert_eq!(asset_name, "data-contract-bundle-core-v1.2.3.tar.gz");
+        assert_eq!(
+            sidecar_name,
+            "data-contract-bundle-core-v1.2.3.tar.gz.sha256"
+        );
+        assert_eq!(release_tag, "v1.2.3");
+        assert!(asset_url.ends_with("/v1.2.3/data-contract-bundle-core-v1.2.3.tar.gz"));
+        assert!(sidecar_url.ends_with("/v1.2.3/data-contract-bundle-core-v1.2.3.tar.gz.sha256"));
     }
 }

@@ -4,8 +4,8 @@ use clap::error::ErrorKind;
 use clap::Parser;
 
 use crate::cli::args::{
-    CiSubcommand, Cli, CommandGroup, DocsSubcommand, GovernanceSubcommand, QualitySubcommand,
-    ReportsSubcommand, SpecsSubcommand,
+    CiSubcommand, Cli, CommandGroup, DocsSubcommand, GovernanceSubcommand, ProjectSubcommand,
+    QualitySubcommand, ReportsSubcommand, SpecsSubcommand,
 };
 use crate::cli::errors::CliError;
 
@@ -183,6 +183,47 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             CiSubcommand::ConformanceParity => map_passthrough("conformance-parity", vec![]),
             CiSubcommand::RunnerCertify => map_passthrough("runner-certify", vec![]),
         },
+        CommandGroup::Project(p) => match p.command {
+            ProjectSubcommand::Scaffold {
+                project_root,
+                bundle_id,
+                bundle_version,
+                bundle_url,
+                sha256,
+                allow_external,
+                runner,
+                overwrite,
+            } => {
+                let mut forwarded = vec!["--project-root".to_string(), project_root];
+                if let Some(v) = bundle_id {
+                    forwarded.push("--bundle-id".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = bundle_version {
+                    forwarded.push("--bundle-version".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = bundle_url {
+                    forwarded.push("--bundle-url".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = sha256 {
+                    forwarded.push("--sha256".to_string());
+                    forwarded.push(v);
+                }
+                if allow_external {
+                    forwarded.push("--allow-external".to_string());
+                }
+                if let Some(v) = runner {
+                    forwarded.push("--runner".to_string());
+                    forwarded.push(v);
+                }
+                if overwrite {
+                    forwarded.push("--overwrite".to_string());
+                }
+                map_passthrough("project-scaffold", forwarded)
+            }
+        },
         CommandGroup::StyleCheck(x) => map_passthrough("style-check", x.args),
         CommandGroup::Lint(x) => map_passthrough("lint", x.args),
         CommandGroup::Typecheck(x) => map_passthrough("typecheck", x.args),
@@ -357,5 +398,23 @@ mod tests {
         let args = argv(&["spec_runner_cli", "governance", "run"]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "governance");
+    }
+
+    #[test]
+    fn parse_entry_supports_project_scaffold() {
+        let args = argv(&[
+            "spec_runner_cli",
+            "project",
+            "scaffold",
+            "--project-root",
+            "/tmp/demo",
+            "--bundle-id",
+            "core",
+            "--bundle-version",
+            "1.0.0",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "project-scaffold");
+        assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
     }
 }

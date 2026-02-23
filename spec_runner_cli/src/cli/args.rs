@@ -55,6 +55,8 @@ pub enum CommandGroup {
     Reports(ReportsCommand),
     /// CI workflows
     Ci(CiCommand),
+    /// Project workflows
+    Project(ProjectCommand),
 
     #[command(name = "style-check", hide = true)]
     StyleCheck(PassthroughArgs),
@@ -296,6 +298,34 @@ pub enum CiSubcommand {
     Cleanroom,
     ConformanceParity,
     RunnerCertify,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct ProjectCommand {
+    #[command(subcommand)]
+    pub command: ProjectSubcommand,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum ProjectSubcommand {
+    Scaffold {
+        #[arg(long = "project-root")]
+        project_root: String,
+        #[arg(long = "bundle-id")]
+        bundle_id: Option<String>,
+        #[arg(long = "bundle-version")]
+        bundle_version: Option<String>,
+        #[arg(long = "bundle-url")]
+        bundle_url: Option<String>,
+        #[arg(long = "sha256")]
+        sha256: Option<String>,
+        #[arg(long = "allow-external", action = ArgAction::SetTrue)]
+        allow_external: bool,
+        #[arg(long = "runner")]
+        runner: Option<String>,
+        #[arg(long = "overwrite", action = ArgAction::SetTrue)]
+        overwrite: bool,
+    },
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]

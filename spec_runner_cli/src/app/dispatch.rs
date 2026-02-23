@@ -112,6 +112,7 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
         "test-full" => super::run_tests_native(root, forwarded),
         "runner-certify" => super::run_runner_certify_native(root, forwarded),
         "service-plugin-check" => super::run_service_plugin_check_native(root, forwarded),
+        "project-scaffold" => super::run_project_scaffold_native(root, forwarded),
         _ => {
             eprintln!("ERROR: unsupported runner adapter subcommand: {subcommand}");
             2
