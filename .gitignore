@@ -1,6 +1,6 @@
 # Rust build artifacts
 /target/
-spec_runner_cli/target/
+dc-runner-cli/target/
 .artifacts/
 
 # macOS metadata
