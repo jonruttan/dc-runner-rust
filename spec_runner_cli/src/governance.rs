@@ -529,14 +529,6 @@ fn run_governance_profile_native(
     }
 }
 
-pub fn run_critical_gate_native(root: &Path, forwarded: &[String]) -> i32 {
-    run_governance_profile_native(root, forwarded, "critical", "critical-gate", &[])
-}
-
-pub fn run_governance_broad_native(root: &Path, forwarded: &[String]) -> i32 {
-    run_governance_profile_native(root, forwarded, "full", "governance-broad-native", &[])
-}
-
 pub fn run_governance_native(root: &Path, forwarded: &[String]) -> i32 {
     run_governance_profile_native(root, forwarded, "full", "governance", &[])
 }
