@@ -145,9 +145,7 @@ fn run(cli: Cli) -> AppResult<()> {
 }
 
 fn deprecated_alias(alias: &str, canonical: &str) {
-    output::warn(&format!(
-        "'{alias}' is deprecated and will be removed next minor release; use '{canonical}'"
-    ));
+    output::warn(&format!("'{alias}' is noncanonical; use '{canonical}'"));
 }
 
 #[cfg(test)]
