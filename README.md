@@ -6,7 +6,7 @@ Rust implementation of the required Data Contracts runner lane.
 
 `dc-runner-rust` provides the stable Rust runner interface used by Data Contracts
 gates and automation. It preserves command-surface and exit-code semantics while
-executing the required lane without Python runtime delegation.
+executing the required lane without cross-runtime delegation.
 
 ## What Is Data Contracts?
 
@@ -29,12 +29,11 @@ upstream snapshots.
 
 - Canonical runner entrypoint: Rust CLI (`dc-runner`)
 - Published crates.io package: `dc_runner_cli`
-- Compatibility alias command: `dc-runner-rust` (`/scripts/dc-runner-rust`)
 - Stable exit code semantics:
   - `0` success
   - `1` runtime/tool failure
   - `2` invalid usage/config
-- Required lane runtime remains Rust-first and Python-free.
+- Required lane runtime remains Rust-first.
 
 ## Install
 
@@ -62,7 +61,7 @@ sudo mv dc-runner /usr/local/bin/dc-runner
 ```sh
 dc-runner --help
 dc-runner governance --help
-dc-runner critical-gate --help
+dc-runner governance critical --help
 ```
 
 ## Quickstart Commands
@@ -72,7 +71,7 @@ Most common runner CLI commands:
 ```sh
 dc-runner specs run-all
 dc-runner specs list
-dc-runner governance
+dc-runner governance run
 ```
 
 For full command help:

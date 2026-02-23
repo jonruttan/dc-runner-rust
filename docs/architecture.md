@@ -15,7 +15,6 @@ Text boundary model:
 
 Local runner-owned artifacts:
 
-- `/scripts/dc-runner-rust` (compatibility alias wrapper)
 - `/spec_runner_cli/**`
 - `/specs/impl/rust/jobs/**`
 - `/specs/impl/rust/runner_spec_registry_v1.yaml`
@@ -36,8 +35,7 @@ Runtime flow:
 
 1. Caller invokes `dc-runner <subcommand>`.
 2. CLI resolves and executes subcommand behavior.
-3. Optional `scripts/dc-runner-rust` alias delegates to `dc-runner`.
-4. CLI runs checks/gates and returns stable exit semantics.
+3. CLI runs checks/gates and returns stable exit semantics.
 
 ## Compatibility Verification Model
 

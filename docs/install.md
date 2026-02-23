@@ -37,13 +37,7 @@ sudo mv dc-runner /usr/local/bin/dc-runner
 ```sh
 dc-runner --help
 dc-runner governance --help
-dc-runner critical-gate --help
-```
-
-### 4) Optional compatibility alias
-
-```sh
-scripts/dc-runner-rust --help
+dc-runner governance critical --help
 ```
 
 ## Common failure signals

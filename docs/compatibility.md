@@ -60,7 +60,7 @@ cargo xtask verify all
 3. Required runner subcommand surface compatibility against upstream runner
    interface contract.
 4. Representative exit-code semantics (`0/1/2`).
-5. Rust required-lane execution policy (no direct Python runtime execution in
+5. Rust required-lane execution policy (no cross-runtime delegation in
    adapter path).
 
 `cargo xtask runner-spec check` enforces:

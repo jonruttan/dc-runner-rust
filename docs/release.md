@@ -20,8 +20,7 @@ cargo xtask verify all
 ```
 
 3. Update `/CHANGELOG.md` with user-visible release notes.
-4. Keep `scripts/dc-runner-rust` alias note for compatibility where needed.
-5. Commit release changes.
+4. Commit release changes.
 
 ## Tagging Policy
 
