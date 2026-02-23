@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-REF-025
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: readme includes task-based usage paths
 purpose: Ensures README is user-oriented and includes concrete task navigation.
 type: contract.check

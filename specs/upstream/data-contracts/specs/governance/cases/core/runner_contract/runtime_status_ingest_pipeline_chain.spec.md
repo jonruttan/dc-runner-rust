@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-PIPE-INGEST-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: status ingest pipeline is chained and contract-verified
 purpose: Ensures ingest artifact checks are linked in chain order and validated with status-ingest policy library exports.
 type: contract.check
@@ -27,7 +27,7 @@ harness:
         class: must
         ref: /specs/governance/cases/core/runner_contract/runtime_compatibility_missing_status_visibility_required.spec.md#DCGOV-RUNTIME-STATUS-005
   use:
-    - ref: /specs/libraries/policy/policy_status_ingest.spec.md#LIB-POLICY-INGEST-001
+    - ref: /specs/05_libraries/policy/policy_status_ingest.spec.md#LIB-POLICY-INGEST-001
       as: lib_policy_ingest
       symbols:
         - policy.ingest.matrix_has_rows

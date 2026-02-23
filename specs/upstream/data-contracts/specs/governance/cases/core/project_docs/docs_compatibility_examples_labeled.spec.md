@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-REF-008
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: compatibility examples are explicitly labeled
 purpose: Ensures active documentation keeps Rust as canonical and labels Python/PHP examples
   as non-blocking compatibility lanes.
@@ -12,7 +12,7 @@ harness:
     files:
     - /README.md
     - /docs/development.md
-    - /specs/contract/12_runner_interface.md
+    - /specs/02_contracts/12_runner_interface.md
     
     required_tokens:
     - implementation-agnostic
@@ -25,7 +25,7 @@ harness:
     config:
       check: docs.compatibility_examples_labeled
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

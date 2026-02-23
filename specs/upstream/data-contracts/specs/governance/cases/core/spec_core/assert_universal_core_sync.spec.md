@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-ASSERT-CORE-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: assertion docs define universal evaluate core
 purpose: Ensures schema and contract docs consistently define evaluate as the universal assertion
   core and classify other operators as authoring sugar.
@@ -13,7 +13,7 @@ harness:
     config:
       check: assert.universal_core_sync
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-REF-015
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: active review snapshots validate against canonical contract
 purpose: Ensures docs/history/reviews/snapshots contains canonical machine-consumable snapshots with valid section order and candidate schema.
 type: contract.check
@@ -12,7 +12,7 @@ harness:
     config:
       check: docs.review_snapshots_schema_valid
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

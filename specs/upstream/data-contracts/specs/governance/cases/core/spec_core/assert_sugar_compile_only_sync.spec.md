@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-ASSERT-COMPILE-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: compiler keeps sugar operators compile-only
 purpose: Ensures compiler and runtime assertion path keep non-evaluate operators as compile-only
   sugar with spec-lang execution.
@@ -13,7 +13,7 @@ harness:
     config:
       check: assert.sugar_compile_only_sync
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

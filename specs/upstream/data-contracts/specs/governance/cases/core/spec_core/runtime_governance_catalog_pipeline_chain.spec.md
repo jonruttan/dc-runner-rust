@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-PIPE-CATALOG-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: governance catalog pipeline is chained and policy-backed
 purpose: Ensures governance catalog policy checks are composed through harness.chain and validated by reusable policy predicates.
 type: contract.check
@@ -27,7 +27,7 @@ harness:
         class: must
         ref: /specs/governance/cases/core/runtime_infra_script_boundary_enforced.spec.md#DCGOV-RUNTIME-SHELL-003
   use:
-    - ref: /specs/libraries/policy/policy_governance_catalog.spec.md#LIB-POLICY-GOV-CATALOG-001
+    - ref: /specs/05_libraries/policy/policy_governance_catalog.spec.md#LIB-POLICY-GOV-CATALOG-001
       as: lib_policy_catalog
       symbols:
         - policy.catalog.duplicate_ids_zero

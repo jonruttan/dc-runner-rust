@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-CURRENT-KEYS-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: current spec policy key names stay canonical
 purpose: Enforces policy expression naming consistency by allowing only `evaluate` in `.spec.md`
   cases.
@@ -13,7 +13,7 @@ harness:
     config:
       check: docs.current_spec_policy_key_names
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

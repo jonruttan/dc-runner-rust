@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-CI-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: control-plane ci forbids runtime runner execution
 purpose: Ensures this repository CI does not execute runtime lanes directly.
 type: contract.check

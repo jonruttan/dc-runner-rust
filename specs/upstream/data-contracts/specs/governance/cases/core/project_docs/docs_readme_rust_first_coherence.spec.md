@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-REF-010
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: readme remains implementation-agnostic and canonical for v1 authoring
 purpose: Ensures root README stays gateway-oriented, implementation-agnostic, and free from prior assertion-surface
   snippets.
@@ -20,9 +20,9 @@ harness:
     required_paths:
     - /docs/book/index.md
     - /docs/book/99_generated_reference_index.md
-    - /specs/schema/schema_v1.md
-    - /specs/contract/index.md
-    - /specs/contract/25_compatibility_matrix.md
+    - /specs/01_schema/schema_v1.md
+    - /specs/02_contracts/index.md
+    - /specs/02_contracts/25_compatibility_matrix.md
     forbidden_tokens:
     - 'target:'
     - '''on'':'
@@ -33,7 +33,7 @@ harness:
     config:
       check: docs.readme_rust_first_coherence
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

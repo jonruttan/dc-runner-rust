@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-STATUS-004
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: compatibility status freshness is bounded by SLO
 purpose: Ensures compatibility status telemetry enforces the 72-hour freshness budget.
 type: contract.check

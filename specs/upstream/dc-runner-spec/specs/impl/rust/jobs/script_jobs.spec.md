@@ -5,7 +5,7 @@ purpose: Contract job entrypoint for Rust-native helper dispatch and scalar path
 type: contract.job
 harness:
   use:
-  - ref: /specs/libraries/policy/policy_job.spec.md
+  - ref: /specs/05_libraries/policy/policy_job.spec.md
     as: lib_policy_job
     symbols:
     - policy.job.dispatch_ok
@@ -71,7 +71,7 @@ title: conformance parity command via contract.job
 type: contract.job
 harness:
   use:
-  - ref: /specs/libraries/policy/policy_job.spec.md
+  - ref: /specs/05_libraries/policy/policy_job.spec.md
     as: lib_policy_job
     symbols:
     - policy.job.dispatch_ok
@@ -133,7 +133,7 @@ title: perf smoke command via contract.job
 type: contract.job
 harness:
   use:
-  - ref: /specs/libraries/policy/policy_job.spec.md
+  - ref: /specs/05_libraries/policy/policy_job.spec.md
     as: lib_policy_job
     symbols:
     - policy.job.dispatch_ok

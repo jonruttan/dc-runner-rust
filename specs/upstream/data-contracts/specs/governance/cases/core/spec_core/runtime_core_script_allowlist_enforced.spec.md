@@ -1,14 +1,14 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-CORE-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: core script allowlist enforced
 purpose: Ensures canonical script allowlist is declared and stable.
 type: contract.check
 harness:
   root: .
   scripts_manifest:
-    path: /specs/schema/core_script_allowlist_v1.yaml
+    path: /specs/01_schema/core_script_allowlist_v1.yaml
     required_tokens:
       - control_plane.sh
       - ci_gate.sh

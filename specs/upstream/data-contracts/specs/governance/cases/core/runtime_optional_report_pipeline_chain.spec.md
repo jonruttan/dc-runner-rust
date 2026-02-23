@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-PIPE-OPTIONAL-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: optional report pipeline is chained
 purpose: Ensures optional profile reporting surfaces are linked as chain steps and artifact outputs remain coherent.
 type: contract.check
@@ -24,7 +24,7 @@ harness:
         class: can
         ref: /specs/governance/cases/core/project_docs/docs_usage_guides_index_sync.spec.md#DCGOV-DOCS-REF-020
   use:
-    - ref: /specs/libraries/policy/policy_ci_gate.spec.md#LIB-POLICY-CI-001
+    - ref: /specs/05_libraries/policy/policy_ci_gate.spec.md#LIB-POLICY-CI-001
       as: lib_policy_ci
       symbols:
         - policy.ci.optional_profile_report_only

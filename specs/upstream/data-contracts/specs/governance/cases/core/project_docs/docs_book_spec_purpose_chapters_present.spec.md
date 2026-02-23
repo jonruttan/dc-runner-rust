@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-REF-019
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: spec purpose narrative chapters are present
 purpose: Ensures the core spec-purpose chapters are present in the reference manifest.
 type: contract.check

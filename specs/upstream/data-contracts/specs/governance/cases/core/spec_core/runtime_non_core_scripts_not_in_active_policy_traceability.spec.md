@@ -1,15 +1,15 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-CORE-003
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: non-core scripts absent from active policy and traceability
 purpose: Ensures policy and traceability surfaces do not reference retired script entrypoints.
 type: contract.check
 harness:
   root: .
   policy_traceability_paths:
-    - /specs/contract/policy_v1.yaml
-    - /specs/contract/traceability_v1.yaml
+    - /specs/02_contracts/policy_v1.yaml
+    - /specs/02_contracts/traceability_v1.yaml
   forbidden_tokens:
     - scripts/core_gate.sh
     - scripts/local_ci_parity.sh

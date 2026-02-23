@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-PIPE-GATE-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: control-plane gate pipeline is chained
 purpose: Ensures governance, docs, and ingest gates are chained and enforced through contract checks.
 type: contract.check
@@ -27,7 +27,7 @@ harness:
         class: can
         ref: /specs/governance/cases/core/runtime_optional_report_pipeline_chain.spec.md#DCGOV-PIPE-OPTIONAL-001
   use:
-    - ref: /specs/libraries/policy/policy_ci_gate.spec.md#LIB-POLICY-CI-001
+    - ref: /specs/05_libraries/policy/policy_ci_gate.spec.md#LIB-POLICY-CI-001
       as: lib_policy_ci
       symbols:
         - policy.ci.required_profiles_pass

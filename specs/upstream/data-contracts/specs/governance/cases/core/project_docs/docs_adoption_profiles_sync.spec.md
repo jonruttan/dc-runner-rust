@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-REF-009
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: core and full adoption profile docs stay synchronized
 purpose: Keeps contributor-facing docs aligned on core-check and full-check adoption profile
   wording.
@@ -22,7 +22,7 @@ harness:
     config:
       check: docs.adoption_profiles_sync
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

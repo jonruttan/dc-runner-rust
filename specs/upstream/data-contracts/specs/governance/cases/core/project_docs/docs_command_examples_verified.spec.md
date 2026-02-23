@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-QUAL-006
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: docs command and example blocks are validated
 purpose: Ensures runnable example blocks parse/validate unless explicitly opted out.
 type: contract.check
@@ -14,7 +14,7 @@ harness:
     config:
       check: docs.command_examples_verified
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-STUB-SPEC_LANG_ADOPTION_METRIC
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: stub case for spec_lang_adoption_metric
 purpose: Maintains traceability reference integrity for spec_lang_adoption_metric.
 type: contract.check

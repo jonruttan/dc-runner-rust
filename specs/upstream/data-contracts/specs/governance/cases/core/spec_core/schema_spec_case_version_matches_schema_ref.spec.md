@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-SCHEMA-PIN-004
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: spec_version matches schema_ref major
 purpose: Ensures schema pin validator rejects mismatched spec_version and schema_ref major values.
 type: contract.check

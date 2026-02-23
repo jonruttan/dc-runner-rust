@@ -29,7 +29,7 @@ Runner CLIs MAY provide:
 ## Capability Model
 
 Portable required behavior is represented as required commands and output
-contract keys in `/specs/schema/runner_cli_contract_v1.yaml`.
+contract keys in `/specs/01_schema/runner_cli_contract_v1.yaml`.
 
 Implementation-specific additions MUST be capability-gated and MUST NOT weaken
 the required portable command semantics.

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-GEN-025
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: spec lang namespace chapters are present and manifest-synced
 purpose: Ensures generated namespace chapter files exist and are listed in the book manifest.
 type: contract.check
@@ -12,7 +12,7 @@ harness:
     config:
       check: docs.reference_namespace_chapters_sync
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-LAYOUT-004
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: active review assets live under docs/history/reviews
 purpose: Enforces docs/history/reviews as canonical active review namespace while keeping historical review archives out of active workflow references.
 type: contract.check
@@ -12,7 +12,7 @@ harness:
     config:
       check: docs.reviews_namespace_active
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-STUB-OBJECTIVE_SCORECARD_METRIC
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: stub case for objective_scorecard_metric
 purpose: Maintains traceability reference integrity for objective_scorecard_metric.
 type: contract.check

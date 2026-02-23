@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-QUAL-009
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: release contract forbids manual sequential checklist choreography
 purpose: Ensures release guidance uses executable gate entrypoints and codifies that manual
   do-X-then-inspect-Y sequences are an anti-pattern.
@@ -24,7 +24,7 @@ harness:
     config:
       check: docs.release_contract_automation_policy
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

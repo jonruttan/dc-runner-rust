@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-SCHEMA-PIN-002
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: spec cases include schema_ref
 purpose: Ensures schema pin validator enforces presence of schema_ref for all executable contract-spec blocks.
 type: contract.check

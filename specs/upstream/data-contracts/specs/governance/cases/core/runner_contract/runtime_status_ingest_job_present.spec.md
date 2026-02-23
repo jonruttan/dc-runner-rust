@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-CI-002
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: status ingest job present in ci
 purpose: Ensures CI includes a status-ingest control-plane job.
 type: contract.check

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-TRIAGE-014
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: ci workflow defines rust critical gate as first-class lane
 purpose: Ensures CI has a dedicated rust critical gate job and diagnostic ci-gate depends
   on it.
@@ -21,7 +21,7 @@ harness:
     config:
       check: runtime.ci_workflow_critical_gate_required
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-STUB-RUNTIME_PYTHON_DEPENDENCY_METRIC
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: stub case for runtime_python_dependency_metric
 purpose: Maintains traceability reference integrity for runtime_python_dependency_metric.
 type: contract.check

@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-PIPE-CHAIN-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: chain entry cases exist for script domains
 purpose: Ensures all required chain pipeline case files are present.
 type: contract.check

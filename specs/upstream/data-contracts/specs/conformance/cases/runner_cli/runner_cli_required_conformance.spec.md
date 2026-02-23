@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCCONF-RCLI-003
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: runner cli exposes conformance command
 purpose: Portable CLI contract requires conformance command.
 type: contract.check

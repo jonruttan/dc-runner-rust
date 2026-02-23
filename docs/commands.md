@@ -125,6 +125,6 @@ for required-lane flows.
 | `spec check` fails manifest drift | Snapshot changed without lock/manifest update | Re-run `cargo xtask spec sync --tag ...` and commit lock+manifest+snapshot |
 | `runner-spec check` fails manifest drift | Runner-specific snapshot changed without lock/manifest update | Re-run `cargo xtask runner-spec sync --tag ...` and commit lock+manifest+snapshot |
 | `runner-spec check` fails registry validation | Rust case registry IDs or paths drifted from vendored source | Fix `/specs/impl/rust/runner_spec_registry_v1.yaml` to match vendored `dc-runner-spec` |
-| `compat check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `spec_runner_cli` behavior against `/specs/upstream/data-contracts/specs/contract/12_runner_interface.md` |
+| `compat check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `spec_runner_cli` behavior against `/specs/upstream/data-contracts/specs/02_contracts/12_runner_interface.md` |
 | `compat check` fails lock tag resolution with `--source` | Upstream ref/tag changed or unavailable | Verify upstream tag exists or use local source path |
 | `cargo xtask verify all` fails in build/test | Rust compile/test regression | Fix code/test failures before snapshot updates |

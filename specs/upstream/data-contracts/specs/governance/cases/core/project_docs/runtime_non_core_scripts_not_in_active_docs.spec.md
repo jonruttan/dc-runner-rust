@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-CORE-002
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: non-core scripts are absent from active docs
 purpose: Ensures docs do not direct users to retired non-core script entrypoints.
 type: contract.check

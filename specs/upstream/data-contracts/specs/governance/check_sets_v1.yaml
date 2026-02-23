@@ -106,11 +106,11 @@ profiles:
         path: /specs/packs/runner_contract_pack_v1.yaml
         must_contain:
           - pack_id: runner_contract_pack_v1
-          - /specs/contract/29_runner_cli_interface.md
-          - /specs/schema/runner_cli_contract_v1.yaml
+          - /specs/02_contracts/29_runner_cli_interface.md
+          - /specs/01_schema/runner_cli_contract_v1.yaml
       - id: runtime.core_script_allowlist_enforced
         kind: file_tokens
-        path: /specs/schema/core_script_allowlist_v1.yaml
+        path: /specs/01_schema/core_script_allowlist_v1.yaml
         must_contain:
           - /scripts/control_plane.sh
           - /scripts/ci_gate.sh
@@ -125,7 +125,7 @@ profiles:
         key: checks
       - id: runtime.runner_status_report_schema_valid
         kind: file_tokens
-        path: /specs/schema/runner_status_report_v1.yaml
+        path: /specs/01_schema/runner_status_report_v1.yaml
         must_contain:
           - type: runtime.runner_status_report
           - runner_id
@@ -136,7 +136,7 @@ profiles:
           - artifact_refs
       - id: runtime.runner_status_matrix_schema_valid
         kind: file_tokens
-        path: /specs/schema/runner_status_matrix_v1.yaml
+        path: /specs/01_schema/runner_status_matrix_v1.yaml
         must_contain:
           - type: runtime.runner_status_matrix
           - matrix_rows
@@ -152,7 +152,7 @@ profiles:
           - runner-status-ingest-log.json
       - id: runtime.contracts_no_rust_primary_language
         kind: file_tokens
-        path: /specs/contract/12_runner_interface.md
+        path: /specs/02_contracts/12_runner_interface.md
         must_contain:
           - implementation-agnostic boundary
           - control plane
@@ -192,7 +192,7 @@ profiles:
           - specs/contract/27_runner_status_exchange.md
       - id: docs.visual_aids_core_chapters_present
         kind: file_tokens
-        path: /specs/contract/10_docs_quality.md
+        path: /specs/02_contracts/10_docs_quality.md
         must_contain:
           - 05_what_is_data_contracts.md
           - 15_spec_lifecycle.md
@@ -205,15 +205,15 @@ profiles:
           - mismatched_version_count
       - id: schema.catalog_contains_active_schema_v1
         kind: file_tokens
-        path: /specs/schema/schema_catalog_v1.yaml
+        path: /specs/01_schema/schema_catalog_v1.yaml
         must_contain:
           - schema_id: contract_spec
           - major: 1
-          - path: /specs/schema/schema_v1.md
+          - path: /specs/01_schema/schema_v1.md
           - status: active
       - id: governance.policy_source_spec_lang_required
         kind: file_tokens
-        path: /specs/contract/28_spec_lang_policy_execution.md
+        path: /specs/02_contracts/28_spec_lang_policy_execution.md
         must_contain:
           - Policy verdict logic MUST be encoded
           - Shell scripts MUST NOT be the source of final policy verdict semantics
@@ -274,33 +274,33 @@ profiles:
           - ERROR: compatibility status freshness policy violation
       - id: runtime.policy_library_exports_resolve
         kind: file_tokens
-        path: /specs/libraries/policy/index.md
+        path: /specs/05_libraries/policy/index.md
         must_contain:
-          - /specs/libraries/policy/policy_governance_catalog.spec.md
-          - /specs/libraries/policy/policy_schema_pin.spec.md
-          - /specs/libraries/policy/policy_status_ingest.spec.md
-          - /specs/libraries/policy/policy_ci_gate.spec.md
+          - /specs/05_libraries/policy/policy_governance_catalog.spec.md
+          - /specs/05_libraries/policy/policy_schema_pin.spec.md
+          - /specs/05_libraries/policy/policy_status_ingest.spec.md
+          - /specs/05_libraries/policy/policy_ci_gate.spec.md
       - id: packs.spec_core_pack_complete
         kind: file_tokens
         path: /specs/packs/spec_core_maintenance_pack_v1.yaml
         must_contain:
           - pack_id: spec_core_maintenance_pack_v1
-          - /specs/schema/schema_v1.md
-          - /specs/schema/schema_catalog_v1.yaml
+          - /specs/01_schema/schema_v1.md
+          - /specs/01_schema/schema_catalog_v1.yaml
       - id: packs.project_docs_pack_complete
         kind: file_tokens
         path: /specs/packs/project_docs_maintenance_pack_v1.yaml
         must_contain:
           - pack_id: project_docs_maintenance_pack_v1
-          - /specs/contract/10_docs_quality.md
-          - /specs/contract/22_docs_information_architecture.md
+          - /specs/02_contracts/10_docs_quality.md
+          - /specs/02_contracts/22_docs_information_architecture.md
       - id: packs.pack_paths_resolve
         kind: file_tokens
         path: /specs/governance/cases/core/spec_core/packs_pack_paths_resolve.spec.md
         must_contain:
-          - /specs/conformance/cases/runner_cli/runner_cli_required_help.spec.md
-          - /specs/conformance/cases/runner_cli/runner_cli_required_governance.spec.md
-          - /specs/conformance/cases/runner_cli/runner_cli_required_conformance.spec.md
+          - /specs/03_conformance/cases/runner_cli/runner_cli_required_help.spec.md
+          - /specs/03_conformance/cases/runner_cli/runner_cli_required_governance.spec.md
+          - /specs/03_conformance/cases/runner_cli/runner_cli_required_conformance.spec.md
       - id: packs.pack_case_ids_unique
         kind: file_tokens
         path: /specs/governance/cases/core/spec_core/packs_pack_case_ids_unique.spec.md
@@ -318,7 +318,7 @@ profiles:
           - scripts/prepush_gate.sh
       - id: runtime.non_core_scripts_not_in_active_policy_traceability
         kind: file_tokens
-        path: /specs/contract/traceability_v1.yaml
+        path: /specs/02_contracts/traceability_v1.yaml
         must_not_contain:
           - scripts/core_gate.sh
           - scripts/local_ci_parity.sh

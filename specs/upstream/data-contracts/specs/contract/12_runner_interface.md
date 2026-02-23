@@ -34,19 +34,19 @@ must not depend on runtime-lane execution through that boundary.
 
 Runner repositories publish release assets that conform to:
 
-- `/specs/schema/runner_status_report_v1.yaml`
+- `/specs/01_schema/runner_status_report_v1.yaml`
 
 The control plane ingests and normalizes status through:
 
 - `/scripts/runner_status_ingest.sh`
-- `/specs/schema/runner_status_matrix_v1.yaml`
-- `/specs/contract/25_compatibility_matrix.md`
-- `/specs/contract/27_runner_status_exchange.md`
+- `/specs/01_schema/runner_status_matrix_v1.yaml`
+- `/specs/02_contracts/25_compatibility_matrix.md`
+- `/specs/02_contracts/27_runner_status_exchange.md`
 
 Portable CLI surface is defined by:
 
-- `/specs/contract/29_runner_cli_interface.md`
-- `/specs/schema/runner_cli_contract_v1.yaml`
+- `/specs/02_contracts/29_runner_cli_interface.md`
+- `/specs/01_schema/runner_cli_contract_v1.yaml`
 
 ## Policy Semantics
 

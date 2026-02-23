@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-REF-SYMBOLS-004
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: private library symbols are not referenced externally
 purpose: Ensures conformance/governance/impl cases do not reference defines.private symbols
   from library docs.
@@ -13,7 +13,7 @@ harness:
     config:
       check: reference.private_symbols_forbidden
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

@@ -1,14 +1,14 @@
 ```yaml contract-spec
 id: DCGOV-PACK-006
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: pack case ids remain unique
 purpose: Ensures newly introduced runner-cli cases do not collide on case id.
 type: contract.check
 harness:
   root: .
   runner_cli_cases:
-    path: /specs/conformance/cases/runner_cli
+    path: /specs/03_conformance/cases/runner_cli
     required_ids:
       - DCCONF-RCLI-001
       - DCCONF-RCLI-002

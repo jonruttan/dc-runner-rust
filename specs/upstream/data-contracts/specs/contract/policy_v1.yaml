@@ -1231,7 +1231,7 @@ rules:
   norm: MUST
   requirement: runner_status_report_schema_must_be_declared_and_complete
   description: 'Runner status producer payload contract must be declared in
-    /specs/schema/runner_status_report_v1.yaml with required producer fields.
+    /specs/01_schema/runner_status_report_v1.yaml with required producer fields.
 
     '
   rationale: Prevents cross-repo status payload drift and ingestion ambiguity.
@@ -1248,7 +1248,7 @@ rules:
   norm: MUST
   requirement: runner_status_matrix_schema_must_be_declared_and_complete
   description: 'Aggregated status matrix contract must be declared in
-    /specs/schema/runner_status_matrix_v1.yaml.
+    /specs/01_schema/runner_status_matrix_v1.yaml.
 
     '
   rationale: Keeps policy/reporting outputs deterministic and machine-readable.

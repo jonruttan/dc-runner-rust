@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-RUNTIME-SHELL-003
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: infra script boundary enforced
 purpose: Ensures ingest script remains transport/integration oriented and does not import governance policy docs.
 type: contract.check

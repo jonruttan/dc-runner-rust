@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-ASSERT-SYNC-005
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: spec-lang builtin surface remains synced across contract and runners
 purpose: Ensures builtin operators documented in the spec-lang contract are implemented in
   both Python and PHP runner evaluators.
@@ -59,7 +59,7 @@ harness:
     config:
       check: assert.spec_lang_builtin_surface_sync
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

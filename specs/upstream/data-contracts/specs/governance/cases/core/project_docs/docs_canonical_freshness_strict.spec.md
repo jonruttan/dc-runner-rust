@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-CANON-003
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: docs freshness strict checker passes
 purpose: Ensures specs freshness checks are strict, deterministic, and currently clean.
 type: contract.check

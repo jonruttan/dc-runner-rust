@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-STUB-CONFORMANCE_NO_AMBIENT_ASSUMPTIONS
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: stub case for conformance_no_ambient_assumptions
 purpose: Maintains traceability reference integrity for conformance_no_ambient_assumptions.
 type: contract.check

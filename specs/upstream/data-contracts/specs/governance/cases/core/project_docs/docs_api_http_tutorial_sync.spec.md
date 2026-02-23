@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-APIHTTP-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: api.http tutorials remain present in howto and troubleshooting docs
 purpose: Ensures contributor docs cover practical REST verbs, CORS preflight, and round-trip
   scenario guidance.
@@ -13,7 +13,7 @@ harness:
     config:
       check: docs.api_http_tutorial_sync
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

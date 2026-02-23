@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-SCHEMA-PIN-003
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: schema_ref resolves in schema catalog
 purpose: Ensures schema pin validator rejects unknown schema_ref values.
 type: contract.check

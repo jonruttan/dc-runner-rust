@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-DOCS-REF-011
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: generated docs command metadata avoids python execution
 purpose: Ensures generated docs `doc-meta.commands` use canonical rust adapter commands and do not reintroduce python execution tokens.
 type: contract.check
@@ -25,7 +25,7 @@ harness:
     config:
       check: docs.generated_command_meta_no_python_exec
   use:
-  - ref: /specs/libraries/policy/policy_core.spec.md
+  - ref: /specs/05_libraries/policy/policy_core.spec.md
     as: lib_policy_core_spec
     symbols:
     - policy.pass_when_no_violations

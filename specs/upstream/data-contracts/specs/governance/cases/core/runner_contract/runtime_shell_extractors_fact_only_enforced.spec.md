@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-PIPE-SHELL-001
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: shell extractors are fact emitters only
 purpose: Ensures extractor scripts do not emit direct policy failure exits for governance domains.
 type: contract.check

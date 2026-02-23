@@ -1,7 +1,7 @@
 ```yaml contract-spec
 id: DCGOV-PIPE-INGEST-002
 spec_version: 1
-schema_ref: /specs/schema/schema_v1.md
+schema_ref: /specs/01_schema/schema_v1.md
 title: ingest policy branch exits are forbidden
 purpose: Ensures ingest script does not hard-fail on freshness policy branches.
 type: contract.check
