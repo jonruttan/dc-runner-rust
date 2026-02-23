@@ -4,8 +4,10 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
     match subcommand {
         "spec-eval" => super::run_spec_eval_native(root, forwarded),
         "job-run" => super::run_job_run_native(root, forwarded),
-        "critical-gate" => super::run_critical_gate_native(root, forwarded),
-        "governance-broad-native" => super::run_governance_broad_native(root, forwarded),
+        "critical-gate" => super::run_registered_entry_command(root, "critical-gate", forwarded),
+        "governance-broad-native" => {
+            super::run_registered_entry_command(root, "governance-broad-native", forwarded)
+        }
         "spec-ref" => {
             if forwarded.len() != 1 {
                 eprintln!("usage: spec-ref <subcommand>");
@@ -15,7 +17,7 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
             }
         }
         "validate-report" => super::run_validate_report_native(root, forwarded),
-        "governance" => super::run_governance_native(root, forwarded),
+        "governance" => super::run_registered_entry_command(root, "governance", forwarded),
         "governance-heavy" => super::run_governance_heavy_native(root, forwarded),
         "style-check" => super::run_style_check_native(root, forwarded),
         "specs-list" => super::run_specs_list_native(root, forwarded),
@@ -102,7 +104,9 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
         ),
         "perf-smoke" => super::run_job_for_command(root, "perf-smoke", forwarded),
         "docs-generate" => super::run_docs_generate_native(root, forwarded, false),
-        "docs-generate-check" => super::run_docs_generate_native(root, forwarded, true),
+        "docs-generate-check" => {
+            super::run_registered_entry_command(root, "docs-generate-check", forwarded)
+        }
         "docs-build" => super::run_job_for_command(root, "docs-build", forwarded),
         "docs-build-check" => super::run_job_for_command(root, "docs-build-check", forwarded),
         "docs-lint" => super::run_docs_lint_native(root, forwarded),

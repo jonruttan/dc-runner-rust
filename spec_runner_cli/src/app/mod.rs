@@ -8,10 +8,7 @@ use std::process::{self, Command};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use crate::governance::{
-    run_critical_gate_native, run_governance_broad_native, run_governance_heavy_native,
-    run_governance_native,
-};
+use crate::governance::{run_governance_heavy_native, run_governance_native};
 use crate::migrators::{
     run_migrate_case_doc_metadata_v1, run_migrate_case_domain_prefix_v1,
     run_migrate_library_docs_metadata_v1,
@@ -1920,6 +1917,153 @@ fn run_docs_generate_native(root: &Path, forwarded: &[String], check: bool) -> i
         println!("OK: docs-generate fallback passed (no docs_generate_all.py; manifest present)");
     }
     0
+}
+
+fn resolve_repo_path(root: &Path, raw: &str) -> PathBuf {
+    let rel = raw.trim_start_matches('/');
+    root.join(rel)
+}
+
+#[derive(Debug, Clone)]
+struct RunnerEntrypoint {
+    id: String,
+    profile: String,
+    artifacts: Vec<String>,
+    allowed_exit_codes: Vec<i32>,
+}
+
+fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String> {
+    let candidates = [
+        root.join("specs/04_governance/runner_entrypoints_v1.yaml"),
+        root.join("specs/upstream/data-contracts/specs/04_governance/runner_entrypoints_v1.yaml"),
+    ];
+    let path = candidates.iter().find(|p| p.exists()).ok_or_else(|| {
+        "missing runner entrypoint manifest: specs/04_governance/runner_entrypoints_v1.yaml"
+            .to_string()
+    })?;
+    let raw = fs::read_to_string(path).map_err(|e| {
+        format!(
+            "failed reading runner entrypoint manifest {}: {e}",
+            path.display()
+        )
+    })?;
+    let y: YamlValue = serde_yaml::from_str(&raw)
+        .map_err(|e| format!("invalid runner entrypoint manifest {}: {e}", path.display()))?;
+    let root_map = y
+        .as_mapping()
+        .ok_or_else(|| "runner entrypoint manifest root must be mapping".to_string())?;
+    let commands = root_map
+        .get(&YamlValue::String("commands".to_string()))
+        .and_then(|v| v.as_sequence())
+        .ok_or_else(|| "runner entrypoint manifest missing commands[]".to_string())?;
+
+    let mut out = Vec::<RunnerEntrypoint>::new();
+    for (idx, item) in commands.iter().enumerate() {
+        let map = item
+            .as_mapping()
+            .ok_or_else(|| format!("commands[{idx}] must be mapping"))?;
+        let id = map
+            .get(&YamlValue::String("id".to_string()))
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .ok_or_else(|| format!("commands[{idx}] missing id"))?;
+        let profile = map
+            .get(&YamlValue::String("profile".to_string()))
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .ok_or_else(|| format!("commands[{idx}] missing profile"))?;
+        let artifacts = map
+            .get(&YamlValue::String("artifacts".to_string()))
+            .and_then(|v| v.as_sequence())
+            .ok_or_else(|| format!("commands[{idx}] missing artifacts[]"))?
+            .iter()
+            .filter_map(|v| v.as_str().map(|s| s.trim().to_string()))
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<_>>();
+        if artifacts.is_empty() {
+            return Err(format!("commands[{idx}] artifacts[] must be non-empty"));
+        }
+        let allowed_exit_codes = map
+            .get(&YamlValue::String("exit_codes".to_string()))
+            .and_then(|v| v.as_mapping())
+            .and_then(|m| m.get(&YamlValue::String("allowed".to_string())))
+            .and_then(|v| v.as_sequence())
+            .ok_or_else(|| format!("commands[{idx}] missing exit_codes.allowed[]"))?
+            .iter()
+            .filter_map(|v| v.as_i64().and_then(|n| i32::try_from(n).ok()))
+            .collect::<Vec<_>>();
+        if allowed_exit_codes.is_empty() {
+            return Err(format!(
+                "commands[{idx}] exit_codes.allowed[] must be non-empty"
+            ));
+        }
+        out.push(RunnerEntrypoint {
+            id,
+            profile,
+            artifacts,
+            allowed_exit_codes,
+        });
+    }
+    Ok(out)
+}
+
+fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[String]) -> i32 {
+    if !forwarded.is_empty() {
+        eprintln!("ERROR: {command_id} does not accept extra args");
+        return 2;
+    }
+    let entries = match load_runner_entrypoints(root) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+    let Some(entry) = entries.iter().find(|e| e.id == command_id) else {
+        let mut ids = entries.iter().map(|e| e.id.as_str()).collect::<Vec<_>>();
+        ids.sort_unstable();
+        eprintln!(
+            "ERROR: unknown command entrypoint id: {command_id}. Available: {}",
+            ids.join(", ")
+        );
+        return 2;
+    };
+
+    let mut gov_args = vec!["--profile".to_string(), entry.profile.clone()];
+    for a in &entry.artifacts {
+        if a.ends_with("-summary.json") {
+            gov_args.push("--out".to_string());
+            gov_args.push(a.trim_start_matches('/').to_string());
+        } else if a.ends_with("-trace.json") {
+            gov_args.push("--trace-out".to_string());
+            gov_args.push(a.trim_start_matches('/').to_string());
+        } else if a.ends_with("-summary.md") {
+            gov_args.push("--summary-out".to_string());
+            gov_args.push(a.trim_start_matches('/').to_string());
+        }
+    }
+    let code = run_governance_native(root, &gov_args);
+    if !entry.allowed_exit_codes.contains(&code) {
+        eprintln!(
+            "ERROR: command entrypoint {} returned disallowed exit code {}",
+            entry.id, code
+        );
+        return 1;
+    }
+    for artifact in &entry.artifacts {
+        let p = resolve_repo_path(root, artifact);
+        if !p.exists() {
+            eprintln!(
+                "ERROR: command entrypoint {} missing required artifact {}",
+                entry.id,
+                p.display()
+            );
+            return 1;
+        }
+    }
+    code
 }
 
 fn run_docs_lint_native(root: &Path, forwarded: &[String]) -> i32 {

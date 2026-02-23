@@ -2,8 +2,8 @@ use clap::{ArgAction, Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Debug, Clone, Parser)]
 #[command(
-    name = "dc_runner_cli",
-    bin_name = "spec_runner_cli",
+    name = "dc-runner",
+    bin_name = "dc-runner",
     version,
     about = "Rust Data Contracts runner",
     long_about = "Rust-first Data Contracts runner with compatibility commands and user-friendly specs workflows.",

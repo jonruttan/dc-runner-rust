@@ -308,10 +308,10 @@ fn from_cli(cli: Cli) -> ParsedEntry {
 
 pub fn parse_entry(args: &[String]) -> Result<ParsedEntry, i32> {
     if args.len() <= 1 {
-        println!("dc_runner_cli quick start:");
-        println!("  spec_runner_cli specs run-all");
-        println!("  spec_runner_cli specs list");
-        println!("  spec_runner_cli --help");
+        println!("dc-runner quick start:");
+        println!("  dc-runner specs run-all");
+        println!("  dc-runner specs list");
+        println!("  dc-runner --help");
         return Err(0);
     }
     if args.iter().any(|arg| arg == "--help-advanced")
