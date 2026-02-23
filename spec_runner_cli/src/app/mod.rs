@@ -1933,7 +1933,7 @@ fn run_docs_lint_native(root: &Path, forwarded: &[String]) -> i32 {
         .join("reference_manifest.yaml");
     let docs_quality_contract = root
         .join("specs")
-        .join("contract")
+        .join("02_contracts")
         .join("10_docs_quality.md");
     if !manifest.exists() {
         eprintln!("ERROR: docs-lint failed: missing {}", manifest.display());
