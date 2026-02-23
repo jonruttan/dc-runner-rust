@@ -28,7 +28,7 @@ upstream snapshots.
 ## Stable Interface Contract
 
 - Canonical runner entrypoint: Rust CLI (`dc-runner`)
-- Published crates.io package: `dc_runner_cli`
+- Published crates.io package: `dc-runner-cli`
 - Stable exit code semantics:
   - `0` success
   - `1` runtime/tool failure
@@ -40,7 +40,7 @@ upstream snapshots.
 ### Cargo install (recommended)
 
 ```sh
-cargo install dc_runner_cli --locked
+cargo install dc-runner-cli --locked
 ```
 
 ### GitHub release binary (macOS/Linux)
@@ -89,7 +89,7 @@ dc-runner help-advanced
 Source-run maintainer equivalent:
 
 ```sh
-cargo run -q -p dc_runner_cli -- --help
+cargo run -q -p dc-runner-cli -- --help
 ```
 
 Build and test:
@@ -187,8 +187,8 @@ Shell compatibility wrappers (xtask-backed):
 
 ## Crate Publishing
 
-- crates.io package: `dc_runner_cli`
-- publish flow: GitHub tag `vX.Y.Z` (must match crate version in `/spec_runner_cli/Cargo.toml`)
+- crates.io package: `dc-runner-cli`
+- publish flow: GitHub tag `vX.Y.Z` (must match crate version in `/dc-runner-cli/Cargo.toml`)
 - CI publish auth: `CRATES_IO_TOKEN` repository secret
 
 ## Specs Map

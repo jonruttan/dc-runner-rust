@@ -26,7 +26,7 @@ dc-runner help-advanced
 Source-run maintainer equivalent:
 
 ```sh
-cargo run -q -p dc_runner_cli -- --help
+cargo run -q -p dc-runner-cli -- --help
 ```
 
 ## Maintainer Command Reference

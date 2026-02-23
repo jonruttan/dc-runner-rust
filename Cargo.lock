@@ -237,7 +237,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dc_runner_cli"
+name = "dc-runner-cli"
 version = "0.2.0"
 dependencies = [
  "chrono",

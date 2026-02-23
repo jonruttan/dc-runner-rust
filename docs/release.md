@@ -12,7 +12,7 @@ This ensures build/test integrity plus upstream compatibility validation.
 
 ## Version Bump Flow
 
-1. Update crate/release version metadata (for example in `/spec_runner_cli/Cargo.toml`).
+1. Update crate/release version metadata (for example in `/dc-runner-cli/Cargo.toml`).
 2. Run:
 
 ```sh
@@ -60,13 +60,13 @@ Release associated with the tag.
 
 ## Crates.io Publishing
 
-Crate: `dc_runner_cli`
+Crate: `dc-runner-cli`
 
 Release workflow includes a crate publish job that:
 
-1. validates `vX.Y.Z` tag equals `version` in `/spec_runner_cli/Cargo.toml`
-2. runs `cargo package -p dc_runner_cli --allow-dirty`
-3. runs `cargo publish -p dc_runner_cli --locked`
+1. validates `vX.Y.Z` tag equals `version` in `/dc-runner-cli/Cargo.toml`
+2. runs `cargo package -p dc-runner-cli --allow-dirty`
+3. runs `cargo publish -p dc-runner-cli --locked`
 
 Required repository secret:
 

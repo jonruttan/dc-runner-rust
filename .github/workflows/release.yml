@@ -21,7 +21,7 @@ jobs:
       - name: Verify
         run: cargo xtask verify all
       - name: Package Check
-        run: cargo package -p dc_runner_cli --allow-dirty
+        run: cargo package -p dc-runner-cli --allow-dirty
 
   publish-crate:
     name: Publish Crate
@@ -35,9 +35,9 @@ jobs:
         run: |
           set -euo pipefail
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          CRATE_VERSION="$(awk -F ' = ' '/^version = / {gsub(/"/, "", $2); print $2; exit}' spec_runner_cli/Cargo.toml)"
+          CRATE_VERSION="$(awk -F ' = ' '/^version = / {gsub(/"/, "", $2); print $2; exit}' dc-runner-cli/Cargo.toml)"
           if [[ -z "${CRATE_VERSION}" ]]; then
-            echo "ERROR: unable to read crate version from spec_runner_cli/Cargo.toml" >&2
+            echo "ERROR: unable to read crate version from dc-runner-cli/Cargo.toml" >&2
             exit 1
           fi
           if [[ "${TAG_VERSION}" != "${CRATE_VERSION}" ]]; then
@@ -45,11 +45,11 @@ jobs:
             exit 1
           fi
       - name: Package Crate
-        run: cargo package -p dc_runner_cli --allow-dirty
+        run: cargo package -p dc-runner-cli --allow-dirty
       - name: Publish to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-        run: cargo publish -p dc_runner_cli --locked
+        run: cargo publish -p dc-runner-cli --locked
 
   build-artifacts:
     name: Build (${{ matrix.platform }})
@@ -75,7 +75,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build release binary
-        run: cargo build --release --locked --manifest-path spec_runner_cli/Cargo.toml --target ${{ matrix.target }}
+        run: cargo build --release --locked --manifest-path dc-runner-cli/Cargo.toml --target ${{ matrix.target }}
 
       - name: Package artifact + checksum
         shell: bash

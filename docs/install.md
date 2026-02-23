@@ -16,7 +16,7 @@ operator/integrator.
 ### 1) Cargo install (recommended)
 
 ```sh
-cargo install dc_runner_cli --locked
+cargo install dc-runner-cli --locked
 ```
 
 ### 2) GitHub release binary install (macOS/Linux)
@@ -59,19 +59,19 @@ dc-runner governance critical --help
 Upgrade with Cargo:
 
 ```sh
-cargo install dc_runner_cli --locked --force
+cargo install dc-runner-cli --locked --force
 ```
 
 Pin version with Cargo:
 
 ```sh
-cargo install dc_runner_cli --locked --version 0.2.0
+cargo install dc-runner-cli --locked --version 0.2.0
 ```
 
 Uninstall:
 
 ```sh
-cargo uninstall dc_runner_cli
+cargo uninstall dc-runner-cli
 ```
 
 ## Normative refs
@@ -79,4 +79,4 @@ cargo uninstall dc_runner_cli
 - `/README.md`
 - `/docs/commands.md`
 - `/docs/release.md`
-- `/spec_runner_cli/Cargo.toml`
+- `/dc-runner-cli/Cargo.toml`

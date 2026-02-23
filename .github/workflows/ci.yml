@@ -16,4 +16,4 @@ jobs:
       - name: Verify
         run: cargo xtask verify all
       - name: Package Check
-        run: cargo package -p dc_runner_cli --allow-dirty
+        run: cargo package -p dc-runner-cli --allow-dirty

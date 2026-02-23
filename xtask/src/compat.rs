@@ -28,7 +28,7 @@ fn ensure_runner_binary() -> Result<()> {
     run_inherited(Command::new("cargo").args([
         "build",
         "--manifest-path",
-        "spec_runner_cli/Cargo.toml",
+        "dc-runner-cli/Cargo.toml",
     ]))
 }
 

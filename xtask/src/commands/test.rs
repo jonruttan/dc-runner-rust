@@ -8,6 +8,6 @@ pub fn run() -> Result<()> {
     run_inherited(Command::new("cargo").args([
         "test",
         "--manifest-path",
-        "spec_runner_cli/Cargo.toml",
+        "dc-runner-cli/Cargo.toml",
     ]))
 }
