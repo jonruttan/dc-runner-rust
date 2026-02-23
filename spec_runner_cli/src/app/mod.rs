@@ -3354,33 +3354,63 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
         }
     };
     let jobs_json = yaml_to_json(jobs_yaml);
-    let jobs_list = match jobs_json.as_array() {
-        Some(v) if !v.is_empty() => v,
-        _ => {
+    let mut jobs_obj = serde_json::Map::<String, Value>::new();
+    if let Some(rows) = jobs_json.as_array() {
+        if rows.is_empty() {
             eprintln!("ERROR: harness.jobs must be a non-empty list");
             return 1;
         }
-    };
-    let mut jobs_obj = serde_json::Map::<String, Value>::new();
-    for (idx, row) in jobs_list.iter().enumerate() {
-        let Some(row_obj) = row.as_object() else {
-            eprintln!("ERROR: harness.jobs[{idx}] must be mapping");
-            return 1;
-        };
-        let job_id = row_obj
-            .get("id")
-            .and_then(|v| v.as_str())
-            .map(str::trim)
-            .unwrap_or("");
-        if job_id.is_empty() {
-            eprintln!("ERROR: harness.jobs[{idx}].id is required");
+        for (idx, row) in rows.iter().enumerate() {
+            let Some(row_obj) = row.as_object() else {
+                eprintln!("ERROR: harness.jobs[{idx}] must be mapping");
+                return 1;
+            };
+            let job_id = row_obj
+                .get("id")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .unwrap_or("");
+            if job_id.is_empty() {
+                eprintln!("ERROR: harness.jobs[{idx}].id is required");
+                return 1;
+            }
+            if jobs_obj.contains_key(job_id) {
+                eprintln!("ERROR: harness.jobs id must be unique: {job_id}");
+                return 1;
+            }
+            jobs_obj.insert(job_id.to_string(), Value::Object(row_obj.clone()));
+        }
+    } else if let Some(rows) = jobs_json.as_object() {
+        if rows.is_empty() {
+            eprintln!("ERROR: harness.jobs must be a non-empty mapping");
             return 1;
         }
-        if jobs_obj.contains_key(job_id) {
-            eprintln!("ERROR: harness.jobs id must be unique: {job_id}");
-            return 1;
+        for (job_id, row) in rows {
+            let Some(mut row_obj) = row.as_object().cloned() else {
+                eprintln!("ERROR: harness.jobs.{job_id} must be mapping");
+                return 1;
+            };
+            let explicit_id = row_obj
+                .get("id")
+                .and_then(|v| v.as_str())
+                .map(str::trim)
+                .unwrap_or("");
+            if !explicit_id.is_empty() && explicit_id != job_id {
+                eprintln!("ERROR: harness.jobs.{job_id}.id must be omitted or equal to '{job_id}'");
+                return 1;
+            }
+            row_obj
+                .entry("id".to_string())
+                .or_insert_with(|| Value::String(job_id.clone()));
+            if jobs_obj.contains_key(job_id) {
+                eprintln!("ERROR: harness.jobs id must be unique: {job_id}");
+                return 1;
+            }
+            jobs_obj.insert(job_id.clone(), Value::Object(row_obj));
         }
-        jobs_obj.insert(job_id.to_string(), Value::Object(row_obj.clone()));
+    } else {
+        eprintln!("ERROR: harness.jobs must be a non-empty list or mapping");
+        return 1;
     }
 
     let mut input_override = serde_json::Map::<String, Value>::new();
