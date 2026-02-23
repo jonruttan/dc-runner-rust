@@ -192,6 +192,7 @@ fn from_cli(cli: Cli) -> ParsedEntry {
                 sha256,
                 allow_external,
                 runner,
+                vars,
                 overwrite,
             } => {
                 let mut forwarded = vec!["--project-root".to_string(), project_root];
@@ -216,6 +217,10 @@ fn from_cli(cli: Cli) -> ParsedEntry {
                 }
                 if let Some(v) = runner {
                     forwarded.push("--runner".to_string());
+                    forwarded.push(v);
+                }
+                for v in vars {
+                    forwarded.push("--var".to_string());
                     forwarded.push(v);
                 }
                 if overwrite {

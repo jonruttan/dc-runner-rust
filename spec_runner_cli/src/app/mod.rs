@@ -26,7 +26,7 @@ use crate::services::gate_summary::summarize as summarize_gate;
 use crate::services::specs_ui;
 use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
 use chrono::{SecondsFormat, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use serde_yaml::Value as YamlValue;
 use sha2::{Digest, Sha256};
@@ -652,6 +652,7 @@ struct ProjectScaffoldArgs {
     mode: ProjectScaffoldMode,
     runner: String,
     overwrite: bool,
+    template_vars: HashMap<String, String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -679,6 +680,47 @@ struct ProjectBundleLockSource {
     sha256: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct ScaffoldManifestV1 {
+    version: i64,
+    bundle_id: String,
+    bundle_version: String,
+    payload: ScaffoldPayloadRoots,
+    variables: Option<Vec<ScaffoldVariableDecl>>,
+    materialization: ScaffoldMaterialization,
+}
+
+#[derive(Debug, Deserialize)]
+struct ScaffoldPayloadRoots {
+    files_root: String,
+    templates_root: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ScaffoldVariableDecl {
+    name: String,
+    default: Option<YamlValue>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ScaffoldMaterialization {
+    entries: Vec<ScaffoldMaterializationEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ScaffoldMaterializationEntry {
+    target_path: String,
+    source: ScaffoldMaterializationSource,
+    mode: String,
+    required: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ScaffoldMaterializationSource {
+    kind: String,
+    path: String,
+}
+
 fn parse_project_scaffold_args(forwarded: &[String]) -> Result<ProjectScaffoldArgs, String> {
     let mut project_root: Option<PathBuf> = None;
     let mut bundle_id: Option<String> = None;
@@ -688,6 +730,7 @@ fn parse_project_scaffold_args(forwarded: &[String]) -> Result<ProjectScaffoldAr
     let mut allow_external = false;
     let mut runner: Option<String> = None;
     let mut overwrite = false;
+    let mut template_vars: HashMap<String, String> = HashMap::new();
 
     let mut i = 0usize;
     while i < forwarded.len() {
@@ -741,6 +784,21 @@ fn parse_project_scaffold_args(forwarded: &[String]) -> Result<ProjectScaffoldAr
             "--overwrite" => {
                 overwrite = true;
                 i += 1;
+            }
+            "--var" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--var requires value".to_string());
+                }
+                let raw = forwarded[i + 1].trim();
+                let (key, value) = raw
+                    .split_once('=')
+                    .ok_or_else(|| "--var expects key=value".to_string())?;
+                let key = key.trim();
+                if key.is_empty() {
+                    return Err("--var key must be non-empty".to_string());
+                }
+                template_vars.insert(key.to_string(), value.to_string());
+                i += 2;
             }
             other => return Err(format!("unsupported project-scaffold arg: {other}")),
         }
@@ -801,6 +859,7 @@ fn parse_project_scaffold_args(forwarded: &[String]) -> Result<ProjectScaffoldAr
         mode,
         runner,
         overwrite,
+        template_vars,
     })
 }
 
@@ -987,13 +1046,111 @@ fn run_bundler_bundle_subcommand(
     Err("unable to execute data-contracts-bundler (set DATA_CONTRACTS_BUNDLER_BIN or install binary)".to_string())
 }
 
+fn resolve_scaffold_manifest(
+    install_root: &Path,
+    expected_bundle_id: Option<&str>,
+) -> Result<(PathBuf, ScaffoldManifestV1), String> {
+    let mut stack = vec![install_root.to_path_buf()];
+    let mut matches: Vec<PathBuf> = Vec::new();
+    while let Some(dir) = stack.pop() {
+        let rd = fs::read_dir(&dir)
+            .map_err(|e| format!("failed to read directory {}: {}", dir.display(), e))?;
+        for ent in rd {
+            let ent =
+                ent.map_err(|e| format!("failed to read entry in {}: {}", dir.display(), e))?;
+            let path = ent.path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if path.file_name().and_then(|v| v.to_str()) == Some("scaffold_manifest_v1.yaml") {
+                matches.push(path);
+            }
+        }
+    }
+    matches.sort();
+    if matches.is_empty() {
+        return Err(format!(
+            "missing scaffold manifest in installed bundle at {}",
+            install_root.display()
+        ));
+    }
+
+    let mut selected_bundle_id = expected_bundle_id.map(|v| v.to_string());
+    if selected_bundle_id.is_none() {
+        let lock_path = install_root.join("resolved_bundle_lock_v1.yaml");
+        if lock_path.exists() {
+            if let Ok(raw) = fs::read_to_string(&lock_path) {
+                if let Ok(lock_yaml) = serde_yaml::from_str::<YamlValue>(&raw) {
+                    if let Some(root_bundle) = lock_yaml
+                        .get("root_bundle")
+                        .and_then(|v| v.as_str())
+                        .map(|v| v.to_string())
+                    {
+                        selected_bundle_id = Some(root_bundle);
+                    }
+                }
+            }
+        }
+    }
+
+    let mut parsed: Vec<(PathBuf, ScaffoldManifestV1)> = Vec::new();
+    for path in matches {
+        let raw = fs::read_to_string(&path)
+            .map_err(|e| format!("failed to read scaffold manifest {}: {}", path.display(), e))?;
+        let manifest: ScaffoldManifestV1 = serde_yaml::from_str(&raw)
+            .map_err(|e| format!("invalid scaffold manifest {}: {}", path.display(), e))?;
+        parsed.push((path, manifest));
+    }
+
+    if let Some(expected) = selected_bundle_id {
+        let matching: Vec<(PathBuf, ScaffoldManifestV1)> = parsed
+            .into_iter()
+            .filter(|(_, m)| m.bundle_id == expected)
+            .collect();
+        match matching.len() {
+            0 => Err(format!(
+                "no scaffold manifest matched bundle_id `{}` in {}",
+                expected,
+                install_root.display()
+            )),
+            1 => Ok(matching.into_iter().next().expect("one item")),
+            _ => Err(format!(
+                "multiple scaffold manifests matched bundle_id `{}` in {}",
+                expected,
+                install_root.display()
+            )),
+        }
+    } else {
+        if parsed.len() != 1 {
+            return Err(format!(
+                "multiple scaffold manifests found in installed bundle at {}",
+                install_root.display()
+            ));
+        }
+        Ok(parsed.into_iter().next().expect("one item"))
+    }
+}
+
+fn render_template_str(source: &str, vars: &HashMap<String, String>) -> Result<String, String> {
+    let mut out = source.to_string();
+    for (key, value) in vars {
+        let token = format!("{{{{{}}}}}", key);
+        out = out.replace(&token, value);
+    }
+    if out.contains("{{") && out.contains("}}") {
+        return Err("unresolved template variables remain after rendering".to_string());
+    }
+    Ok(out)
+}
+
 pub(super) fn run_project_scaffold_native(root: &Path, forwarded: &[String]) -> i32 {
     if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
         println!(
-            "usage: project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>] [--overwrite]"
+            "usage: project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>] [--var <key=value>]... [--overwrite]"
         );
         println!(
-            "   or: project scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external [--runner <rust|python|php>] [--overwrite]"
+            "   or: project scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external [--runner <rust|python|php>] [--var <key=value>]... [--overwrite]"
         );
         return 0;
     }
@@ -1169,6 +1326,188 @@ pub(super) fn run_project_scaffold_native(root: &Path, forwarded: &[String]) -> 
         return 1;
     }
 
+    let install_root = project_root.join(&install_dir);
+    let expected_bundle_id = match &args.mode {
+        ProjectScaffoldMode::Canonical { bundle_id, .. } => Some(bundle_id.as_str()),
+        ProjectScaffoldMode::External { .. } => None,
+    };
+    let (scaffold_manifest_path, scaffold_manifest) =
+        match resolve_scaffold_manifest(&install_root, expected_bundle_id) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: {}", e);
+                return 1;
+            }
+        };
+    if scaffold_manifest.version != 1 {
+        eprintln!(
+            "ERROR: unsupported scaffold manifest version {} at {}",
+            scaffold_manifest.version,
+            scaffold_manifest_path.display()
+        );
+        return 1;
+    }
+    if scaffold_manifest.materialization.entries.is_empty() {
+        eprintln!(
+            "ERROR: scaffold materialization entries must be non-empty at {}",
+            scaffold_manifest_path.display()
+        );
+        return 1;
+    }
+
+    let mut resolved_vars: HashMap<String, String> = HashMap::new();
+    if let Some(decls) = &scaffold_manifest.variables {
+        for decl in decls {
+            if decl.name.trim().is_empty() {
+                eprintln!(
+                    "ERROR: scaffold variable name must be non-empty at {}",
+                    scaffold_manifest_path.display()
+                );
+                return 1;
+            }
+            if let Some(default) = &decl.default {
+                let default_text = if let Some(v) = default.as_str() {
+                    v.to_string()
+                } else if let Some(v) = default.as_bool() {
+                    if v {
+                        "true".to_string()
+                    } else {
+                        "false".to_string()
+                    }
+                } else if let Some(v) = default.as_i64() {
+                    v.to_string()
+                } else if let Some(v) = default.as_u64() {
+                    v.to_string()
+                } else if let Some(v) = default.as_f64() {
+                    v.to_string()
+                } else {
+                    eprintln!(
+                        "ERROR: scaffold variable default for {} must be scalar",
+                        decl.name
+                    );
+                    return 1;
+                };
+                resolved_vars.insert(decl.name.clone(), default_text);
+            }
+        }
+    }
+    for (k, v) in &args.template_vars {
+        resolved_vars.insert(k.clone(), v.clone());
+    }
+    if let Some(decls) = &scaffold_manifest.variables {
+        for decl in decls {
+            if !resolved_vars.contains_key(&decl.name) {
+                eprintln!(
+                    "ERROR: required scaffold variable `{}` missing in {}",
+                    decl.name,
+                    scaffold_manifest_path.display()
+                );
+                return 1;
+            }
+        }
+    }
+
+    let mut created_count = 0usize;
+    let mut overwritten_count = 0usize;
+    let mut skipped_count = 0usize;
+    let mut materialized_targets: Vec<String> = Vec::new();
+    for entry in &scaffold_manifest.materialization.entries {
+        let target_rel = entry.target_path.trim().trim_start_matches("./");
+        if target_rel.is_empty() {
+            eprintln!("ERROR: scaffold target_path must be non-empty");
+            return 1;
+        }
+        let source_rel = entry.source.path.trim().trim_start_matches("./");
+        if source_rel.is_empty() {
+            eprintln!("ERROR: scaffold source.path must be non-empty");
+            return 1;
+        }
+        let source_path = install_root.join(source_rel);
+        if !source_path.exists() {
+            if entry.required {
+                eprintln!(
+                    "ERROR: required scaffold source missing: {}",
+                    source_path.display()
+                );
+                return 1;
+            }
+            skipped_count += 1;
+            continue;
+        }
+        let target_path = project_root.join(target_rel);
+        if target_path.exists() && entry.mode == "create_only" && !args.overwrite {
+            eprintln!(
+                "ERROR: scaffold target exists and create_only is set: {} (use --overwrite)",
+                target_path.display()
+            );
+            return 1;
+        }
+        if let Some(parent) = target_path.parent() {
+            if let Err(e) = fs::create_dir_all(parent) {
+                eprintln!("ERROR: failed to create {}: {}", parent.display(), e);
+                return 1;
+            }
+        }
+        let existed = target_path.exists();
+        match entry.source.kind.as_str() {
+            "file" => {
+                let bytes = match fs::read(&source_path) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        eprintln!("ERROR: failed reading {}: {}", source_path.display(), e);
+                        return 1;
+                    }
+                };
+                if let Err(e) = fs::write(&target_path, bytes) {
+                    eprintln!("ERROR: failed writing {}: {}", target_path.display(), e);
+                    return 1;
+                }
+            }
+            "template" => {
+                let template = match fs::read_to_string(&source_path) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        eprintln!("ERROR: failed reading {}: {}", source_path.display(), e);
+                        return 1;
+                    }
+                };
+                let rendered = match render_template_str(&template, &resolved_vars) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        eprintln!(
+                            "ERROR: template render failed for {}: {}",
+                            source_path.display(),
+                            e
+                        );
+                        return 1;
+                    }
+                };
+                if let Err(e) = fs::write(&target_path, rendered) {
+                    eprintln!("ERROR: failed writing {}: {}", target_path.display(), e);
+                    return 1;
+                }
+            }
+            other => {
+                eprintln!("ERROR: unsupported scaffold source kind: {}", other);
+                return 1;
+            }
+        }
+        if existed {
+            overwritten_count += 1;
+        } else {
+            created_count += 1;
+        }
+        materialized_targets.push(target_rel.to_string());
+    }
+
+    let scaffold_manifest_sha = match sha256_file(&scaffold_manifest_path) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {}", e);
+            return 1;
+        }
+    };
+
     let summary_json_path = artifacts_dir.join("project-scaffold.json");
     let summary_md_path = artifacts_dir.join("project-scaffold.md");
     let payload = json!({
@@ -1183,7 +1522,19 @@ pub(super) fn run_project_scaffold_native(root: &Path, forwarded: &[String]) -> 
             "sha256": sha256
         },
         "lock_path": lock_path.display().to_string(),
-        "install_dir": install_dir
+        "install_dir": install_dir,
+        "scaffold": {
+            "manifest_path": scaffold_manifest_path.display().to_string(),
+            "manifest_sha256": scaffold_manifest_sha,
+            "manifest_bundle_id": scaffold_manifest.bundle_id,
+            "manifest_bundle_version": scaffold_manifest.bundle_version,
+            "files_root": scaffold_manifest.payload.files_root,
+            "templates_root": scaffold_manifest.payload.templates_root,
+            "created_count": created_count,
+            "overwritten_count": overwritten_count,
+            "skipped_count": skipped_count,
+            "materialized_targets": materialized_targets
+        }
     });
     let pretty_json = serde_json::to_string_pretty(&payload).unwrap_or_else(|_| "{}".to_string());
     if let Err(e) = fs::write(&summary_json_path, pretty_json) {
@@ -1195,10 +1546,13 @@ pub(super) fn run_project_scaffold_native(root: &Path, forwarded: &[String]) -> 
         return 1;
     }
     let markdown = format!(
-        "# Project Scaffold\n\n- status: `ok`\n- project_root: `{}`\n- lock: `{}`\n- install_dir: `{}`\n",
+        "# Project Scaffold\n\n- status: `ok`\n- project_root: `{}`\n- lock: `{}`\n- install_dir: `{}`\n- created: `{}`\n- overwritten: `{}`\n- skipped: `{}`\n",
         project_root.display(),
         lock_path.display(),
-        project_root.join(".bundles").display()
+        project_root.join(".bundles").display(),
+        created_count,
+        overwritten_count,
+        skipped_count
     );
     if let Err(e) = fs::write(&summary_md_path, markdown) {
         eprintln!("ERROR: failed writing {}: {}", summary_md_path.display(), e);
@@ -4962,9 +5316,15 @@ contracts:
             "core".to_string(),
             "--bundle-version".to_string(),
             "1.2.3".to_string(),
+            "--var".to_string(),
+            "project_name=demo".to_string(),
         ];
         let parsed = parse_project_scaffold_args(&args).expect("parse");
         assert_eq!(parsed.project_root, PathBuf::from("tmp/demo"));
+        assert_eq!(
+            parsed.template_vars.get("project_name").map(String::as_str),
+            Some("demo")
+        );
         match parsed.mode {
             ProjectScaffoldMode::Canonical {
                 bundle_id,
@@ -5021,5 +5381,15 @@ contracts:
         assert_eq!(release_tag, "v1.2.3");
         assert!(asset_url.ends_with("/v1.2.3/data-contract-bundle-core-v1.2.3.tar.gz"));
         assert!(sidecar_url.ends_with("/v1.2.3/data-contract-bundle-core-v1.2.3.tar.gz.sha256"));
+    }
+
+    #[test]
+    fn render_template_str_requires_fully_resolved_tokens() {
+        let mut vars = HashMap::new();
+        vars.insert("name".to_string(), "demo".to_string());
+        let ok = render_template_str("hello {{name}}", &vars).expect("render");
+        assert_eq!(ok, "hello demo");
+        let err = render_template_str("hello {{missing}}", &vars).expect_err("must fail");
+        assert!(err.contains("unresolved"));
     }
 }

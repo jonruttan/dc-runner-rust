@@ -323,6 +323,8 @@ pub enum ProjectSubcommand {
         allow_external: bool,
         #[arg(long = "runner")]
         runner: Option<String>,
+        #[arg(long = "var")]
+        vars: Vec<String>,
         #[arg(long = "overwrite", action = ArgAction::SetTrue)]
         overwrite: bool,
     },
