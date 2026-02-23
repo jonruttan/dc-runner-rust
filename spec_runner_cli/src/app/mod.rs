@@ -4682,7 +4682,7 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
                 .ok()
                 .and_then(|p| p.to_str().map(|s| s.to_string()))
         })
-        .unwrap_or_else(|| "./target/debug/spec_runner_cli".to_string());
+        .unwrap_or_else(|| "./target/debug/dc-runner".to_string());
     let mut runner_impl = env::var("SPEC_RUNNER_IMPL").unwrap_or_else(|_| "rust".to_string());
     let mut trace_out = env::var("SPEC_RUNNER_TRACE_OUT").unwrap_or_default();
     let mut fail_fast = env_bool("SPEC_RUNNER_FAIL_FAST", true);
@@ -5234,7 +5234,7 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
                 .unwrap_or(0)
         ));
         summary_md.push_str("## Suggested Next Command\n\n");
-        summary_md.push_str("- `spec_runner_cli --profile-level detailed ci-gate-summary`\n");
+        summary_md.push_str("- `dc-runner --profile-level detailed ci-gate-summary`\n");
         let _ = fs::write(&run_summary_path, summary_md);
         println!("[gate] profile: {}", run_trace_path.display());
         println!("[gate] profile-summary: {}", run_summary_path.display());

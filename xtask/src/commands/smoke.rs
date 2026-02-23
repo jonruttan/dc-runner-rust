@@ -13,7 +13,7 @@ fn repo_root() -> Result<PathBuf> {
 }
 
 fn runner_bin_path(root: &Path) -> PathBuf {
-    root.join("target").join("debug").join("spec_runner_cli")
+    root.join("target").join("debug").join("dc-runner")
 }
 
 pub fn run() -> Result<()> {

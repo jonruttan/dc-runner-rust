@@ -20,7 +20,7 @@ cargo xtask verify all
 ```
 
 3. Update `/CHANGELOG.md` with user-visible release notes.
-4. Keep `runner_adapter.sh` deprecation note until shim removal release.
+4. Keep `scripts/dc-runner-rust` alias note for compatibility where needed.
 5. Commit release changes.
 
 ## Tagging Policy
@@ -49,13 +49,12 @@ Trigger:
 Release targets:
 
 - `darwin-arm64` (`aarch64-apple-darwin`)
-- `darwin-x86_64` (`x86_64-apple-darwin`)
 - `linux-x86_64` (`x86_64-unknown-linux-gnu`)
 
 Published assets per target:
 
-- `dc-runner-rust-<platform>`
-- `dc-runner-rust-<platform>.sha256`
+- `dc-runner-<platform>`
+- `dc-runner-<platform>.sha256`
 
 The publish job aggregates all matrix artifacts and uploads them to the GitHub
 Release associated with the tag.
@@ -97,3 +96,18 @@ After push/tag:
 2. Confirm release tag points at intended commit.
 3. Confirm all three platform binaries and checksum files are attached.
 4. Confirm compatibility checks still pass from a clean checkout.
+
+## Release Notes Install Snippet
+
+Use this in release notes:
+
+```sh
+PLATFORM="darwin-arm64" # or linux-x86_64
+VERSION="vX.Y.Z"
+BASE="https://github.com/jonruttan/dc-runner-rust/releases/download/${VERSION}"
+curl -fL "${BASE}/dc-runner-${PLATFORM}" -o dc-runner
+curl -fL "${BASE}/dc-runner-${PLATFORM}.sha256" -o dc-runner.sha256
+shasum -a 256 -c dc-runner.sha256
+chmod +x dc-runner
+sudo mv dc-runner /usr/local/bin/dc-runner
+```

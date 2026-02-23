@@ -2,25 +2,31 @@
 
 ## Runner Quickstart
 
-Use the runner CLI with minimal output first:
+Use the installed runner CLI first:
 
 ```sh
-cargo run -q -p dc_runner_cli
+dc-runner --help
 ```
 
 Common commands:
 
 ```sh
-cargo run -q -p dc_runner_cli -- specs run-all
-cargo run -q -p dc_runner_cli -- specs list
-cargo run -q -p dc_runner_cli -- specs run --ref /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001
+dc-runner specs run-all
+dc-runner specs list
+dc-runner specs run --ref /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001
 ```
 
 Advanced runtime flags (profiling/liveness) are intentionally hidden from
 default help:
 
 ```sh
-cargo run -q -p dc_runner_cli -- help-advanced
+dc-runner help-advanced
+```
+
+Source-run maintainer equivalent:
+
+```sh
+cargo run -q -p dc_runner_cli -- --help
 ```
 
 ## Maintainer Command Reference
@@ -105,7 +111,7 @@ cargo xtask runner-spec check
 
 ## Exit Behavior
 
-Runner command contract (canonical Rust CLI with temporary `/runner_adapter.sh` shim):
+Runner command contract (canonical Rust CLI):
 
 - `0`: success
 - `1`: runtime/tool failure
@@ -125,6 +131,6 @@ for required-lane flows.
 | `spec check` fails manifest drift | Snapshot changed without lock/manifest update | Re-run `cargo xtask spec sync --tag ...` and commit lock+manifest+snapshot |
 | `runner-spec check` fails manifest drift | Runner-specific snapshot changed without lock/manifest update | Re-run `cargo xtask runner-spec sync --tag ...` and commit lock+manifest+snapshot |
 | `runner-spec check` fails registry validation | Rust case registry IDs or paths drifted from vendored source | Fix `/specs/impl/rust/runner_spec_registry_v1.yaml` to match vendored `data-contracts-runner` |
-| `compat check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `spec_runner_cli` behavior against `/specs/upstream/data-contracts/specs/02_contracts/12_runner_interface.md` |
+| `compat check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `dc-runner` behavior against `/specs/upstream/data-contracts/specs/02_contracts/12_runner_interface.md` |
 | `compat check` fails lock tag resolution with `--source` | Upstream ref/tag changed or unavailable | Verify upstream tag exists or use local source path |
 | `cargo xtask verify all` fails in build/test | Rust compile/test regression | Fix code/test failures before snapshot updates |

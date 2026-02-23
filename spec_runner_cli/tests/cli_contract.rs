@@ -11,7 +11,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn run_cli(args: &[&str]) -> (i32, String, String) {
-    let output = Command::new(env!("CARGO_BIN_EXE_spec_runner_cli"))
+    let output = Command::new(env!("CARGO_BIN_EXE_dc-runner"))
         .args(args)
         .current_dir(repo_root())
         .output()
@@ -171,7 +171,7 @@ fn ci_gate_summary_writes_outputs() {
     let _ = fs::remove_file(&trace);
     let out_s = out.to_string_lossy().to_string();
     let trace_s = trace.to_string_lossy().to_string();
-    let runner_bin = env!("CARGO_BIN_EXE_spec_runner_cli");
+    let runner_bin = env!("CARGO_BIN_EXE_dc-runner");
     let (code, _stdout, stderr) = run_cli(&[
         "ci-gate-summary",
         "--out",
@@ -204,7 +204,7 @@ fn ci_gate_summary_invalid_runner_bin_fails_with_runtime_error() {
     let (code, _stdout, stderr) = run_cli(&[
         "ci-gate-summary",
         "--runner-bin",
-        "/does/not/exist/spec_runner_cli",
+        "/does/not/exist/dc-runner",
     ]);
     assert_ne!(code, 2);
     assert_ne!(code, 0);

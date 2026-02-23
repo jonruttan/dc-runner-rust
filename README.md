@@ -27,35 +27,70 @@ upstream snapshots.
 
 ## Stable Interface Contract
 
-- Canonical runner entrypoint: Rust CLI (`spec_runner_cli`)
+- Canonical runner entrypoint: Rust CLI (`dc-runner`)
 - Published crates.io package: `dc_runner_cli`
-- Compatibility shim (one-release deprecation): `/runner_adapter.sh`
+- Compatibility alias command: `dc-runner-rust` (`/scripts/dc-runner-rust`)
 - Stable exit code semantics:
   - `0` success
   - `1` runtime/tool failure
   - `2` invalid usage/config
 - Required lane runtime remains Rust-first and Python-free.
 
-## Quickstart
+## Install
+
+### Cargo install (recommended)
+
+```sh
+cargo install dc_runner_cli --locked
+```
+
+### GitHub release binary (macOS/Linux)
+
+```sh
+PLATFORM="darwin-arm64" # or linux-x86_64
+VERSION="v0.2.0"        # set desired release tag
+BASE="https://github.com/jonruttan/dc-runner-rust/releases/download/${VERSION}"
+curl -fL "${BASE}/dc-runner-${PLATFORM}" -o dc-runner
+curl -fL "${BASE}/dc-runner-${PLATFORM}.sha256" -o dc-runner.sha256
+shasum -a 256 -c dc-runner.sha256
+chmod +x dc-runner
+sudo mv dc-runner /usr/local/bin/dc-runner
+```
+
+### Verify install
+
+```sh
+dc-runner --help
+dc-runner governance --help
+dc-runner critical-gate --help
+```
+
+## Quickstart Commands
 
 Most common runner CLI commands:
 
 ```sh
-cargo run -q -p dc_runner_cli
-cargo run -q -p dc_runner_cli -- specs run-all
-cargo run -q -p dc_runner_cli -- specs list
+dc-runner specs run-all
+dc-runner specs list
+dc-runner governance
 ```
 
 For full command help:
 
 ```sh
-cargo run -q -p dc_runner_cli -- --help
+dc-runner --help
 ```
 
 For advanced profiling/liveness flags:
 
 ```sh
-cargo run -q -p dc_runner_cli -- help-advanced
+dc-runner help-advanced
+```
+
+Source-run maintainer equivalent:
+
+```sh
+cargo run -q -p dc_runner_cli -- --help
 ```
 
 Build and test:
@@ -137,7 +172,7 @@ Shell compatibility wrappers (xtask-backed):
 
 ```sh
 ./scripts/sync_data_contracts_specs.sh --check
-./scripts/verify_upstream_compat.sh --strict --runner-bin ./runner_adapter.sh
+./scripts/verify_upstream_compat.sh --strict --runner-bin "$(command -v dc-runner)"
 ./scripts/sync_runner_specs.sh --check
 ./scripts/verify_runner_specs.sh
 ```
@@ -145,6 +180,7 @@ Shell compatibility wrappers (xtask-backed):
 ## Documentation Map
 
 - Architecture: `/docs/architecture.md`
+- Install: `/docs/install.md`
 - Commands: `/docs/commands.md`
 - Compatibility: `/docs/compatibility.md`
 - Release operations: `/docs/release.md`

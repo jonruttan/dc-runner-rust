@@ -75,7 +75,7 @@ Review and commit all resulting changes together:
 
 Do not regress these invariants:
 
-- Stable public command surface in `spec_runner_cli` (with temporary `/runner_adapter.sh` shim compatibility)
+- Stable public command surface in `dc-runner` (compatibility alias `scripts/dc-runner-rust` is non-canonical)
 - Stable exit code semantics (`0/1/2`)
 - Rust-first required-lane execution (no Python runtime dependency)
 - Compatibility checks remain pinned to `/specs/upstream/data-contracts/`

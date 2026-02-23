@@ -82,8 +82,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          BIN_NAME="dc-runner-rust-${{ matrix.platform }}"
-          BIN_PATH="target/${{ matrix.target }}/release/spec_runner_cli"
+          BIN_NAME="dc-runner-${{ matrix.platform }}"
+          BIN_PATH="target/${{ matrix.target }}/release/dc-runner"
           cp "${BIN_PATH}" "dist/${BIN_NAME}"
           chmod +x "dist/${BIN_NAME}"
           shasum -a 256 "dist/${BIN_NAME}" > "dist/${BIN_NAME}.sha256"

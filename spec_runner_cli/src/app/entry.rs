@@ -342,7 +342,7 @@ pub fn parse_entry(args: &[String]) -> Result<ParsedEntry, i32> {
             };
             let _ = err.print();
             if code == 2 {
-                eprintln!("Try `spec_runner_cli --help`.");
+                eprintln!("Try `dc-runner --help`.");
             }
             return Err(code);
         }
@@ -362,7 +362,7 @@ mod tests {
 
     #[test]
     fn parse_entry_reads_subcommand_and_forwarded_args() {
-        let args = argv(&["spec_runner_cli", "job-run", "--ref", "#CASE"]);
+        let args = argv(&["dc-runner", "job-run", "--ref", "#CASE"]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "job-run");
         assert_eq!(
@@ -374,7 +374,7 @@ mod tests {
     #[test]
     fn parse_entry_supports_specs_run() {
         let args = argv(&[
-            "spec_runner_cli",
+            "dc-runner",
             "specs",
             "run",
             "--ref",
@@ -386,21 +386,21 @@ mod tests {
 
     #[test]
     fn parse_entry_rejects_unknown_subcommand() {
-        let args = argv(&["spec_runner_cli", "does-not-exist"]);
+        let args = argv(&["dc-runner", "does-not-exist"]);
         let code = parse_entry(&args).expect_err("should fail");
         assert_eq!(code, 2);
     }
 
     #[test]
     fn parse_entry_no_args_returns_quickstart_exit_zero() {
-        let args = argv(&["spec_runner_cli"]);
+        let args = argv(&["dc-runner"]);
         let code = parse_entry(&args).expect_err("quickstart should exit");
         assert_eq!(code, 0);
     }
 
     #[test]
     fn parse_entry_supports_governance_group_name() {
-        let args = argv(&["spec_runner_cli", "governance", "run"]);
+        let args = argv(&["dc-runner", "governance", "run"]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "governance");
     }
@@ -408,7 +408,7 @@ mod tests {
     #[test]
     fn parse_entry_supports_project_scaffold() {
         let args = argv(&[
-            "spec_runner_cli",
+            "dc-runner",
             "project",
             "scaffold",
             "--project-root",

@@ -15,7 +15,7 @@ Text boundary model:
 
 Local runner-owned artifacts:
 
-- `/runner_adapter.sh` (temporary compatibility shim)
+- `/scripts/dc-runner-rust` (compatibility alias wrapper)
 - `/spec_runner_cli/**`
 - `/specs/impl/rust/jobs/**`
 - `/specs/impl/rust/runner_spec_registry_v1.yaml`
@@ -34,9 +34,9 @@ Pinned upstream compatibility artifacts:
 
 Runtime flow:
 
-1. Caller invokes `/runner_adapter.sh <subcommand>`.
-2. Shim delegates to the Rust CLI binary.
-3. `/spec_runner_cli` handles subcommand execution.
+1. Caller invokes `dc-runner <subcommand>`.
+2. CLI resolves and executes subcommand behavior.
+3. Optional `scripts/dc-runner-rust` alias delegates to `dc-runner`.
 4. CLI runs checks/gates and returns stable exit semantics.
 
 ## Compatibility Verification Model

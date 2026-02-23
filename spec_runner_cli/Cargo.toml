@@ -13,7 +13,7 @@ categories = ["command-line-utilities", "development-tools"]
 rust-version = "1.74"
 
 [[bin]]
-name = "spec_runner_cli"
+name = "dc-runner"
 path = "src/main.rs"
 
 [dependencies]
