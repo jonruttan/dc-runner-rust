@@ -5,4 +5,4 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
 "${ROOT_DIR}/runner_adapter.sh" ci conformance-parity "$@"
-exec "${ROOT_DIR}/runner_adapter.sh" ci runner-certify "$@"
+exec "${ROOT_DIR}/runner_adapter.sh" runner-certify --runner rust "$@"

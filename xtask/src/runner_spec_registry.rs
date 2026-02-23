@@ -6,7 +6,6 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::Deserialize;
 
 const REGISTRY_PATH: &str = "specs/impl/rust/runner_spec_registry_v1.yaml";
-const VENDORED_ROOT: &str = "specs/upstream/data-contracts-library";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -36,15 +35,10 @@ fn repo_root() -> Result<PathBuf> {
 pub fn validate_runner_spec_registry() -> Result<usize> {
     let root = repo_root()?;
     let registry_path = root.join(REGISTRY_PATH);
-    let vendored_root = root.join(VENDORED_ROOT);
 
     if !registry_path.is_file() {
         bail!("runner spec registry missing: {}", registry_path.display());
     }
-    if !vendored_root.is_dir() {
-        bail!("runner spec snapshot missing: {}", vendored_root.display());
-    }
-
     let txt = fs::read_to_string(&registry_path)
         .with_context(|| format!("failed reading {}", registry_path.display()))?;
     let registry: Registry =
@@ -81,10 +75,10 @@ pub fn validate_runner_spec_registry() -> Result<usize> {
         }
 
         let rel = case.path.trim_start_matches('/');
-        let path = vendored_root.join(rel);
+        let path = root.join(rel);
         if !path.is_file() {
             bail!(
-                "registry path does not exist in vendored runner spec: {}",
+                "registry path does not exist in local runner spec: {}",
                 case.path
             );
         }

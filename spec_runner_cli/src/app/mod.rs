@@ -2250,9 +2250,9 @@ fn run_runner_certify_native(root: &Path, forwarded: &[String]) -> i32 {
     let registry_version = yaml_map_get(registry_map, "version")
         .and_then(|v| v.as_i64())
         .unwrap_or(0);
-    if registry_version != 1 {
+    if registry_version != 1 && registry_version != 2 {
         eprintln!(
-            "ERROR: unsupported runner certification registry version {}; expected 1",
+            "ERROR: unsupported runner certification registry version {}; expected 1 or 2",
             registry_version
         );
         return 2;
@@ -2912,7 +2912,7 @@ fn block_id(block: &str) -> Option<String> {
 
 fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> Result<(), String> {
     let path_text = path.to_string_lossy();
-    if !path_text.contains("data-contracts-library") {
+    if !path_text.contains("data-contracts-runner") {
         return Ok(());
     }
 
@@ -2922,13 +2922,13 @@ fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> 
         .and_then(|v| v.as_str())
         .ok_or_else(|| {
             format!(
-                "data-contracts-library cases must set `schema_ref: {expected_schema_ref}` in {}",
+                "data-contracts-runner cases must set `schema_ref: {expected_schema_ref}` in {}",
                 path.display()
             )
         })?;
     if schema_ref != expected_schema_ref {
         return Err(format!(
-            "data-contracts-library cases must set canonical schema authority via `schema_ref: {expected_schema_ref}` (found `{schema_ref}` in {})",
+            "data-contracts-runner cases must set canonical schema authority via `schema_ref: {expected_schema_ref}` (found `{schema_ref}` in {})",
             path.display()
         ));
     }
@@ -2938,13 +2938,13 @@ fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> 
         .and_then(|v| v.as_i64())
         .ok_or_else(|| {
             format!(
-                "data-contracts-library cases must set `spec_version: 1` in {}",
+                "data-contracts-runner cases must set `spec_version: 1` in {}",
                 path.display()
             )
         })?;
     if spec_version != 1 {
         return Err(format!(
-            "data-contracts-library cases must set `spec_version: 1` (found `{spec_version}` in {})",
+            "data-contracts-runner cases must set `spec_version: 1` (found `{spec_version}` in {})",
             path.display()
         ));
     }
@@ -3295,7 +3295,7 @@ fn run_job_run_native(root: &Path, forwarded: &[String]) -> i32 {
     }
     if ref_arg.trim().is_empty() {
         eprintln!(
-            "ERROR: job-run requires --ref <path#id|#id> (example: /specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001)"
+            "ERROR: job-run requires --ref <path#id|#id> (example: /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001)"
         );
         return 2;
     }
@@ -5199,13 +5199,11 @@ mod tests {
 
     #[test]
     fn parse_job_ref_accepts_path_and_fragment() {
-        let got = parse_job_ref(
-            "/specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001",
-        )
-        .expect("parse");
+        let got = parse_job_ref("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001")
+            .expect("parse");
         assert_eq!(
             got.0.as_deref(),
-            Some("/specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md")
+            Some("/specs/impl/rust/jobs/script_jobs.spec.md")
         );
         assert_eq!(got.1, "DCIMPL-RUST-JOB-001");
     }
@@ -5333,7 +5331,7 @@ contracts:
     #[test]
     fn load_case_block_rejects_runner_spec_non_canonical_schema_ref() {
         let base = std::env::temp_dir().join(format!(
-            "data-contracts-library-boundary-{}",
+            "data-contracts-runner-boundary-{}",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("clock")

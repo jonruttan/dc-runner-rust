@@ -3,10 +3,10 @@ pub const LOCK_FILE: &str = "specs/upstream/data_contracts_lock_v1.yaml";
 pub const SNAP_ROOT: &str = "specs/upstream/data-contracts";
 pub const MANIFEST_FILE: &str = "specs/upstream/data-contracts.manifest.sha256";
 pub const DEFAULT_RUNNER_SPEC_SOURCE: &str =
-    "https://github.com/jonruttan/data-contracts-library.git";
+    "https://github.com/jonruttan/data-contracts-runner.git";
 pub const RUNNER_SPEC_LOCK_FILE: &str = "specs/upstream/dc_runner_spec_lock_v1.yaml";
-pub const RUNNER_SPEC_SNAP_ROOT: &str = "specs/upstream/data-contracts-library";
-pub const RUNNER_SPEC_MANIFEST_FILE: &str = "specs/upstream/data-contracts-library.manifest.sha256";
+pub const RUNNER_SPEC_SNAP_ROOT: &str = "specs/upstream/data-contracts-runner";
+pub const RUNNER_SPEC_MANIFEST_FILE: &str = "specs/upstream/data-contracts-runner.manifest.sha256";
 
 pub const INCLUDE_PATTERNS: &[&str] = &[
     "specs/index.md",
@@ -41,20 +41,16 @@ pub const REQUIRED_SNAPSHOT_FILES: &[&str] = &[
 
 pub const RUNNER_SPEC_INCLUDE_PATTERNS: &[&str] = &[
     "specs/index.md",
-    "specs/07_runner_behavior/contract_sets/**",
-    "specs/05_libraries/policy/**",
+    "specs/07_runner_behavior/contract_sets/shared/**",
+    "specs/07_runner_behavior/runner/**",
     "specs/07_runner_behavior/impl/shared/**",
-    "specs/07_runner_behavior/impl/rust/index.md",
-    "specs/07_runner_behavior/impl/rust/jobs/**",
-    "specs/07_runner_behavior/impl/python/index.md",
-    "specs/07_runner_behavior/impl/php/index.md",
 ];
 
 pub const REQUIRED_RUNNER_SPEC_FILES: &[&str] = &[
     "specs/index.md",
-    "specs/07_runner_behavior/contract_sets/index.md",
-    "specs/07_runner_behavior/impl/rust/index.md",
-    "specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md",
+    "specs/07_runner_behavior/contract_sets/shared/runner_build_tool_task_sets_contract_set_v1.yaml",
+    "specs/07_runner_behavior/runner/service_plugin_protocol_v1.md",
+    "specs/07_runner_behavior/impl/shared/runner_build_tool_task_sets_v1.yaml",
 ];
 
 pub const REQUIRED_SUBCOMMAND_FALLBACK: &[&str] = &[

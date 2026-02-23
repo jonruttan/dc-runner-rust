@@ -21,7 +21,7 @@ upstream snapshots.
 ## Responsibility Boundary
 
 - `data-contracts` owns canonical global runner specs/contracts and their evolution.
-- `data-contracts-library` owns canonical runner-specific implementation specs.
+- `data-contracts-runner` owns canonical runner-specific implementation specs.
 - `dc-runner-rust` owns the Rust implementation and compatibility verification
   against pinned upstream versions.
 
@@ -115,11 +115,11 @@ Run compatibility verification:
 cargo xtask compat check
 ```
 
-Pinned runner-specific artifacts (`data-contracts-library`):
+Pinned runner-specific artifacts (`data-contracts-runner`):
 
 - `/specs/upstream/dc_runner_spec_lock_v1.yaml`
-- `/specs/upstream/data-contracts-library.manifest.sha256`
-- `/specs/upstream/data-contracts-library/`
+- `/specs/upstream/data-contracts-runner.manifest.sha256`
+- `/specs/upstream/data-contracts-runner/`
 
 Update runner-specific snapshot:
 
@@ -159,13 +159,13 @@ Shell compatibility wrappers (xtask-backed):
 ## Specs Map
 
 - Local runner-owned implementation specs:
-  - `/specs/07_runner_behavior/impl/rust/runner_spec_registry_v1.yaml`
-  - `/specs/07_runner_behavior/impl/rust/jobs/` (Phase 1 compatibility copies)
+  - `/specs/impl/rust/runner_spec_registry_v1.yaml`
+  - `/specs/impl/rust/jobs/` (Phase 1 compatibility copies)
 - Upstream pinned compatibility snapshot:
   - `/specs/upstream/data-contracts/`
-  - `/specs/upstream/data-contracts-library/`
+  - `/specs/upstream/data-contracts-runner/`
 
 ## Source Ownership
 
-Rust-specific implementation specs are canonically owned in `data-contracts-library` and
-consumed here via pinned vendored snapshot at `/specs/upstream/data-contracts-library/`.
+Rust-specific implementation specs are canonically owned in `data-contracts-runner` and
+consumed here via pinned vendored snapshot at `/specs/upstream/data-contracts-runner/`.

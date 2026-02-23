@@ -133,9 +133,9 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
             )
         }
         "conformance-parity" => {
-            Some("/specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-002")
+            Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-002")
         }
-        "perf-smoke" => Some("/specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-003"),
+        "perf-smoke" => Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-003"),
         _ => None,
     }
 }

@@ -13,7 +13,7 @@ Common commands:
 ```sh
 cargo run -q -p dc_runner_cli -- specs run-all
 cargo run -q -p dc_runner_cli -- specs list
-cargo run -q -p dc_runner_cli -- specs run --ref /specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001
+cargo run -q -p dc_runner_cli -- specs run --ref /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001
 ```
 
 Advanced runtime flags (profiling/liveness) are intentionally hidden from
@@ -74,7 +74,7 @@ cargo xtask spec check --source https://github.com/jonruttan/data-contracts.git
 cargo xtask compat check
 ```
 
-### Runner-specific snapshot update (`data-contracts-library`)
+### Runner-specific snapshot update (`data-contracts-runner`)
 
 ```sh
 cargo xtask runner-spec sync --tag <runner-spec-tag> --source <path-or-url>
@@ -124,7 +124,7 @@ for required-lane flows.
 |---|---|---|
 | `spec check` fails manifest drift | Snapshot changed without lock/manifest update | Re-run `cargo xtask spec sync --tag ...` and commit lock+manifest+snapshot |
 | `runner-spec check` fails manifest drift | Runner-specific snapshot changed without lock/manifest update | Re-run `cargo xtask runner-spec sync --tag ...` and commit lock+manifest+snapshot |
-| `runner-spec check` fails registry validation | Rust case registry IDs or paths drifted from vendored source | Fix `/specs/07_runner_behavior/impl/rust/runner_spec_registry_v1.yaml` to match vendored `data-contracts-library` |
+| `runner-spec check` fails registry validation | Rust case registry IDs or paths drifted from vendored source | Fix `/specs/impl/rust/runner_spec_registry_v1.yaml` to match vendored `data-contracts-runner` |
 | `compat check` fails missing required subcommand | Runner surface drifted from upstream contract | Compare `spec_runner_cli` behavior against `/specs/upstream/data-contracts/specs/02_contracts/12_runner_interface.md` |
 | `compat check` fails lock tag resolution with `--source` | Upstream ref/tag changed or unavailable | Verify upstream tag exists or use local source path |
 | `cargo xtask verify all` fails in build/test | Rust compile/test regression | Fix code/test failures before snapshot updates |

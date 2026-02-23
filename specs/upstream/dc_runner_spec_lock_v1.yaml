@@ -1,25 +1,21 @@
 ---
 version: 1
 upstream:
-  repo: "https://github.com/jonruttan/data-contracts-library.git"
-  tag: 98630d93
-  commit: 98630d93d7351c42726018a03e7b4695ca0ac685
-  synced_at_utc: "2026-02-23T06:13:38Z"
+  repo: "https://github.com/jonruttan/data-contracts-runner.git"
+  tag: main
+  commit: f0867d0e3f0587eb95e6aaa3d8ad7fd691506456
+  synced_at_utc: "2026-02-23T20:34:37Z"
 snapshot:
-  root: specs/upstream/data-contracts-library
+  root: specs/upstream/data-contracts-runner
   include:
     - specs/index.md
-    - specs/07_runner_behavior/contract_sets/**
-    - specs/libraries/policy/**
+    - specs/07_runner_behavior/contract_sets/shared/**
+    - specs/07_runner_behavior/runner/**
     - specs/07_runner_behavior/impl/shared/**
-    - specs/07_runner_behavior/impl/rust/index.md
-    - specs/07_runner_behavior/impl/rust/jobs/**
-    - specs/07_runner_behavior/impl/python/index.md
-    - specs/07_runner_behavior/impl/php/index.md
   exclude:
     - "**/pending/**"
     - "**/reviews/**"
     - "**/snapshots/**"
 integrity:
-  file_count: 75
-  sha256_manifest: f446bde2ccfdc961ff38d1990d687d5b8fb56271a8be1fe2552fe0380c667417
+  file_count: 8
+  sha256_manifest: 5f7fba8e0972a0743592880d23b6395773ad4ce28ed894146e48c5cc9d5ad5c7
