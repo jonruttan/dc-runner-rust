@@ -2955,7 +2955,7 @@ fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> 
 fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, String> {
     let (path_raw, case_id) = parse_spec_ref(spec_ref)?;
     let rel = path_raw.trim_start_matches('/');
-    let path = root.join(rel);
+    let path = resolve_spec_ref_path(root, rel);
     let text = fs::read_to_string(&path)
         .map_err(|e| format!("failed to read producer spec {}: {e}", path.display()))?;
     let blocks = extract_spec_test_blocks(&text);
@@ -3108,6 +3108,30 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
         return Ok(block);
     }
     Err(format!("case not found via spec ref: {}", spec_ref))
+}
+
+fn resolve_spec_ref_path(root: &Path, rel: &str) -> PathBuf {
+    let upstream_prefix = "specs/upstream/data-contracts/";
+    let direct = root.join(rel);
+    if direct.exists() {
+        return direct;
+    }
+
+    if let Some(stripped) = rel.strip_prefix(upstream_prefix) {
+        let canonical = root.join(stripped);
+        if canonical.exists() {
+            return canonical;
+        }
+    }
+
+    if rel.starts_with("specs/") {
+        let upstream = root.join(format!("{upstream_prefix}{rel}"));
+        if upstream.exists() {
+            return upstream;
+        }
+    }
+
+    direct
 }
 
 fn resolve_job_case_block(
