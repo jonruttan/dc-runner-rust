@@ -1,104 +1,96 @@
 # Release
 
-## Release Preconditions
+## Canonical Release Flow
 
-Before tagging a release:
+Releases are automated in two stages:
+
+1. `/.github/workflows/release-please.yml` runs on pushes to `main` and opens/updates a Release PR.
+2. Merging the Release PR creates a `vX.Y.Z` tag.
+3. `/.github/workflows/release.yml` runs on that tag and publishes:
+   - crates.io crate: `dc-runner-cli`
+   - GitHub binaries: `dc-runner-darwin-arm64`, `dc-runner-linux-x86_64`
+   - checksum files: `*.sha256`
+
+Manual tag creation is fallback-only.
+
+## Conventional Commit Requirements
+
+Release versioning is driven by conventional commit signals from merged changes.
+
+Accepted types:
+
+- `feat`
+- `fix`
+- `perf`
+- `refactor`
+- `docs`
+- `chore`
+- `test`
+- `build`
+- `ci`
+
+PR titles are validated in CI using this format:
+
+```text
+<type>(optional-scope): summary
+```
+
+## Publish Preconditions
+
+Before merging release-impacting work:
 
 ```sh
 cargo xtask verify all
 ```
 
-This ensures build/test integrity plus upstream compatibility validation.
+## Release Workflow Contracts
 
-## Version Bump Flow
+`release.yml` enforces:
 
-1. Update crate/release version metadata (for example in `/dc-runner-cli/Cargo.toml`).
-2. Run:
+1. crate publish token exists (`CRATES_IO_TOKEN`)
+2. tag `vX.Y.Z` matches `/dc-runner-cli/Cargo.toml` version
+3. crate packages successfully before publish
 
-```sh
-cargo xtask verify all
-```
+If any check fails, publish stops before upload.
 
-3. Update `/CHANGELOG.md` with user-visible release notes.
-4. Commit release changes.
+## Required Repository Settings
 
-## Tagging Policy
+- `CRATES_IO_TOKEN` secret is configured and valid.
+- GitHub Actions has permission to create PRs/tags/releases.
+- Maintainers can merge Release PRs to `main`.
 
-Use semantic tags:
+## Failure Handling
 
-- `vX.Y.Z`
+### Missing crates token
 
-Example:
+Release job fails early with:
 
-```sh
-git tag v0.2.0
-git push origin v0.2.0
-```
+- `ERROR: CRATES_IO_TOKEN is not configured for this repository.`
 
-## Automated Multi-Platform Release
+Fix: add or rotate `CRATES_IO_TOKEN` in repo secrets, then rerun the failed workflow.
 
-Workflow: `/.github/workflows/release.yml`
+### Tag/version mismatch
 
-Trigger:
+Release job fails with mismatch details.
 
-- push tag matching `v*`
-- optional manual `workflow_dispatch`
-- crate publish runs only when tag version matches crate version
+Fix: do not hand-edit tags; merge the generated Release PR so tag/version stay aligned.
 
-Release targets:
+### Version already published
 
-- `darwin-arm64` (`aarch64-apple-darwin`)
-- `linux-x86_64` (`x86_64-unknown-linux-gnu`)
+Crates publish step fails on duplicate version.
 
-Published assets per target:
+Fix: create a new releasable commit, let release-please open a new Release PR, merge it.
 
-- `dc-runner-<platform>`
-- `dc-runner-<platform>.sha256`
+## Emergency Manual Fallback
 
-The publish job aggregates all matrix artifacts and uploads them to the GitHub
-Release associated with the tag.
+Use only when automation is unavailable:
 
-## Crates.io Publishing
-
-Crate: `dc-runner-cli`
-
-Release workflow includes a crate publish job that:
-
-1. validates `vX.Y.Z` tag equals `version` in `/dc-runner-cli/Cargo.toml`
-2. runs `cargo package -p dc-runner-cli --allow-dirty`
-3. runs `cargo publish -p dc-runner-cli --locked`
-
-Required repository secret:
-
-- `CRATES_IO_TOKEN`
-
-If tag/version mismatch occurs, crate publish fails with a clear error and no
-publish attempt is made.
-
-## Data Contracts Coordination Note
-
-When Data Contracts compatibility version changes:
-
-1. update pinned upstream snapshot (`cargo xtask spec sync`)
-2. update pinned runner-specific snapshot (`cargo xtask runner-spec sync`)
-3. verify compatibility (`cargo xtask verify all`)
-4. include lock/manifest/snapshot diffs in release review
-
-Do not release runner changes that implicitly drift from pinned upstream
-contracts without an explicit snapshot bump.
-
-## Post-Release Validation
-
-After push/tag:
-
-1. Confirm CI and Release workflows are green for the release tag.
-2. Confirm release tag points at intended commit.
-3. Confirm all three platform binaries and checksum files are attached.
-4. Confirm compatibility checks still pass from a clean checkout.
+1. update version and changelog manually
+2. run `cargo xtask verify all`
+3. create and push matching tag `vX.Y.Z`
+4. confirm `release.yml` succeeds
 
 ## Release Notes Install Snippet
-
-Use this in release notes:
 
 ```sh
 PLATFORM="darwin-arm64" # or linux-x86_64

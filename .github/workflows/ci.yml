@@ -10,6 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Validate pull request title follows conventional commits
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="${{ github.event.pull_request.title }}"
+          pattern='^(feat|fix|perf|refactor|docs|chore|test|build|ci)(\([^)]+\))?!?: .+'
+          if [[ ! "${title}" =~ ${pattern} ]]; then
+            echo "ERROR: pull request title must follow conventional commit format." >&2
+            echo "Expected: <type>(optional-scope): summary" >&2
+            echo "Allowed types: feat, fix, perf, refactor, docs, chore, test, build, ci" >&2
+            echo "Got: ${title}" >&2
+            exit 1
+          fi
       - uses: dtolnay/rust-toolchain@stable
       - name: Runner Spec Check
         run: cargo xtask runner-spec check

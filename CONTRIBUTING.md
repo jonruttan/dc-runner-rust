@@ -69,7 +69,25 @@ Review and commit all resulting changes together:
 - Keep scope focused and behaviorally coherent.
 - Preserve stable runner interface semantics and exit codes.
 - Update docs/spec references when behavior or workflows change.
-- Update `/CHANGELOG.md` for user-visible changes.
+- Use conventional-commit PR titles so release automation can classify version bumps.
+
+Required PR title format:
+
+```text
+<type>(optional-scope): summary
+```
+
+Allowed types:
+
+- `feat`
+- `fix`
+- `perf`
+- `refactor`
+- `docs`
+- `chore`
+- `test`
+- `build`
+- `ci`
 
 ## Compatibility Invariants Checklist
 

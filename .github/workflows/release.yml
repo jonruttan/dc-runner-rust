@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verify:
     name: Verify
@@ -30,6 +34,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Validate crates.io token is configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${{ secrets.CRATES_IO_TOKEN }}" ]]; then
+            echo "ERROR: CRATES_IO_TOKEN is not configured for this repository." >&2
+            exit 1
+          fi
       - name: Validate tag matches crate version
         shell: bash
         run: |

@@ -190,7 +190,8 @@ Shell compatibility wrappers (xtask-backed):
 ## Crate Publishing
 
 - crates.io package: `dc-runner-cli`
-- publish flow: GitHub tag `vX.Y.Z` (must match crate version in `/dc-runner-cli/Cargo.toml`)
+- release orchestration: `/.github/workflows/release-please.yml` (opens/updates Release PR from conventional commits on `main`)
+- publish executor: `/.github/workflows/release.yml` (runs on `vX.Y.Z` tags created by the release PR merge)
 - CI publish auth: `CRATES_IO_TOKEN` repository secret
 
 ## Specs Map
