@@ -2,9 +2,9 @@
 version: 1
 upstream:
   repo: "https://github.com/jonruttan/dc-runner-spec.git"
-  tag: 1f2393c2085c26cb69542134eadfb43b910306cd
-  commit: 1f2393c2085c26cb69542134eadfb43b910306cd
-  synced_at_utc: "2026-02-20T15:42:56Z"
+  tag: 54d74a5
+  commit: 54d74a5791b178e577322b1286433ff6094bc42d
+  synced_at_utc: "2026-02-23T06:13:38Z"
 snapshot:
   root: specs/upstream/dc-runner-spec
   include:
@@ -21,5 +21,5 @@ snapshot:
     - "**/reviews/**"
     - "**/snapshots/**"
 integrity:
-  file_count: 20
-  sha256_manifest: ae23b96c1474deb373e1dbff53ff1f7114d740541170f849afeab36efb30d6f6
+  file_count: 21
+  sha256_manifest: 20e9a6ff1ccf81b7c261e7c75d5bbcd1c2707368068cc18edfd69e4876063d43

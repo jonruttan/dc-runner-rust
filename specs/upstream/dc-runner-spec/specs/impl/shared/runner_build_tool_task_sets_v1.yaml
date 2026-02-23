@@ -25,3 +25,4 @@ optional_tasks:
     norm: MAY
   - task_id: typecheck
     norm: MAY
+bundle_dependencies_ref: /specs/impl/shared/library_bundle_dependencies_v1.yaml

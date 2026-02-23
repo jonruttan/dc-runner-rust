@@ -2,11 +2,15 @@
 
 Canonical domain index for executable specs in this subtree.
 
+Canonical shared-library source of truth is maintained in:
+
+- `https://github.com/jonruttan/data-contracts-library`
+
 ## Files
 
-- `/specs/05_libraries/policy/policy_assertions.spec.md`
-- `/specs/05_libraries/policy/policy_text.spec.md`
-- `/specs/05_libraries/policy/policy_job.spec.md`
+- `/payloads/data-contracts-library/core/specs/05_libraries/policy/policy_assertions.spec.md`
+- `/payloads/data-contracts-library/core/specs/05_libraries/policy/policy_text.spec.md`
+- `/payloads/data-contracts-library/core/specs/05_libraries/policy/policy_job.spec.md`
 
 ## Exported Symbols
 

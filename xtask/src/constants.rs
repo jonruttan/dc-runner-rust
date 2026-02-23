@@ -9,14 +9,14 @@ pub const RUNNER_SPEC_MANIFEST_FILE: &str = "specs/upstream/dc-runner-spec.manif
 
 pub const INCLUDE_PATTERNS: &[&str] = &[
     "specs/index.md",
-    "specs/current.md",
-    "specs/contract/**",
+    "specs/00_core/current.md",
+    "specs/02_contracts/**",
     "specs/01_schema/**",
-    "specs/conformance/**",
-    "specs/governance/index.md",
-    "specs/governance/check_*.yaml",
-    "specs/governance/cases/core/**",
-    "specs/governance/metrics/**",
+    "specs/03_conformance/**",
+    "specs/04_governance/index.md",
+    "specs/04_governance/check_*.yaml",
+    "specs/04_governance/cases/core/**",
+    "specs/04_governance/metrics/**",
 ];
 
 pub const EXCLUDE_PATTERNS: &[&str] = &["**/pending/**", "**/reviews/**", "**/snapshots/**"];
@@ -25,17 +25,17 @@ pub const RUNNER_SPEC_EXCLUDE_PATTERNS: &[&str] =
 
 pub const REQUIRED_SNAPSHOT_FILES: &[&str] = &[
     "specs/index.md",
-    "specs/current.md",
-    "specs/contract/index.md",
-    "specs/contract/policy_v1.yaml",
-    "specs/contract/traceability_v1.yaml",
+    "specs/00_core/current.md",
+    "specs/02_contracts/index.md",
+    "specs/02_contracts/policy_v1.yaml",
+    "specs/02_contracts/traceability_v1.yaml",
     "specs/01_schema/index.md",
     "specs/01_schema/runner_certification_registry_v1.yaml",
     "specs/01_schema/dc_runner_rust_lock_v1.yaml",
-    "specs/governance/index.md",
-    "specs/governance/check_sets_v1.yaml",
-    "specs/governance/check_prefix_map_v1.yaml",
-    "specs/governance/cases/core/index.md",
+    "specs/04_governance/index.md",
+    "specs/04_governance/check_sets_v1.yaml",
+    "specs/04_governance/check_prefix_map_v1.yaml",
+    "specs/04_governance/cases/core/index.md",
 ];
 
 pub const RUNNER_SPEC_INCLUDE_PATTERNS: &[&str] = &[

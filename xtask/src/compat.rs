@@ -126,24 +126,24 @@ pub fn compat_check(source: Option<&str>) -> Result<CompatReport> {
     }
 
     for rel in [
-        "specs/contract/index.md",
-        "specs/contract/policy_v1.yaml",
-        "specs/contract/traceability_v1.yaml",
+        "specs/02_contracts/index.md",
+        "specs/02_contracts/policy_v1.yaml",
+        "specs/02_contracts/traceability_v1.yaml",
         "specs/01_schema/index.md",
         "specs/01_schema/runner_certification_registry_v1.yaml",
         "specs/01_schema/dc_runner_rust_lock_v1.yaml",
-        "specs/governance/index.md",
-        "specs/governance/check_sets_v1.yaml",
-        "specs/governance/cases/core/index.md",
+        "specs/04_governance/index.md",
+        "specs/04_governance/check_sets_v1.yaml",
+        "specs/04_governance/cases/core/index.md",
     ] {
         if !snap_root.join(rel).is_file() {
             bail!("required compatibility file missing: {rel}");
         }
     }
 
-    let contract_file = snap_root.join("specs/contract/12_runner_interface.md");
-    let governance_case =
-        snap_root.join("specs/governance/cases/core/runtime_runner_interface_subcommands.spec.md");
+    let contract_file = snap_root.join("specs/02_contracts/12_runner_interface.md");
+    let governance_case = snap_root
+        .join("specs/04_governance/cases/core/runtime_runner_interface_subcommands.spec.md");
     let required = match parse_required_subcommands(&contract_file) {
         Ok(cmds) if !cmds.is_empty() => cmds,
         _ => match parse_required_subcommands(&governance_case) {
