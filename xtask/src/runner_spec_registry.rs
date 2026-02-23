@@ -6,7 +6,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::Deserialize;
 
 const REGISTRY_PATH: &str = "specs/impl/rust/runner_spec_registry_v1.yaml";
-const VENDORED_ROOT: &str = "specs/upstream/dc-runner-spec";
+const VENDORED_ROOT: &str = "specs/upstream/data-contracts-library";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]

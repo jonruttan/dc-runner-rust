@@ -23,7 +23,7 @@ cargo xtask verify all
 ```
 
 This runs build, tests, pinned snapshot integrity checks (`data-contracts` and
-`dc-runner-spec`), Rust case registry validation, and compatibility
+`data-contracts-library`), Rust case registry validation, and compatibility
 verification.
 
 ## Updating Pinned Upstream Compatibility Snapshot
@@ -47,8 +47,8 @@ Review and commit all resulting changes together:
 
 ## Updating Pinned Runner-Specific Snapshot
 
-Canonical runner-specific specs are owned by `dc-runner-spec`. To bump this
-runner against a new `dc-runner-spec` version:
+Canonical runner-specific specs are owned by `data-contracts-library`. To bump this
+runner against a new `data-contracts-library` version:
 
 ```sh
 cargo xtask runner-spec sync --tag <runner-spec-tag> --source <path-or-url>
@@ -60,9 +60,9 @@ If you intentionally pin a non-tag ref for local iteration, add `--allow-ref`.
 Review and commit all resulting changes together:
 
 - `/specs/upstream/dc_runner_spec_lock_v1.yaml`
-- `/specs/upstream/dc-runner-spec.manifest.sha256`
-- `/specs/upstream/dc-runner-spec/**`
-- `/specs/impl/rust/runner_spec_registry_v1.yaml` (when updated)
+- `/specs/upstream/data-contracts-library.manifest.sha256`
+- `/specs/upstream/data-contracts-library/**`
+- `/specs/07_runner_behavior/impl/rust/runner_spec_registry_v1.yaml` (when updated)
 
 ## Pull Request Expectations
 
@@ -79,7 +79,7 @@ Do not regress these invariants:
 - Stable exit code semantics (`0/1/2`)
 - Rust-first required-lane execution (no Python runtime dependency)
 - Compatibility checks remain pinned to `/specs/upstream/data-contracts/`
-- Rust case registry must resolve against `/specs/upstream/dc-runner-spec/`
+- Rust case registry must resolve against `/specs/upstream/data-contracts-library/`
 
 ## Reference Docs
 

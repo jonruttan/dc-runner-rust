@@ -11,7 +11,7 @@ compatibility requirements.
 
 Canonical global contracts are authored upstream in Data Contracts and consumed
 here via a pinned vendored snapshot. Canonical Rust-specific specs are consumed
-from a second pinned upstream source (`dc-runner-spec`).
+from a second pinned upstream source (`data-contracts-library`).
 
 ## Upstream Pinning Artifacts
 
@@ -21,9 +21,9 @@ Primary artifacts:
 - `/specs/upstream/data-contracts.manifest.sha256`
 - `/specs/upstream/data-contracts/**`
 - `/specs/upstream/dc_runner_spec_lock_v1.yaml`
-- `/specs/upstream/dc-runner-spec.manifest.sha256`
-- `/specs/upstream/dc-runner-spec/**`
-- `/specs/impl/rust/runner_spec_registry_v1.yaml`
+- `/specs/upstream/data-contracts-library.manifest.sha256`
+- `/specs/upstream/data-contracts-library/**`
+- `/specs/07_runner_behavior/impl/rust/runner_spec_registry_v1.yaml`
 
 Lock file records:
 

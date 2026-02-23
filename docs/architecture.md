@@ -6,7 +6,7 @@ Text boundary model:
 
 - Data Contracts upstream (`https://github.com/jonruttan/data-contracts`):
   canonical contracts/specs/schemas/governance definitions.
-- Runner spec upstream (`https://github.com/jonruttan/dc-runner-spec`):
+- Runner spec upstream (`https://github.com/jonruttan/data-contracts-library`):
   canonical runner-owned implementation specs.
 - This repository (`dc-runner-rust`): Rust required-lane implementation and
   compatibility verification logic.
@@ -17,8 +17,8 @@ Local runner-owned artifacts:
 
 - `/runner_adapter.sh` (temporary compatibility shim)
 - `/spec_runner_cli/**`
-- `/specs/impl/rust/jobs/**`
-- `/specs/impl/rust/runner_spec_registry_v1.yaml`
+- `/specs/07_runner_behavior/impl/rust/jobs/**`
+- `/specs/07_runner_behavior/impl/rust/runner_spec_registry_v1.yaml`
 - `/xtask/**`
 
 Pinned upstream compatibility artifacts:
@@ -27,8 +27,8 @@ Pinned upstream compatibility artifacts:
 - `/specs/upstream/data-contracts.manifest.sha256`
 - `/specs/upstream/data-contracts/**`
 - `/specs/upstream/dc_runner_spec_lock_v1.yaml`
-- `/specs/upstream/dc-runner-spec.manifest.sha256`
-- `/specs/upstream/dc-runner-spec/**`
+- `/specs/upstream/data-contracts-library.manifest.sha256`
+- `/specs/upstream/data-contracts-library/**`
 
 ## Execution Model
 

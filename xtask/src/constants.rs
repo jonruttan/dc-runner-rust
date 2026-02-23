@@ -2,10 +2,11 @@ pub const DEFAULT_SOURCE: &str = "https://github.com/jonruttan/data-contracts.gi
 pub const LOCK_FILE: &str = "specs/upstream/data_contracts_lock_v1.yaml";
 pub const SNAP_ROOT: &str = "specs/upstream/data-contracts";
 pub const MANIFEST_FILE: &str = "specs/upstream/data-contracts.manifest.sha256";
-pub const DEFAULT_RUNNER_SPEC_SOURCE: &str = "https://github.com/jonruttan/dc-runner-spec.git";
+pub const DEFAULT_RUNNER_SPEC_SOURCE: &str =
+    "https://github.com/jonruttan/data-contracts-library.git";
 pub const RUNNER_SPEC_LOCK_FILE: &str = "specs/upstream/dc_runner_spec_lock_v1.yaml";
-pub const RUNNER_SPEC_SNAP_ROOT: &str = "specs/upstream/dc-runner-spec";
-pub const RUNNER_SPEC_MANIFEST_FILE: &str = "specs/upstream/dc-runner-spec.manifest.sha256";
+pub const RUNNER_SPEC_SNAP_ROOT: &str = "specs/upstream/data-contracts-library";
+pub const RUNNER_SPEC_MANIFEST_FILE: &str = "specs/upstream/data-contracts-library.manifest.sha256";
 
 pub const INCLUDE_PATTERNS: &[&str] = &[
     "specs/index.md",
@@ -40,20 +41,20 @@ pub const REQUIRED_SNAPSHOT_FILES: &[&str] = &[
 
 pub const RUNNER_SPEC_INCLUDE_PATTERNS: &[&str] = &[
     "specs/index.md",
-    "specs/contract_sets/**",
-    "specs/libraries/policy/**",
-    "specs/impl/shared/**",
-    "specs/impl/rust/index.md",
-    "specs/impl/rust/jobs/**",
-    "specs/impl/python/index.md",
-    "specs/impl/php/index.md",
+    "specs/07_runner_behavior/contract_sets/**",
+    "specs/05_libraries/policy/**",
+    "specs/07_runner_behavior/impl/shared/**",
+    "specs/07_runner_behavior/impl/rust/index.md",
+    "specs/07_runner_behavior/impl/rust/jobs/**",
+    "specs/07_runner_behavior/impl/python/index.md",
+    "specs/07_runner_behavior/impl/php/index.md",
 ];
 
 pub const REQUIRED_RUNNER_SPEC_FILES: &[&str] = &[
     "specs/index.md",
-    "specs/contract_sets/index.md",
-    "specs/impl/rust/index.md",
-    "specs/impl/rust/jobs/script_jobs.spec.md",
+    "specs/07_runner_behavior/contract_sets/index.md",
+    "specs/07_runner_behavior/impl/rust/index.md",
+    "specs/07_runner_behavior/impl/rust/jobs/script_jobs.spec.md",
 ];
 
 pub const REQUIRED_SUBCOMMAND_FALLBACK: &[&str] = &[
