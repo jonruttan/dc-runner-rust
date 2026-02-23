@@ -4,8 +4,8 @@ use clap::error::ErrorKind;
 use clap::Parser;
 
 use crate::cli::args::{
-    CiSubcommand, Cli, CommandGroup, DocsSubcommand, GovernanceSubcommand, ProjectSubcommand,
-    QualitySubcommand, ReportsSubcommand, SpecsSubcommand,
+    CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand, GovernanceSubcommand,
+    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SpecsSubcommand,
 };
 use crate::cli::errors::CliError;
 
@@ -104,6 +104,20 @@ fn from_cli(cli: Cli) -> ParsedEntry {
                 map_passthrough("specs-run-all", forwarded)
             }
             SpecsSubcommand::Check => map_passthrough("specs-check", vec![]),
+        },
+        CommandGroup::Entrypoints(entrypoints) => match entrypoints.command {
+            EntrypointsSubcommand::List { format } => {
+                let mut forwarded = Vec::<String>::new();
+                forwarded.push("--format".to_string());
+                forwarded.push(match format {
+                    crate::cli::args::OutputFormat::Text => "text".to_string(),
+                    crate::cli::args::OutputFormat::Json => "json".to_string(),
+                });
+                map_passthrough("entrypoints-list", forwarded)
+            }
+            EntrypointsSubcommand::Run { command_id } => {
+                map_passthrough("entrypoints-run", vec![command_id])
+            }
         },
         CommandGroup::Quality(q) => match q.command {
             QualitySubcommand::Lint => map_passthrough("lint", vec![]),
@@ -311,6 +325,7 @@ pub fn parse_entry(args: &[String]) -> Result<ParsedEntry, i32> {
         println!("dc-runner quick start:");
         println!("  dc-runner specs run-all");
         println!("  dc-runner specs list");
+        println!("  dc-runner entrypoints list");
         println!("  dc-runner --help");
         return Err(0);
     }

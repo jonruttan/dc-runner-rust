@@ -217,6 +217,7 @@ fn help_works_and_mentions_specs_group() {
     assert_eq!(code, 0);
     assert!(stdout.contains("specs"));
     assert!(stdout.contains("governance"));
+    assert!(stdout.contains("entrypoints"));
     assert!(!stdout.contains("--profile-level"));
 }
 
@@ -241,4 +242,48 @@ fn governance_group_help_is_concise() {
     assert_eq!(code, 0);
     assert!(stdout.contains("run"));
     assert!(!stdout.contains("--profile-level"));
+}
+
+#[test]
+fn entrypoints_help_shows_list_and_run() {
+    let (code, stdout, _stderr) = run_cli(&["entrypoints", "--help"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("list"));
+    assert!(stdout.contains("run"));
+}
+
+#[test]
+fn entrypoints_list_includes_required_ids() {
+    let (code, stdout, _stderr) = run_cli(&["entrypoints", "list"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("governance"));
+    assert!(stdout.contains("critical-gate"));
+    assert!(stdout.contains("docs-generate-check"));
+}
+
+#[test]
+fn entrypoints_run_executes_known_id() {
+    let (code, _stdout, _stderr) = run_cli(&["entrypoints", "run", "governance"]);
+    assert!(code == 0 || code == 1);
+}
+
+#[test]
+fn entrypoints_run_missing_id_returns_usage_error() {
+    let (code, _stdout, stderr) = run_cli(&["entrypoints", "run"]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("Usage:") || stderr.contains("usage:"));
+}
+
+#[test]
+fn entrypoints_run_id_flag_is_rejected() {
+    let (code, _stdout, stderr) = run_cli(&["entrypoints", "run", "--id", "governance"]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("unexpected argument") || stderr.contains("unrecognized"));
+}
+
+#[test]
+fn entrypoints_run_unknown_id_returns_non_zero_with_ids() {
+    let (code, _stdout, stderr) = run_cli(&["entrypoints", "run", "__does_not_exist__"]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("Available entrypoint ids"));
 }

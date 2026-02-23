@@ -44,6 +44,8 @@ pub struct Cli {
 pub enum CommandGroup {
     /// Specs workflows
     Specs(SpecsCommand),
+    /// Spec-defined command entrypoints
+    Entrypoints(EntrypointsCommand),
     /// Quality checks
     Quality(QualityCommand),
     /// Governance checks
@@ -210,6 +212,26 @@ pub enum SpecsSubcommand {
     },
     /// Run style/spec hygiene checks
     Check,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct EntrypointsCommand {
+    #[command(subcommand)]
+    pub command: EntrypointsSubcommand,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum EntrypointsSubcommand {
+    /// List available spec-defined command entrypoints
+    List {
+        #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
+        format: OutputFormat,
+    },
+    /// Run a spec-defined command entrypoint by id
+    Run {
+        #[arg(value_name = "command_id")]
+        command_id: String,
+    },
 }
 
 #[derive(Debug, Clone, Args)]

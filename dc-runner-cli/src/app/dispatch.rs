@@ -2,6 +2,8 @@ use std::path::Path;
 
 pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
     match subcommand {
+        "entrypoints-list" => super::run_entrypoints_list_native(root, forwarded),
+        "entrypoints-run" => super::run_entrypoints_run_native(root, forwarded),
         "spec-eval" => super::run_spec_eval_native(root, forwarded),
         "job-run" => super::run_job_run_native(root, forwarded),
         "critical-gate" => super::run_registered_entry_command(root, "critical-gate", forwarded),

@@ -1927,16 +1927,21 @@ fn resolve_repo_path(root: &Path, raw: &str) -> PathBuf {
 #[derive(Debug, Clone)]
 struct RunnerEntrypoint {
     id: String,
+    cli: String,
     profile: String,
     artifacts: Vec<String>,
     allowed_exit_codes: Vec<i32>,
 }
 
 fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String> {
-    let candidates = [
+    let mut candidates = vec![
         root.join("specs/04_governance/runner_entrypoints_v1.yaml"),
         root.join("specs/upstream/data-contracts/specs/04_governance/runner_entrypoints_v1.yaml"),
     ];
+    if let Some(parent) = root.parent() {
+        candidates
+            .push(parent.join("data-contracts/specs/04_governance/runner_entrypoints_v1.yaml"));
+    }
     let path = candidates.iter().find(|p| p.exists()).ok_or_else(|| {
         "missing runner entrypoint manifest: specs/04_governance/runner_entrypoints_v1.yaml"
             .to_string()
@@ -1974,6 +1979,12 @@ fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String>
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .ok_or_else(|| format!("commands[{idx}] missing profile"))?;
+        let cli = map
+            .get(&YamlValue::String("cli".to_string()))
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .ok_or_else(|| format!("commands[{idx}] missing cli"))?;
         let artifacts = map
             .get(&YamlValue::String("artifacts".to_string()))
             .and_then(|v| v.as_sequence())
@@ -2001,12 +2012,109 @@ fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String>
         }
         out.push(RunnerEntrypoint {
             id,
+            cli,
             profile,
             artifacts,
             allowed_exit_codes,
         });
     }
     Ok(out)
+}
+
+fn print_available_entrypoint_ids(entries: &[RunnerEntrypoint]) {
+    let mut ids = entries.iter().map(|e| e.id.as_str()).collect::<Vec<_>>();
+    ids.sort_unstable();
+    eprintln!("Available entrypoint ids: {}", ids.join(", "));
+}
+
+fn run_entrypoints_list_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut format = "text".to_string();
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--format" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("usage: entrypoints list [--format text|json]");
+                    return 2;
+                }
+                format = forwarded[i + 1].clone();
+                i += 2;
+            }
+            _ => {
+                eprintln!("usage: entrypoints list [--format text|json]");
+                return 2;
+            }
+        }
+    }
+
+    let mut entries = match load_runner_entrypoints(root) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+    entries.sort_by(|a, b| a.id.cmp(&b.id));
+
+    match format.as_str() {
+        "text" => {
+            println!("spec entrypoints:");
+            for entry in entries {
+                println!(
+                    "- {} (profile: {}, artifacts: {})",
+                    entry.id,
+                    entry.profile,
+                    entry.artifacts.len()
+                );
+            }
+            0
+        }
+        "json" => {
+            let payload = entries
+                .into_iter()
+                .map(|entry| {
+                    json!({
+                        "id": entry.id,
+                        "cli": entry.cli,
+                        "profile": entry.profile,
+                        "artifacts": entry.artifacts,
+                        "exit_codes": { "allowed": entry.allowed_exit_codes },
+                    })
+                })
+                .collect::<Vec<_>>();
+            match serde_json::to_string_pretty(&payload) {
+                Ok(s) => {
+                    println!("{s}");
+                    0
+                }
+                Err(e) => {
+                    eprintln!("ERROR: failed rendering json output: {e}");
+                    1
+                }
+            }
+        }
+        _ => {
+            eprintln!("ERROR: unsupported format: {format} (expected text|json)");
+            2
+        }
+    }
+}
+
+fn run_entrypoints_run_native(root: &Path, forwarded: &[String]) -> i32 {
+    let entries = match load_runner_entrypoints(root) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+    if forwarded.len() != 1 {
+        eprintln!("usage: entrypoints run <command_id>");
+        print_available_entrypoint_ids(&entries);
+        return 2;
+    }
+    let command_id = forwarded[0].as_str();
+    run_registered_entry_command(root, command_id, &[])
 }
 
 fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[String]) -> i32 {
@@ -2022,12 +2130,8 @@ fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[Stri
         }
     };
     let Some(entry) = entries.iter().find(|e| e.id == command_id) else {
-        let mut ids = entries.iter().map(|e| e.id.as_str()).collect::<Vec<_>>();
-        ids.sort_unstable();
-        eprintln!(
-            "ERROR: unknown command entrypoint id: {command_id}. Available: {}",
-            ids.join(", ")
-        );
+        eprintln!("ERROR: unknown command entrypoint id: {command_id}");
+        print_available_entrypoint_ids(&entries);
         return 2;
     };
 

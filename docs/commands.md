@@ -14,6 +14,18 @@ Common commands:
 dc-runner specs run-all
 dc-runner specs list
 dc-runner specs run --ref /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001
+dc-runner entrypoints list
+dc-runner entrypoints run governance
+```
+
+## Spec Entrypoints
+
+Discover and execute spec-defined command entrypoints:
+
+```sh
+dc-runner entrypoints list
+dc-runner entrypoints list --format json
+dc-runner entrypoints run governance
 ```
 
 Advanced runtime flags (profiling/liveness) are intentionally hidden from
