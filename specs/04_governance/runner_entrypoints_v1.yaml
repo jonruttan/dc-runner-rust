@@ -1,0 +1,41 @@
+version: 1
+commands:
+  - id: governance
+    cli: dc-runner governance
+    profile: full
+    artifacts:
+      - /.artifacts/governance-summary.json
+      - /.artifacts/governance-trace.json
+      - /.artifacts/governance-summary.md
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: critical-gate
+    cli: dc-runner critical-gate
+    profile: critical
+    artifacts:
+      - /.artifacts/critical-gate-summary.json
+      - /.artifacts/critical-gate-trace.json
+      - /.artifacts/critical-gate-summary.md
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: docs-generate-check
+    cli: dc-runner docs-generate-check
+    profile: full
+    artifacts:
+      - /.artifacts/governance-summary.json
+      - /.artifacts/governance-trace.json
+      - /.artifacts/governance-summary.md
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: governance-broad-native
+    cli: dc-runner governance-broad-native
+    profile: full
+    artifacts:
+      - /.artifacts/governance-broad-native-summary.json
+      - /.artifacts/governance-broad-native-trace.json
+      - /.artifacts/governance-broad-native-summary.md
+    exit_codes:
+      allowed: [0, 1]
