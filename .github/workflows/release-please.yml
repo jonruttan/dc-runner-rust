@@ -8,8 +8,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
-  issues: write
 
 concurrency:
   group: release-please-main
@@ -19,7 +17,38 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check conventional commit history window
+        id: release_readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LAST_TAG="$(git tag --sort=v:refname | grep '^v' | tail -n 1 || true)"
+          if [[ -z "${LAST_TAG}" ]]; then
+            echo "has_releasable=false" >> "$GITHUB_OUTPUT"
+            echo "No semver tag found; skipping release-please. Run release workflow manually."
+            exit 0
+          fi
+
+          BAD_COUNT="$(
+            git log --no-merges "${LAST_TAG}..HEAD" --pretty=%s |
+            grep -Ev '^(feat|fix|perf|refactor|docs|test|chore|build|ci|revert|style)(\([^)]+\))?: .+$' || true |
+            sed '/^[[:space:]]*$/d' |
+            wc -l
+          )"
+
+          if [[ "${BAD_COUNT}" -gt 0 ]]; then
+            echo "has_releasable=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Skipping release-please due non-conventional commit subjects in ${LAST_TAG}..HEAD. Rewrite/history-cleanup needed for automatic release."
+          else
+            echo "has_releasable=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: googleapis/release-please-action@v4
+        if: steps.release_readiness.outputs.has_releasable == 'true'
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          skip-github-pull-request: true
