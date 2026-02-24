@@ -26,6 +26,53 @@ profiles:
         must_not_contain:
           - ./dc-runner governance run
           - ./dc-runner
+      - id: runtime.ci_runner_version_contract_enforced
+        kind: file_tokens
+        path: /.github/workflows/ci.yml
+        must_contain:
+          - runner-preflight:
+          - specs/00_core/runner_version_contract_v1.yaml
+          - cargo install "${{ steps.contract.outputs.crate_name }}" --locked --version "${{ steps.contract.outputs.required_version }}" --force
+          - entrypoints list --format json
+      - id: runtime.ci_runner_entrypoint_verify_script_forbidden
+        kind: file_tokens
+        path: /.github/workflows/ci.yml
+        must_not_contain:
+          - ci_verify_runner_entrypoints.sh
+      - id: runtime.ci_runner_git_sha_pin_forbidden
+        kind: file_tokens
+        path: /.github/workflows/ci.yml
+        must_not_contain:
+          - cargo install --git
+          - --rev
+      - id: runtime.bundle_version_contract_present
+        kind: file_tokens
+        path: /specs/00_core/bundle_version_contract_v1.yaml
+        must_contain:
+          - version: 1
+          - repo: jonruttan/data-contracts-bundles
+          - on_unpublished_version: hard_fail
+      - id: runtime.bundle_version_contract_floating_forbidden
+        kind: file_tokens
+        path: /specs/00_core/bundle_version_contract_v1.yaml
+        must_not_contain:
+          - bundle_version: latest
+          - bundle_version: main
+          - bundle_version: master
+      - id: runtime.ci_bundle_preflight_enforced
+        kind: file_tokens
+        path: /.github/workflows/ci.yml
+        must_contain:
+          - bundle-preflight:
+          - specs/00_core/bundle_version_contract_v1.yaml
+          - verify bundle
+          - - bundle-preflight
+      - id: runtime.ci_bundle_git_sha_pin_forbidden
+        kind: file_tokens
+        path: /.github/workflows/ci.yml
+        must_not_contain:
+          - data-contracts-bundles.git
+          - --rev
       - id: runtime.compatibility_status_freshness_within_slo
         kind: file_tokens
         path: /specs/04_governance/runner_entrypoints_v1.yaml
@@ -292,18 +339,146 @@ profiles:
         must_contain:
           - version: 1
           - audience: implementer
-      - id: docs.audience_surfaces_synced
+      - id: docs.audience_surfaces_generated_operator
+        kind: file_tokens
+        path: /docs/audience/operator/reference_manifest.yaml
+        must_contain:
+          - version: 1
+          - audience: operator
+      - id: docs.audience_surfaces_generated_integrator
+        kind: file_tokens
+        path: /docs/audience/integrator/reference_manifest.yaml
+        must_contain:
+          - version: 1
+          - audience: integrator
+      - id: docs.audience_surfaces_generated_maintainer
+        kind: file_tokens
+        path: /docs/audience/maintainer/reference_manifest.yaml
+        must_contain:
+          - version: 1
+          - audience: maintainer
+      - id: docs.audience_surfaces_generated_governance
         kind: file_tokens
         path: /docs/audience/governance/reference_manifest.yaml
         must_contain:
           - version: 1
           - audience: governance
+      - id: docs.audience_surfaces_generated_reviewer
+        kind: file_tokens
+        path: /docs/audience/reviewer/reference_manifest.yaml
+        must_contain:
+          - version: 1
+          - audience: reviewer
+      - id: docs.audience_surfaces_generated_auditor
+        kind: file_tokens
+        path: /docs/audience/auditor/reference_manifest.yaml
+        must_contain:
+          - version: 1
+          - audience: auditor
+      - id: docs.audience_surfaces_synced
+        kind: file_tokens
+        path: /docs/audience/implementer/reference_coverage.md
+        must_contain:
+          - audience: implementer
+          - chapter_count:
+      - id: docs.audience_surfaces_synced_operator
+        kind: file_tokens
+        path: /docs/audience/operator/reference_coverage.md
+        must_contain:
+          - audience: operator
+          - chapter_count:
+      - id: docs.audience_surfaces_synced_integrator
+        kind: file_tokens
+        path: /docs/audience/integrator/reference_coverage.md
+        must_contain:
+          - audience: integrator
+          - chapter_count:
+      - id: docs.audience_surfaces_synced_maintainer
+        kind: file_tokens
+        path: /docs/audience/maintainer/reference_coverage.md
+        must_contain:
+          - audience: maintainer
+          - chapter_count:
+      - id: docs.audience_surfaces_synced_governance
+        kind: file_tokens
+        path: /docs/audience/governance/reference_coverage.md
+        must_contain:
+          - version: 1
+          - audience: governance
+          - chapter_count:
+      - id: docs.audience_surfaces_synced_reviewer
+        kind: file_tokens
+        path: /docs/audience/reviewer/reference_coverage.md
+        must_contain:
+          - audience: reviewer
+          - chapter_count:
+      - id: docs.audience_surfaces_synced_auditor
+        kind: file_tokens
+        path: /docs/audience/auditor/reference_coverage.md
+        must_contain:
+          - audience: auditor
+          - chapter_count:
+      - id: docs.audience_surfaces_coverage_no_placeholder_fragments
+        kind: file_tokens
+        path: /docs/audience/implementer/reference_index.md
+        must_not_contain:
+          - (none)
+          - TODO
+          - Capture actionable details on how this contract symbol behaves for the declared audience
+      - id: docs.audience_surfaces_coverage_no_placeholder_fragments_operator
+        kind: file_tokens
+        path: /docs/audience/operator/reference_index.md
+        must_not_contain:
+          - (none)
+          - TODO
+          - Capture actionable details on how this contract symbol behaves for the declared audience
+      - id: docs.audience_surfaces_coverage_no_placeholder_fragments_integrator
+        kind: file_tokens
+        path: /docs/audience/integrator/reference_index.md
+        must_not_contain:
+          - (none)
+          - TODO
+          - Capture actionable details on how this contract symbol behaves for the declared audience
+      - id: docs.audience_surfaces_coverage_no_placeholder_fragments_maintainer
+        kind: file_tokens
+        path: /docs/audience/maintainer/reference_index.md
+        must_not_contain:
+          - (none)
+          - TODO
+          - Capture actionable details on how this contract symbol behaves for the declared audience
+      - id: docs.audience_surfaces_coverage_no_placeholder_fragments_governance
+        kind: file_tokens
+        path: /docs/audience/governance/reference_index.md
+        must_not_contain:
+          - (none)
+          - TODO
+          - Capture actionable details on how this contract symbol behaves for the declared audience
+      - id: docs.audience_surfaces_coverage_no_placeholder_fragments_reviewer
+        kind: file_tokens
+        path: /docs/audience/reviewer/reference_index.md
+        must_not_contain:
+          - (none)
+          - TODO
+          - Capture actionable details on how this contract symbol behaves for the declared audience
+      - id: docs.audience_surfaces_coverage_no_placeholder_fragments_auditor
+        kind: file_tokens
+        path: /docs/audience/auditor/reference_index.md
+        must_not_contain:
+          - (none)
+          - TODO
+          - Capture actionable details on how this contract symbol behaves for the declared audience
       - id: docs.audience_canonical_tokens_only
         kind: file_tokens
-        path: /specs/00_core/docs_audience_migration_map.md
+        path: /specs/01_schema/registry/v1/core.yaml
         must_contain:
-          - spec-authors
+          - operator
+          - integrator
           - implementer
+          - maintainer
+          - governance
+          - reviewer
+          - auditor
+          - docs[].audience
       - id: governance.catalog_pipeline_chain_valid
         kind: file_tokens
         path: /specs/04_governance/cases/core/spec_core/runtime_governance_catalog_pipeline_chain.spec.md
@@ -359,10 +534,10 @@ profiles:
         path: /specs/04_governance/runner_entrypoints_v1.yaml
         must_contain:
           - /.artifacts/governance-summary.json
+          - /.artifacts/governance-trace.json
           - /.artifacts/critical-gate-summary.json
           - /.artifacts/job-hooks/DCCONF-JOB-006.complete.json
           - /.artifacts/job-hooks/DCCONF-JOB-007.complete.json
-          - /.artifacts/job-hooks/DCCONF-JOB-008.complete.json
           - /.artifacts/job-hooks/DCCONF-JOB-009.complete.json
           - /.artifacts/job-hooks/DCCONF-JOB-010.complete.json
           - /.artifacts/job-hooks/DCCONF-JOB-011.complete.json

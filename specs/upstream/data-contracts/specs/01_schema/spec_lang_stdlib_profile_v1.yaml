@@ -206,6 +206,8 @@ categories:
   - ops.os.pid
   - ops.os.sleep_ms
   - ops.os.exit_code
+  terminal_io:
+  - ops.terminal.prompt
   helper_ops:
   - ops.helper.call
   job_ops:
@@ -589,6 +591,132 @@ symbols:
     deterministic: true
     error_class: schema
     parity_required: true
+    docs:
+      - id: std.string.contains.doc.1.implementer
+        summary: Check whether a text contains a substring with deterministic matching.
+        audience: implementer
+        status: active
+        description: |-
+          Purpose: Detect if the first argument contains the second argument.
+          Inputs are consumed as plain strings before optional normalization in the runtime.
+        inputs:
+          - haystack: Input text to search.
+          - needle: Substring expression to match.
+        returns:
+          - A boolean true when the needle is found, false otherwise.
+        errors:
+          - Schema failures when either input is not a string.
+          - Runtime validation failures when arguments are missing.
+        usage_context:
+          - Use in assertions and predicates where deterministic text detection is required.
+          - Normalize values before calling when comparing user-provided text.
+        examples:
+          - Evaluate `std.string.contains` with `"error: retry"` and `"retry"` to verify true.
+          - Evaluate with `"warning"` and `"timeout"` to verify false.
+      - id: std.string.contains.doc.1.operator
+        summary: Use substring checks in operational run paths with deterministic outcomes.
+        audience: operator
+        status: active
+        description: |-
+          Purpose: Detect whether a token or phrase appears in an emitted log line or
+          status payload before branching.
+          Ensure all calls remain deterministic by keeping input normalization explicit.
+        inputs:
+          - haystack: text from logs, events, or status messages.
+          - needle: deterministic search token.
+        returns:
+          - Boolean result used to route operational behavior.
+        errors:
+          - Validation failures for malformed non-string values.
+          - Determinism drift when caller mutates inputs between evaluations.
+        usage_context:
+          - Route runbook logic, incident pattern matching, and status classification safely.
+        examples:
+          - Check for `"error"` in command output before deciding escalation.
+      - id: std.string.contains.doc.1.integrator
+        summary: Compose deterministic text-routing conditions for downstream integrations.
+        audience: integrator
+        status: active
+        description: |-
+          Purpose: Provide stable substring behavior for integration conditions and
+          contract compositions.
+        inputs:
+          - haystack: text from upstream service or upstream assertion payload.
+          - needle: normalized selector used by downstream steps.
+        returns:
+          - Boolean membership result.
+        errors:
+          - Schema validation for wrong argument shape and wrong arity.
+          - Integration-time failures caused by locale/normalization mismatch.
+        usage_context:
+          - Use in policy-driven branching or payload transformation logic.
+      - id: std.string.contains.doc.1.maintainer
+        summary: Understand behavior and compatibility impact before upgrading consumers.
+        audience: maintainer
+        status: active
+        description: |-
+          Purpose: Confirm deterministic text containment semantics remain stable across
+          profile or implementation changes.
+        inputs:
+          - haystack: canonical input text.
+          - needle: query substring.
+        returns:
+          - Boolean true/false result and schema-shaped validation behavior.
+        errors:
+          - Failures from malformed invocation shape.
+          - Changes in normalization behavior in implementation changes.
+        usage_context:
+          - Evaluate in change risk reviews and compatibility planning.
+        examples:
+          - Regression test with fixed input/output pair for version upgrades.
+      - id: std.string.contains.doc.1.governance
+        summary: Validate containment checks used for governance and control logic.
+        audience: governance
+        status: active
+        description: |-
+          Purpose: Ensure substring checks produce auditable, deterministic outcomes
+          for compliance and policy checks.
+        inputs:
+          - haystack: governed source text.
+          - needle: policy keyword.
+        returns:
+          - Boolean result suitable for deterministic gate decisions.
+        errors:
+          - Input validation failures and runtime assertion mismatches.
+        usage_context:
+          - Use for deterministic control assertions that must be explainable in audits.
+      - id: std.string.contains.doc.1.reviewer
+        summary: Confirm API behavior and failure handling are complete and deterministic.
+        audience: reviewer
+        status: active
+        description: |-
+          Purpose: Provide reviewer-ready semantics for substring checks and edge cases.
+        inputs:
+          - haystack: review subject string.
+          - needle: token to search.
+        returns:
+          - Boolean match status.
+        errors:
+          - Type and argument-shape validation failures.
+          - Invalid usage where search token is empty.
+        usage_context:
+          - Review test cases and spec-driven behavior assertions.
+      - id: std.string.contains.doc.1.auditor
+        summary: Produce evidence-ready behavior for substring assertions and controls.
+        audience: auditor
+        status: active
+        description: |-
+          Purpose: Record deterministic behavior and validation boundaries for auditability.
+        inputs:
+          - haystack: text string under review.
+          - needle: searched token.
+        returns:
+          - Boolean result for deterministic matching evidence.
+        errors:
+          - Schema failures for invalid argument types.
+          - Mismatched outputs from inconsistent runtime environments.
+        usage_context:
+          - Include in compliance traces and evidence bundles for policy decisions.
   std.string.starts_with:
     category: text_regex
     arity: 2
@@ -596,6 +724,106 @@ symbols:
     deterministic: true
     error_class: schema
     parity_required: true
+    docs:
+      - id: std.string.starts_with.doc.1.implementer
+        summary: Check if a string begins with an exact prefix.
+        audience: implementer
+        status: active
+        description: |-
+          Purpose: Return true when the first argument starts with the second.
+        inputs:
+          - value: candidate text.
+          - prefix: exact prefix string.
+        returns:
+          - Boolean true when prefix matches at position 0.
+        errors:
+          - Type validation for non-string arguments.
+        usage_context:
+          - Use where strict prefix routing is required.
+      - id: std.string.starts_with.doc.1.operator
+        summary: Route operational patterns based on stable prefix checks.
+        audience: operator
+        status: active
+        description: |-
+          Purpose: Prefix matching stays deterministic as long as input normalization
+          is explicit and deterministic.
+        inputs:
+          - value: input text.
+          - prefix: expected prefix.
+        returns:
+          - Boolean decision used for flow branching.
+        errors:
+          - Schema/runtime failures for invalid values.
+        usage_context:
+          - Use to classify status channels and event prefixes.
+      - id: std.string.starts_with.doc.1.integrator
+        summary: Build deterministic composition rules on prefix checks.
+        audience: integrator
+        status: active
+        description: |-
+          Purpose: Use this deterministic predicate when composing higher-order
+          condition trees.
+        inputs:
+          - value: upstream message text.
+          - prefix: deterministic prefix token.
+        returns:
+          - Boolean result.
+        errors:
+          - Non-string values are rejected with validation errors.
+        usage_context:
+          - Use in shared policies and reusable pipeline predicates.
+      - id: std.string.starts_with.doc.1.maintainer
+        summary: Track compatibility impact of prefix matching rules.
+        audience: maintainer
+        status: active
+        description: |-
+          Purpose: Maintain stable checks for routing and parser compatibility.
+        inputs:
+          - value: prefix source string.
+          - prefix: expected leading token.
+        returns:
+          - Boolean.
+        errors:
+          - Validation failures when argument shape changes.
+      - id: std.string.starts_with.doc.1.governance
+        summary: Ensure governance decisions using prefix checks remain deterministic.
+        audience: governance
+        status: active
+        description: |-
+          Purpose: Provide reliable decision inputs for policy enforcement rules.
+        inputs:
+          - value: text under governance review.
+          - prefix: policy token prefix.
+        returns:
+          - Boolean.
+        errors:
+          - Schema violations for argument type mismatches.
+      - id: std.string.starts_with.doc.1.reviewer
+        summary: Review complete prefix semantics and validation behavior.
+        audience: reviewer
+        status: active
+        description: |-
+          Purpose: Make prefix matching behavior easy to verify in spec-driven reviews.
+        inputs:
+          - value: candidate string.
+          - prefix: expected starting substring.
+        returns:
+          - Boolean.
+        errors:
+          - Invalid input shape errors.
+      - id: std.string.starts_with.doc.1.auditor
+        summary: Record deterministic prefix checks for compliance trails.
+        audience: auditor
+        status: active
+        description: |-
+          Purpose: Make prefix checks inspectable in audit evidence.
+        inputs:
+          - value: reviewed text.
+          - prefix: required prefix token.
+        returns:
+          - Boolean decision.
+        errors:
+          - Input validation failures and unexpected argument types.
   std.string.ends_with:
     category: text_regex
     arity: 2
@@ -603,6 +831,101 @@ symbols:
     deterministic: true
     error_class: schema
     parity_required: true
+    docs:
+      - id: std.string.ends_with.doc.1.implementer
+        summary: Check whether a string ends with an exact suffix.
+        audience: implementer
+        status: active
+        description: |-
+          Purpose: Return true when the first argument has the second argument as
+          its trailing suffix.
+        inputs:
+          - value: candidate text.
+          - suffix: expected suffix string.
+        returns:
+          - Boolean true/false.
+        errors:
+          - Validation errors for non-string values.
+        usage_context:
+          - Use for extension checks and route partitioning.
+      - id: std.string.ends_with.doc.1.operator
+        summary: Use stable suffix checks for run-path decisions.
+        audience: operator
+        status: active
+        description: |-
+          Purpose: Provides deterministic suffix checks for operational classification.
+        inputs:
+          - value: source payload text.
+          - suffix: deterministic suffix token.
+        returns:
+          - Boolean decision.
+        errors:
+          - Schema/runtime validation failures.
+      - id: std.string.ends_with.doc.1.integrator
+        summary: Compose deterministic suffix-based predicates in integrations.
+        audience: integrator
+        status: active
+        description: |-
+          Purpose: Use suffix checks consistently in service adapters and workflows.
+        inputs:
+          - value: upstream text.
+          - suffix: expected trailing token.
+        returns:
+          - Boolean.
+        errors:
+          - Shape and type validation failures.
+      - id: std.string.ends_with.doc.1.maintainer
+        summary: Track suffix behavior across upgrades for stable integrations.
+        audience: maintainer
+        status: active
+        description: |-
+          Purpose: Confirm compatibility impact for suffix checks in deployed pipelines.
+        inputs:
+          - value: value string.
+          - suffix: expected suffix.
+        returns:
+          - Boolean.
+        errors:
+          - Validation failures for incorrect arity or argument type.
+      - id: std.string.ends_with.doc.1.governance
+        summary: Ensure policy routing with suffix checks remains deterministic.
+        audience: governance
+        status: active
+        description: |-
+          Purpose: Keep suffix checks predictable for controls and gates.
+        inputs:
+          - value: governed text.
+          - suffix: policy suffix token.
+        returns:
+          - Boolean.
+        errors:
+          - Schema failures for invalid arguments.
+      - id: std.string.ends_with.doc.1.reviewer
+        summary: Verify suffix behavior and failure modes.
+        audience: reviewer
+        status: active
+        description: |-
+          Purpose: Expose complete suffix semantics for review.
+        inputs:
+          - value: candidate string.
+          - suffix: expected trailing token.
+        returns:
+          - Boolean.
+        errors:
+          - Validation failure when value or suffix missing.
+      - id: std.string.ends_with.doc.1.auditor
+        summary: Preserve deterministic evidence for suffix checks.
+        audience: auditor
+        status: active
+        description: |-
+          Purpose: Use deterministic suffix semantics in audit-oriented decision trails.
+        inputs:
+          - value: text under review.
+          - suffix: expected trailing token.
+        returns:
+          - Boolean.
+        errors:
+          - Validation and runtime assertion failures.
   std.string.trim:
     category: text_regex
     arity: 1
@@ -1530,6 +1853,13 @@ symbols:
   ops.os.exit_code:
     category: os_process
     arity: 0
+    pure: false
+    deterministic: false
+    error_class: runtime
+    parity_required: true
+  ops.terminal.prompt:
+    category: terminal_io
+    arity: 2
     pure: false
     deterministic: false
     error_class: runtime

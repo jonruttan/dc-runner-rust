@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     governance_triage:
-      path: /scripts/governance_triage.sh
+      path: dc-runner governance run
       required_tokens:
       - --mode auto
       - --mode auto|targeted|broad-first

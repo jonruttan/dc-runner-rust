@@ -15,6 +15,7 @@ pub const INCLUDE_PATTERNS: &[&str] = &[
     "specs/01_schema/**",
     "specs/03_conformance/**",
     "specs/04_governance/index.md",
+    "specs/04_governance/runner_entrypoints_v1.yaml",
     "specs/04_governance/check_*.yaml",
     "specs/04_governance/cases/core/**",
     "specs/04_governance/metrics/**",

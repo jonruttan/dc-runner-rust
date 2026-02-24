@@ -2918,7 +2918,7 @@ rules:
   rationale: Provides one deterministic execution path for generated docs surfaces.
   risk_if_violated: Divergent command paths produce inconsistent artifacts.
   references:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - dc-runner
   - specs/04_governance/cases/core/project_docs/docs_generator_outputs_sync.spec.md
 - id: DOCS_GENERATED_SURFACES_SYNC_REQUIRED
@@ -2934,7 +2934,7 @@ rules:
   rationale: Prevents stale generated artifacts from reaching mainline.
   risk_if_violated: Readers consume outdated docs and invalid references.
   references:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - specs/04_governance/cases/core/project_docs/docs_generator_outputs_sync.spec.md
 - id: DOCS_GENERATED_SECTIONS_READ_ONLY
   introduced_in: v1
@@ -3064,7 +3064,7 @@ rules:
   rationale: Provides auditable output for generator health and CI diagnostics.
   risk_if_violated: Docs generation failures become opaque and harder to triage.
   references:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - specs/01_schema/docs_generator_registry_v1.yaml
   - specs/04_governance/cases/core/project_docs/docs_generator_outputs_sync.spec.md
 - id: DOCS_LAYOUT_CANONICAL_TREES_REQUIRED
@@ -3074,7 +3074,7 @@ rules:
   norm: MUST
   requirement: docs_tree_roots_must_match_canonical_layout_profile
   description: 'Docs roots must match canonical layout contract (`book`, `spec`, `impl`,
-    `history/reviews`) and exclude canonical review root.
+    `reviews`) and exclude canonical review root.
 
     '
   rationale: Keeps docs discoverable and prevents namespace drift.
@@ -3119,7 +3119,7 @@ rules:
   applies_to: docs.reviews
   norm: MUST
   requirement: reviews_active_assets_must_live_under_docs_reviews
-  description: 'Active review prompts/templates/workflow assets must use `docs/history/reviews`;
+  description: 'Active review prompts/templates/workflow assets must use `docs/reviews`;
     the historical review archive root is archival-only and must not be used by active tooling guidance.
 
     '
@@ -3594,7 +3594,7 @@ rules:
   risk_if_violated: Users must source-dive implementation code to understand operators.
   references:
   - specs/04_governance/cases/core/project_docs/docs_stdlib_symbol_docs_complete.spec.md
-  - scripts/generate_spec_lang_builtin_catalog.py
+  - docs/book/93_appendix_spec_lang_builtin_catalog.md
 - id: DOCS_STDLIB_EXAMPLES_REQUIRED
   introduced_in: v1
   scope: governance
@@ -3609,7 +3609,7 @@ rules:
   risk_if_violated: Operator usage remains opaque and error-prone.
   references:
   - specs/04_governance/cases/core/project_docs/docs_stdlib_examples_complete.spec.md
-  - scripts/generate_spec_lang_builtin_catalog.py
+  - docs/book/93_appendix_spec_lang_builtin_catalog.md
 - id: DOCS_REFERENCE_NAMESPACE_CHAPTERS_SYNC_REQUIRED
   introduced_in: v1
   scope: governance

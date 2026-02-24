@@ -26,3 +26,4 @@ Canonical domain index for executable specs in this subtree.
 - `/specs/03_conformance/cases/core/script_job_contracts.spec.md`
 - `/specs/03_conformance/cases/core/services_entries_imports_compact.spec.md`
 - `/specs/03_conformance/cases/core/implicit_ids_v1.spec.md`
+- `/specs/03_conformance/cases/core/terminal_prompt.spec.md`

@@ -8,13 +8,12 @@ harness:
     check:
       profile: text.file
       config:
-        path: /scripts/bundle
+        path: /specs/02_contracts/29_runner_cli_interface.md
 contracts:
   clauses:
   - id: DCCONF-BTOOL-007
-    title: bundle tooling exposes install command surface
-    purpose: Bundle CLI must expose install and install-check commands for multi-bundle
-      project workflows.
+    title: runner CLI exposes canonical scaffold command surface
+    purpose: Runner CLI must expose project scaffold command surface for bundle-driven project setup workflows.
     asserts:
       imports:
       - from: asset
@@ -25,14 +24,14 @@ contracts:
         assert:
           std.string.contains:
           - var: text
-          - scripts/bundle install --project-lock
+          - dc-runner project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver>
       - id: assert_2
         assert:
           std.string.contains:
           - var: text
-          - scripts/bundle install-check --project-lock
+          - dc-runner project scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external
 adapters:
-- type: beta.check_profile_text_file_config_path_scripts_bundle
+- type: beta.check_profile_text_file_config_path_specs_02_contracts_29_runner_cli_interface
   actions:
   - id: act.conf.runner.build.tool.instal.1
     direction: bidirectional

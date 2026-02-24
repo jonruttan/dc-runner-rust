@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     required_lane_policy:
-      path: /scripts/runner_status_ingest.sh
+      path: dc-runner governance run
       required_tokens:
       - lane_class
       - required

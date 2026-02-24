@@ -15,7 +15,7 @@ contracts:
         - control_plane.sh
         - ci_gate.sh
         - runner_status_ingest.sh
-        - runner_bin.sh
+        - dc-runner
         - governance_catalog_validate.sh
         - spec_schema_pin_validate.sh
         - governance_optional_report.sh

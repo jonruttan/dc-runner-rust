@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     local_prepush_broad_forbidden:
-      path: /scripts/ci_gate.sh
+      path: dc-runner governance critical
       required_tokens:
       - skip broad governance (set SPEC_PREPUSH_REQUIRE_BROAD=1 to enable)
       - SPEC_PREPUSH_REQUIRE_BROAD=1

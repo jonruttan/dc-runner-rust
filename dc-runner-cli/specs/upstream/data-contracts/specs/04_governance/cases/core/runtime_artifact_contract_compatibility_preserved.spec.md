@@ -9,7 +9,7 @@ contracts:
     harness:
       root: "."
       extractor_script:
-        path: "/scripts/governance_catalog_validate.sh"
+        path: "dc-runner governance run"
         required_tokens:
         - ".artifacts/governance-catalog-validate.json"
         - duplicate_case_id_count

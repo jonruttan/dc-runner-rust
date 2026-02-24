@@ -21,8 +21,8 @@ harness:
 contracts:
   clauses:
   - id: DCGOV-DOCS-LAYOUT-004
-    title: active review assets live under docs/history/reviews
-    purpose: Enforces docs/history/reviews as canonical active review namespace while
+    title: active review assets live under docs/reviews
+    purpose: Enforces docs/reviews as canonical active review namespace while
       keeping historical review archives out of active workflow references.
     asserts:
       imports:

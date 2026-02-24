@@ -260,12 +260,24 @@ fn entrypoints_list_includes_required_ids() {
     assert_eq!(code, 0);
     assert!(stdout.contains("governance"));
     assert!(stdout.contains("critical-gate"));
+    assert!(stdout.contains("bundle-list"));
+    assert!(stdout.contains("bundle-inspect"));
+    assert!(stdout.contains("bundle-install"));
     assert!(stdout.contains("docs-generate"));
     assert!(stdout.contains("docs-generate-check"));
     assert!(stdout.contains("docs-build"));
     assert!(stdout.contains("docs-build-check"));
     assert!(stdout.contains("docs-lint"));
     assert!(stdout.contains("docs-graph"));
+    assert!(stdout.contains("specs-refresh"));
+    assert!(stdout.contains("specs-status"));
+    assert!(stdout.contains("specs-versions"));
+    assert!(stdout.contains("specs-use"));
+    assert!(stdout.contains("specs-rollback"));
+    assert!(stdout.contains("specs-verify"));
+    assert!(stdout.contains("specs-clean"));
+    assert!(stdout.contains("specs-info"));
+    assert!(stdout.contains("specs-prune"));
 }
 
 #[test]

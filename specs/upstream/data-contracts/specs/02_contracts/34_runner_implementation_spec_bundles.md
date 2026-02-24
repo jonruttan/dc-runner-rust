@@ -98,6 +98,11 @@ project bootstrap sources:
 - `data-contracts-lang-project-scaffold`
 - `data-contracts-lang-rust-project-scaffold`
 
+Canonical scaffold/install flows MUST resolve bundle IDs and versions from
+explicit semver pins declared in
+`/specs/00_core/bundle_version_contract_v1.yaml`.
+External URL scaffold mode remains non-canonical emergency fallback.
+
 When a scaffold bundle is consumed through `project scaffold`, runner
 materialization MUST be driven by `scaffold/scaffold_manifest_v1.yaml`.
 

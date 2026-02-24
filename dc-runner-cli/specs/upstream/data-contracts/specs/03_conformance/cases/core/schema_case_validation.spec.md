@@ -61,14 +61,259 @@ contracts:
     - summary: schema export validation case
       audience: implementer
       status: active
-      description: Valid contract.export shape without unsupported top-level imports.
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for implementation work, local debugging, and runner-side behavior analysis.
       since: v1
       tags:
       - contract.export
-    expect:
+      id: schema_case_validation.doc.1.1
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for implementation work, local debugging, and runner-side behavior
+        analysis.
+    - summary: schema export validation case (operator)
+      audience: operator
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for observability, runbook readiness, and incident response.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.1.1.operator
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for observability, runbook readiness, and incident response.
+    - summary: schema export validation case (integrator)
+      audience: integrator
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for composing this contract in pipelines, services, and toolchains.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.1.1.integrator
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    - summary: schema export validation case (maintainer)
+      audience: maintainer
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for versioning, changelogs, and stability planning.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.1.1.maintainer
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for versioning, changelogs, and stability planning.
+    - summary: schema export validation case (governance)
+      audience: governance
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for policy gating, approval review, and compliance checks.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.1.1.governance
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for policy gating, approval review, and compliance checks.
+    - summary: schema export validation case (reviewer)
+      audience: reviewer
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this to verify correctness, completeness, and release readiness.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.1.1.reviewer
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this to verify correctness, completeness, and release readiness.
+    - summary: schema export validation case (auditor)
+      audience: auditor
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this as documented evidence for audit and policy review.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.1.1.auditor
       portable:
         status: pass
         category:
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this as documented evidence for audit and policy review.
     library:
       id: schema.validation.core
       module: schema
@@ -85,15 +330,259 @@ contracts:
     - summary: schema export invalid imports case
       audience: implementer
       status: active
-      description: unsupported contract.export top-level imports must hard-fail in
-        v1.
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for implementation work, local debugging, and runner-side behavior analysis.
       since: v1
       tags:
       - contract.export
-    expect:
+      id: schema_case_validation.doc.2.1
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for implementation work, local debugging, and runner-side behavior
+        analysis.
+    - summary: schema export invalid imports case (operator)
+      audience: operator
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for observability, runbook readiness, and incident response.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.2.1.operator
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for observability, runbook readiness, and incident response.
+    - summary: schema export invalid imports case (integrator)
+      audience: integrator
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for composing this contract in pipelines, services, and toolchains.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.2.1.integrator
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    - summary: schema export invalid imports case (maintainer)
+      audience: maintainer
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for versioning, changelogs, and stability planning.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.2.1.maintainer
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for versioning, changelogs, and stability planning.
+    - summary: schema export invalid imports case (governance)
+      audience: governance
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for policy gating, approval review, and compliance checks.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.2.1.governance
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for policy gating, approval review, and compliance checks.
+    - summary: schema export invalid imports case (reviewer)
+      audience: reviewer
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this to verify correctness, completeness, and release readiness.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.2.1.reviewer
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this to verify correctness, completeness, and release readiness.
+    - summary: schema export invalid imports case (auditor)
+      audience: auditor
+      status: active
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this as documented evidence for audit and policy review.
+      since: v1
+      tags:
+      - contract.export
+      id: schema_case_validation.doc.2.1.auditor
       portable:
         status: fail
         category: schema
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this as documented evidence for audit and policy review.
     library:
       id: schema.validation.forbidden
       module: schema
@@ -295,10 +784,239 @@ contracts:
     docs:
     - summary: missing status
       audience: implementer
-    expect:
+      id: schema_case_validation.doc.3.1
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for implementation work, local debugging, and runner-side behavior analysis.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for implementation work, local debugging, and runner-side behavior
+        analysis.
+      status: active
+    - summary: missing status (operator)
+      audience: operator
+      id: schema_case_validation.doc.3.1.operator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for observability, runbook readiness, and incident response.
+      status: active
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for observability, runbook readiness, and incident response.
+    - summary: missing status (integrator)
+      audience: integrator
+      id: schema_case_validation.doc.3.1.integrator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for composing this contract in pipelines, services, and toolchains.
+      status: active
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    - summary: missing status (maintainer)
+      audience: maintainer
+      id: schema_case_validation.doc.3.1.maintainer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for versioning, changelogs, and stability planning.
+      status: active
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for versioning, changelogs, and stability planning.
+    - summary: missing status (governance)
+      audience: governance
+      id: schema_case_validation.doc.3.1.governance
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for policy gating, approval review, and compliance checks.
+      status: active
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for policy gating, approval review, and compliance checks.
+    - summary: missing status (reviewer)
+      audience: reviewer
+      id: schema_case_validation.doc.3.1.reviewer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this to verify correctness, completeness, and release readiness.
+      status: active
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this to verify correctness, completeness, and release readiness.
+    - summary: missing status (auditor)
+      audience: auditor
+      id: schema_case_validation.doc.3.1.auditor
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this as documented evidence for audit and policy review.
+      status: active
       portable:
         status: fail
         category: schema
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this as documented evidence for audit and policy review.
     asserts:
       checks:
       - id: assert_1
@@ -311,10 +1029,244 @@ contracts:
       audience: implementer
       status: active
       type: narrative
-    expect:
+      id: schema_case_validation.doc.4.1
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for implementation work, local debugging, and runner-side behavior analysis.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for implementation work, local debugging, and runner-side behavior
+        analysis.
+    - summary: invalid docs type (operator)
+      audience: operator
+      status: active
+      type: narrative
+      id: schema_case_validation.doc.4.1.operator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for observability, runbook readiness, and incident response.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for observability, runbook readiness, and incident response.
+    - summary: invalid docs type (integrator)
+      audience: integrator
+      status: active
+      type: narrative
+      id: schema_case_validation.doc.4.1.integrator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for composing this contract in pipelines, services, and toolchains.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    - summary: invalid docs type (maintainer)
+      audience: maintainer
+      status: active
+      type: narrative
+      id: schema_case_validation.doc.4.1.maintainer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for versioning, changelogs, and stability planning.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for versioning, changelogs, and stability planning.
+    - summary: invalid docs type (governance)
+      audience: governance
+      status: active
+      type: narrative
+      id: schema_case_validation.doc.4.1.governance
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for policy gating, approval review, and compliance checks.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for policy gating, approval review, and compliance checks.
+    - summary: invalid docs type (reviewer)
+      audience: reviewer
+      status: active
+      type: narrative
+      id: schema_case_validation.doc.4.1.reviewer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this to verify correctness, completeness, and release readiness.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this to verify correctness, completeness, and release readiness.
+    - summary: invalid docs type (auditor)
+      audience: auditor
+      status: active
+      type: narrative
+      id: schema_case_validation.doc.4.1.auditor
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this as documented evidence for audit and policy review.
       portable:
         status: fail
         category: schema
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this as documented evidence for audit and policy review.
     asserts:
       checks:
       - id: assert_1
@@ -326,13 +1278,470 @@ contracts:
     - summary: docs entry one
       audience: implementer
       status: active
+      id: schema_case_validation.doc.5.1
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for implementation work, local debugging, and runner-side behavior analysis.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for implementation work, local debugging, and runner-side behavior
+        analysis.
     - summary: docs entry two
       audience: implementer
       status: active
-    expect:
+      id: schema_case_validation.doc.5.2
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for implementation work, local debugging, and runner-side behavior analysis.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for implementation work, local debugging, and runner-side behavior
+        analysis.
+    - summary: docs entry one (operator)
+      audience: operator
+      status: active
+      id: schema_case_validation.doc.5.1.operator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for observability, runbook readiness, and incident response.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for observability, runbook readiness, and incident response.
+    - summary: docs entry two (operator)
+      audience: operator
+      status: active
+      id: schema_case_validation.doc.5.2.operator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for observability, runbook readiness, and incident response.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for observability, runbook readiness, and incident response.
+    - summary: docs entry one (integrator)
+      audience: integrator
+      status: active
+      id: schema_case_validation.doc.5.1.integrator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for composing this contract in pipelines, services, and toolchains.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    - summary: docs entry two (integrator)
+      audience: integrator
+      status: active
+      id: schema_case_validation.doc.5.2.integrator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for composing this contract in pipelines, services, and toolchains.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    - summary: docs entry one (maintainer)
+      audience: maintainer
+      status: active
+      id: schema_case_validation.doc.5.1.maintainer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for versioning, changelogs, and stability planning.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for versioning, changelogs, and stability planning.
+    - summary: docs entry two (maintainer)
+      audience: maintainer
+      status: active
+      id: schema_case_validation.doc.5.2.maintainer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for versioning, changelogs, and stability planning.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for versioning, changelogs, and stability planning.
+    - summary: docs entry one (governance)
+      audience: governance
+      status: active
+      id: schema_case_validation.doc.5.1.governance
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for policy gating, approval review, and compliance checks.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for policy gating, approval review, and compliance checks.
+    - summary: docs entry two (governance)
+      audience: governance
+      status: active
+      id: schema_case_validation.doc.5.2.governance
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for policy gating, approval review, and compliance checks.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for policy gating, approval review, and compliance checks.
+    - summary: docs entry one (reviewer)
+      audience: reviewer
+      status: active
+      id: schema_case_validation.doc.5.1.reviewer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this to verify correctness, completeness, and release readiness.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this to verify correctness, completeness, and release readiness.
+    - summary: docs entry two (reviewer)
+      audience: reviewer
+      status: active
+      id: schema_case_validation.doc.5.2.reviewer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this to verify correctness, completeness, and release readiness.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this to verify correctness, completeness, and release readiness.
+    - summary: docs entry one (auditor)
+      audience: auditor
+      status: active
+      id: schema_case_validation.doc.5.1.auditor
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this as documented evidence for audit and policy review.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this as documented evidence for audit and policy review.
+    - summary: docs entry two (auditor)
+      audience: auditor
+      status: active
+      id: schema_case_validation.doc.5.2.auditor
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this as documented evidence for audit and policy review.
       portable:
         status: fail
         category: schema
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this as documented evidence for audit and policy review.
     asserts:
       checks:
       - id: assert_1
@@ -345,10 +1754,244 @@ contracts:
       audience: implementer
       status: active
       unknown_field: true
-    expect:
+      id: schema_case_validation.doc.6.1
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for implementation work, local debugging, and runner-side behavior analysis.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for implementation work, local debugging, and runner-side behavior
+        analysis.
+    - summary: docs entry with unknown key (operator)
+      audience: operator
+      status: active
+      unknown_field: true
+      id: schema_case_validation.doc.6.1.operator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for observability, runbook readiness, and incident response.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for observability, runbook readiness, and incident response.
+    - summary: docs entry with unknown key (integrator)
+      audience: integrator
+      status: active
+      unknown_field: true
+      id: schema_case_validation.doc.6.1.integrator
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for composing this contract in pipelines, services, and toolchains.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    - summary: docs entry with unknown key (maintainer)
+      audience: maintainer
+      status: active
+      unknown_field: true
+      id: schema_case_validation.doc.6.1.maintainer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for versioning, changelogs, and stability planning.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for versioning, changelogs, and stability planning.
+    - summary: docs entry with unknown key (governance)
+      audience: governance
+      status: active
+      unknown_field: true
+      id: schema_case_validation.doc.6.1.governance
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this for policy gating, approval review, and compliance checks.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this for policy gating, approval review, and compliance checks.
+    - summary: docs entry with unknown key (reviewer)
+      audience: reviewer
+      status: active
+      unknown_field: true
+      id: schema_case_validation.doc.6.1.reviewer
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this to verify correctness, completeness, and release readiness.
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this to verify correctness, completeness, and release readiness.
+    - summary: docs entry with unknown key (auditor)
+      audience: auditor
+      status: active
+      unknown_field: true
+      id: schema_case_validation.doc.6.1.auditor
+      description: |-
+        Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+        Inputs:
+        - Inputs come from the declared contract and export bindings for this symbol.
+        - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+        Returns:
+        - The assertion or helper return value produced by this symbol.
+
+        Errors/Caveats:
+        - Malformed inputs and shape mismatches are surfaced as validation failures.
+        - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+        - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+        Usage context:
+        - Use this as documented evidence for audit and policy review.
       portable:
         status: fail
         category: schema
+      inputs:
+      - Contract parameters and required case inputs associated with this docs-bearing
+        symbol.
+      - Any runtime symbols declared through harness/config bindings for the owning
+        execution path.
+      returns:
+      - Structured evaluation result as defined by the owning assert/export symbol.
+      errors:
+      - Validation failures for malformed inputs and invalid bindings.
+      - Runtime environment and policy compatibility errors.
+      usage_context:
+      - Use this as documented evidence for audit and policy review.
     asserts:
       checks:
       - id: assert_1
@@ -657,39 +2300,475 @@ services:
       adapter_import: pipe_identity
 assets:
 - id: schema_ref_doc
-  ref: "{{schema_ref}}"
-  type: application/yaml
-  docs:
-  - summary: schema reference import
-    audience: implementer
-    status: active
-- id: schema_registry_core_yaml
-  ref: "/specs/01_schema/registry/v1/core.yaml"
-  type: application/yaml
-  docs:
-  - summary: schema registry core yaml input
-    audience: implementer
-    status: active
-- id: schema_registry_assertions_yaml
   ref: "/specs/01_schema/registry/v1/assertions.yaml"
   type: application/yaml
   docs:
   - summary: schema registry assertions yaml input
     audience: implementer
     status: active
-artifacts:
-- id: schema_ref_export
-  ref: "{{schema_ref}}"
-  type: application/json
-  docs:
-  - summary: schema reference export
-    audience: implementer
+    id: schema_case_validation.doc.9.1
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for implementation work, local debugging, and runner-side behavior analysis.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for implementation work, local debugging, and runner-side behavior
+      analysis.
+  - summary: schema registry assertions yaml input (operator)
+    audience: operator
     status: active
-- id: text
+    id: schema_case_validation.doc.9.1.operator
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for observability, runbook readiness, and incident response.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for observability, runbook readiness, and incident response.
+  - summary: schema registry assertions yaml input (integrator)
+    audience: integrator
+    status: active
+    id: schema_case_validation.doc.9.1.integrator
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for composing this contract in pipelines, services, and toolchains.
+  - summary: schema registry assertions yaml input (maintainer)
+    audience: maintainer
+    status: active
+    id: schema_case_validation.doc.9.1.maintainer
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for versioning, changelogs, and stability planning.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for versioning, changelogs, and stability planning.
+  - summary: schema registry assertions yaml input (governance)
+    audience: governance
+    status: active
+    id: schema_case_validation.doc.9.1.governance
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for policy gating, approval review, and compliance checks.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for policy gating, approval review, and compliance checks.
+  - summary: schema registry assertions yaml input (reviewer)
+    audience: reviewer
+    status: active
+    id: schema_case_validation.doc.9.1.reviewer
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this to verify correctness, completeness, and release readiness.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this to verify correctness, completeness, and release readiness.
+  - summary: schema registry assertions yaml input (auditor)
+    audience: auditor
+    status: active
+    id: schema_case_validation.doc.9.1.auditor
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this as documented evidence for audit and policy review.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this as documented evidence for audit and policy review.
+- id: schema_ref_export
   ref: "{{schema_ref}}"
   type: text/plain
   docs:
   - summary: schema text export
     audience: implementer
     status: active
+    id: schema_case_validation.doc.11.1
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for implementation work, local debugging, and runner-side behavior analysis.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for implementation work, local debugging, and runner-side behavior
+      analysis.
+  - summary: schema text export (operator)
+    audience: operator
+    status: active
+    id: schema_case_validation.doc.11.1.operator
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for observability, runbook readiness, and incident response.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for observability, runbook readiness, and incident response.
+  - summary: schema text export (integrator)
+    audience: integrator
+    status: active
+    id: schema_case_validation.doc.11.1.integrator
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for composing this contract in pipelines, services, and toolchains.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for composing this contract in pipelines, services, and toolchains.
+  - summary: schema text export (maintainer)
+    audience: maintainer
+    status: active
+    id: schema_case_validation.doc.11.1.maintainer
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for versioning, changelogs, and stability planning.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for versioning, changelogs, and stability planning.
+  - summary: schema text export (governance)
+    audience: governance
+    status: active
+    id: schema_case_validation.doc.11.1.governance
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this for policy gating, approval review, and compliance checks.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this for policy gating, approval review, and compliance checks.
+  - summary: schema text export (reviewer)
+    audience: reviewer
+    status: active
+    id: schema_case_validation.doc.11.1.reviewer
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this to verify correctness, completeness, and release readiness.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this to verify correctness, completeness, and release readiness.
+  - summary: schema text export (auditor)
+    audience: auditor
+    status: active
+    id: schema_case_validation.doc.11.1.auditor
+    description: |-
+      Purpose: Capture actionable details on how this contract symbol behaves for the declared audience.
+
+      Inputs:
+      - Inputs come from the declared contract and export bindings for this symbol.
+      - Runtime bindings and policy constraints are applied by the harness before evaluation.
+
+      Returns:
+      - The assertion or helper return value produced by this symbol.
+
+      Errors/Caveats:
+      - Malformed inputs and shape mismatches are surfaced as validation failures.
+      - Schema/runtime binding or environment mismatches are surfaced as runtime or validation failures.
+      - Policy and validation failures are surfaced through contract evaluation, including policy assertions.
+
+      Usage context:
+      - Use this as documented evidence for audit and policy review.
+    inputs:
+    - Contract parameters and required case inputs associated with this docs-bearing
+      symbol.
+    - Any runtime symbols declared through harness/config bindings for the owning
+      execution path.
+    returns:
+    - Structured evaluation result as defined by the owning assert/export symbol.
+    errors:
+    - Validation failures for malformed inputs and invalid bindings.
+    - Runtime environment and policy compatibility errors.
+    usage_context:
+    - Use this as documented evidence for audit and policy review.
 ```

@@ -9,7 +9,7 @@ MUST:
 - docs information architecture MUST follow canonical roots:
   - `docs/book`
   - `specs`
-  - `docs/history/reviews` (archival review content)
+  - `docs/reviews` (archival review content)
 - directory index files under `docs/**` MUST be named `index.md`.
 - `README.md` under `docs/**` is forbidden.
 - docs filenames MUST be lowercase and MUST NOT include spaces.

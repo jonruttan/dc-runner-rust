@@ -10,10 +10,22 @@ harness:
       files:
       - /docs/book/99_generated_reference_index.md
       required_tokens:
-      - ./scripts/control_plane.sh docs-generate-check
+      - dc-runner docs generate-check
+      - dc-runner docs generate
+      - helper.docs.generate_all
+      - --build
+      - --check
+      - --surface
+      - --jobs
+      - --summary-out
+      - --report-out
+      - --timing-out
       forbidden_tokens:
       - PYTHONPATH=runners/python
       - .venv/bin/python
+      - scripts/docs_generate_all.py
+      - docs_generate_all.py
+      - python
       - spec_runner.spec_lang_commands
     check:
       profile: governance.scan

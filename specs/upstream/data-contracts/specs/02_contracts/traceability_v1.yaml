@@ -2593,7 +2593,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - specs/04_governance/cases/core/project_docs/docs_generator_registry_valid.spec.md
   notes: Validates docs generator registry structure and required surfaces.
 - rule_id: DOCS_GENERATOR_ORCHESTRATOR_REQUIRED
@@ -2606,7 +2606,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - dc-runner
   - dc-runner-python
   - dc-runner-rust
@@ -2621,7 +2621,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - specs/04_governance/cases/core/project_docs/docs_generator_outputs_sync.spec.md
   notes: Hard-fails when any declared generated docs surface is stale.
 - rule_id: DOCS_GENERATED_SECTIONS_READ_ONLY
@@ -2634,7 +2634,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - specs/04_governance/cases/core/project_docs/docs_generated_sections_read_only.spec.md
   notes: Enforces generated marker boundaries for mixed manual/generated docs.
 - rule_id: DOCS_API_CATALOGS_GENERATED_AND_SYNCED
@@ -2737,7 +2737,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - dc-runner-python
   - specs/04_governance/cases/core/project_docs/docs_generator_outputs_sync.spec.md
   notes: Ensures docs generator execution emits deterministic report artifacts.
@@ -2796,7 +2796,7 @@ links:
   implementation_refs:
   - dc-runner-python
   - specs/04_governance/cases/core/project_docs/docs_reviews_namespace_active.spec.md
-  notes: Requires `docs/history/reviews` for active review assets and treats the historical review archive root as archive-only.
+  notes: Requires `docs/reviews` for active review assets and treats the historical review archive root as archive-only.
 - rule_id: DOCS_NO_OS_ARTIFACT_FILES_TRACKED
   policy_ref: specs/02_contracts/policy_v1.yaml#DOCS_NO_OS_ARTIFACT_FILES_TRACKED
   contract_refs:
@@ -2835,7 +2835,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/docs_generate_all.py
+  - 'dc-runner docs generate'
   - specs/04_governance/cases/core/project_docs/docs_book_chapter_order_canonical.spec.md
   notes: Keeps generated references behind the single `99_generated_reference_index.md` entrypoint.
 - rule_id: DOCS_SPEC_LANG_GUIDE_BEFORE_REFERENCE_REQUIRED
@@ -3007,7 +3007,7 @@ links:
   unit_test_refs:
   - tests/test_generate_spec_lang_reference_docgen_unit.py
   implementation_refs:
-  - scripts/generate_spec_lang_builtin_catalog.py
+  - specs/05_libraries/domain/stdlib_string_reference.spec.md
   - docs/book/99_generated_reference_index.md
   - docs/book/99_generated_reference_index.md
   notes: Generated namespace chapter payloads include semantic symbol docs.
@@ -3021,7 +3021,7 @@ links:
   unit_test_refs:
   - tests/test_generate_spec_lang_reference_docgen_unit.py
   implementation_refs:
-  - scripts/generate_spec_lang_builtin_catalog.py
+  - specs/05_libraries/domain/stdlib_string_reference.spec.md
   notes: Each symbol includes deterministic examples.
 - rule_id: DOCS_REFERENCE_NAMESPACE_CHAPTERS_SYNC_REQUIRED
   policy_ref: specs/02_contracts/policy_v1.yaml#DOCS_REFERENCE_NAMESPACE_CHAPTERS_SYNC_REQUIRED

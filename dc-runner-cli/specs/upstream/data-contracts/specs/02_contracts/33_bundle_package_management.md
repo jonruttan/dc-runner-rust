@@ -125,6 +125,15 @@ canonical semantics.
   example `data-contracts-bundler`) and run conformance/governance checks from
   that installed bundle content.
 
+## Pinning Contract
+
+- Canonical bundle versions are pinned explicitly in
+  `/specs/00_core/bundle_version_contract_v1.yaml`.
+- CI MUST verify pinned release assets and payload files from
+  `jonruttan/data-contracts-bundles` before downstream jobs.
+- Floating bundle selectors (for example `latest`, branch names, or unpinned
+  channels) are non-canonical.
+
 ## Self-Bootstrap Pattern (One-Time Ad-Hoc)
 
 For tools governed by their own bundle package, one ad-hoc bootstrap step is

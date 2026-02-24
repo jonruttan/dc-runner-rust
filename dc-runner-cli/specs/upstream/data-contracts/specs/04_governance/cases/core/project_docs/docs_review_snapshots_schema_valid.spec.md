@@ -22,7 +22,7 @@ contracts:
   clauses:
   - id: DCGOV-DOCS-REF-015
     title: active review snapshots validate against canonical contract
-    purpose: Ensures docs/history/reviews/snapshots contains canonical machine-consumable
+    purpose: Ensures docs/reviews/snapshots contains canonical machine-consumable
       snapshots with valid section order and candidate schema.
     asserts:
       imports:

@@ -22,7 +22,7 @@ contracts:
   clauses:
   - id: DCGOV-DOCS-REF-027
     title: discovery review workflow is documented and synced
-    purpose: Ensures docs/history/reviews README documents scaffold, validate, and
+    purpose: Ensures docs/reviews README documents scaffold, validate, and
       pending-conversion flow for the discovery prompt.
     asserts:
       imports:

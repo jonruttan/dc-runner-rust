@@ -40,6 +40,7 @@ Ops namespace:
   `ops.proc.command.exec`, `ops.fs.path.normalize`).
 - `ops.fs.*` utilities are pure/deterministic helpers.
 - `ops.os.*` symbols are effectful and capability-gated.
+- `ops.terminal.*` symbols are effectful and capability-gated.
 - `ops.job.dispatch` is effectful and capability-gated (`ops.job`).
 - underscore shorthand forms are invalid.
 
@@ -211,6 +212,10 @@ Filesystem utility (pure, metadata-only):
 - `ops.fs.glob.any`
 - `ops.fs.glob.all`
 
+Terminal utility (capability-gated):
+
+- `ops.terminal.prompt`
+
 OS/system utility (capability-gated):
 
 - `ops.os.exec`
@@ -356,5 +361,5 @@ standardize `evaluate` expression formatting to:
 
 Tooling:
 
-- lint: `./scripts/control_plane.sh spec-lang-format --check --cases specs`
-- format: `./scripts/control_plane.sh spec-lang-format --write --cases specs`
+- lint: `.dc-runner spec-lang-format --check --cases specs`
+- format: `.dc-runner spec-lang-format --write --cases specs`

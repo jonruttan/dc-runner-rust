@@ -344,6 +344,9 @@ contracts:
         - std.string.contains:
           - var: text
           - "/specs/05_libraries/domain/python_core.spec.md"
+        - std.string.contains:
+          - var: text
+          - "/specs/05_libraries/domain/terminal_prompt.spec.md"
 adapters:
 - type: io.fs
   defaults:
@@ -428,6 +431,10 @@ adapters:
         symbols:
         - php.is_assoc_projection
         artifact_id: art.svc.assert_check.text_file.2.use_6.1
+      - as: lib_terminal_prompt_core_spec
+        symbols:
+        - domain.terminal.prompt
+        artifact_id: art.svc.assert_check.text_file.2.use_7.1
       source_asset_id: art.svc.assert_check.text_file.2.source.1
 services:
 - id: svc.assert_check.text_file.1
@@ -455,6 +462,7 @@ assets:
   ref: "/specs/05_libraries/domain/python_core.spec.md"
 - id: art.svc.assert_check.text_file.2.use_6.1
   ref: "/specs/05_libraries/domain/php_core.spec.md"
+- id: art.svc.assert_check.text_file.2.use_7.1
+  ref: "/specs/05_libraries/domain/terminal_prompt.spec.md"
 ```
-
 

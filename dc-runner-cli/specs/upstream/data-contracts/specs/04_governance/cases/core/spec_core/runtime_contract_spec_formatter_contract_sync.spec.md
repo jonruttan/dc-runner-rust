@@ -12,8 +12,8 @@ harness:
 contracts:
   clauses:
   - id: DCGOV-RUNTIME-RCLI-006
-    title: contract spec formatter command contract is synchronized
-    purpose: Ensures runner CLI contract docs and schema include the contract-spec-format
+    title: schema suite command contract is synchronized
+    purpose: Ensures runner CLI contract docs and schema include schema check/lint/format
       command surface and mode metadata.
     asserts:
       imports:
@@ -25,13 +25,16 @@ contracts:
         assert:
         - std.string.contains:
           - var: text
-          - contract-spec-format
+          - schema
         - std.string.contains:
           - var: text
-          - --check
+          - check
         - std.string.contains:
           - var: text
-          - --write
+          - lint
+        - std.string.contains:
+          - var: text
+          - format
 adapters:
 - type: beta.check_profile_text_file_config_path_specs_contract_29_runner_cli_interface_md
   actions:

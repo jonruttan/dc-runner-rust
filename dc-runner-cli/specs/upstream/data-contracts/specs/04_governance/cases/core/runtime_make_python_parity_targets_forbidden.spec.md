@@ -10,7 +10,7 @@ harness:
       path: /Makefile
       required_tokens:
       - 'prepush: ## Required local pre-push gate (default rust critical-gate path)'
-      - SPEC_PREPUSH_MODE=critical ./scripts/ci_gate.sh
+      - SPEC_PREPUSH_MODE=critical dc-runner governance critical
       - 'prepush-fast: ## Rust-only critical pre-push mode'
       forbidden_tokens:
       - 'python-parity:'

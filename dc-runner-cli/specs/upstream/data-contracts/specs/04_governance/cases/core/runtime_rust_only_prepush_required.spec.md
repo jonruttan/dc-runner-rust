@@ -8,7 +8,7 @@ harness:
     root: .
     rust_only_prepush:
       file_token_sets:
-      - path: /scripts/ci_gate.sh
+      - path: dc-runner governance critical
         required_tokens:
         - 'mode=critical: rust-only critical path'
         forbidden_tokens:
@@ -23,10 +23,10 @@ harness:
         - SPEC_PREPUSH_MODE=parity
       - path: /Makefile
         required_tokens:
-        - SPEC_PREPUSH_MODE=critical ./scripts/ci_gate.sh
+        - SPEC_PREPUSH_MODE=critical dc-runner governance critical
         forbidden_tokens:
         - 'python-parity:'
-        - SPEC_PREPUSH_MODE=parity ./scripts/ci_gate.sh
+        - SPEC_PREPUSH_MODE=parity dc-runner governance critical
     check:
       profile: governance.scan
       config:

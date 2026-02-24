@@ -80,7 +80,7 @@ Canonical ingest outputs:
 
 Canonical ingest entrypoint:
 
-- `/scripts/runner_status_ingest.sh`
+- `dc-runner governance run`
 
 Consumer validation rules:
 

@@ -2,11 +2,11 @@
 
 Source of truth: `/specs/01_schema/review_snapshot_schema_v1.yaml`
 
-Defines the required machine-consumable markdown shape for review snapshots under `/docs/history/reviews/snapshots`.
+Defines the required machine-consumable markdown shape for review snapshots under `/docs/reviews/snapshots`.
 
 ## Scope
 
-Applies to active review outputs created from prompts in `/docs/history/reviews/prompts/`.
+Applies to active review outputs created from prompts in `/docs/reviews/prompts/`.
 
 ## Required Metadata
 

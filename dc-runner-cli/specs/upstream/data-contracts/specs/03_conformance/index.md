@@ -14,7 +14,7 @@ Cross-runner conformance fixtures and report contracts.
 ## Execution
 
 ```sh
-./scripts/runner_bin.sh conformance-parity --cases specs/03_conformance/cases --out .artifacts/conformance-parity.json
+dc-runner conformance-parity --cases specs/03_conformance/cases --out .artifacts/conformance-parity.json
 ```
 
 ## Related Generated References

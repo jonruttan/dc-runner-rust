@@ -7,10 +7,10 @@ harness:
   config:
     root: .
     prepush_governance_triage:
-      path: /scripts/ci_gate.sh
+      path: dc-runner governance critical
       required_tokens:
       - governance-triage
-      - ./scripts/governance_triage.sh
+      - .dc-runner governance run
       forbidden_tokens:
       - run_step governance "${SPEC_RUNNER_BIN}" governance
     check:

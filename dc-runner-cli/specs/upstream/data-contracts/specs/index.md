@@ -8,6 +8,8 @@ Canonical specification root for `data-contracts`.
 
 - Active model snapshot: `/specs/00_core/current.md`
 - Repository boundary charter: `/specs/00_core/repo_boundary_charter.md`
+- Runner version contract: `/specs/00_core/runner_version_contract_v1.yaml`
+- Bundle version contract: `/specs/00_core/bundle_version_contract_v1.yaml`
 - Schema contracts: `/specs/01_schema/index.md`
 - Normative contracts: `/specs/02_contracts/index.md`
 - Runner governance interface (generated): `/specs/governance/index.md`

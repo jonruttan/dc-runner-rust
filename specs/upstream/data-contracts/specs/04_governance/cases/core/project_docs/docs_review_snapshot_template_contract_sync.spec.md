@@ -22,7 +22,7 @@ contracts:
   clauses:
   - id: DCGOV-DOCS-REF-013
     title: review snapshot template matches canonical contract
-    purpose: Ensures docs/history/reviews template enforces canonical section order,
+    purpose: Ensures docs/reviews template enforces canonical section order,
       table headers, and candidate schema scaffolding.
     asserts:
       imports:

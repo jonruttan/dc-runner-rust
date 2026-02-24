@@ -11,7 +11,7 @@ harness:
       required_tokens:
       - 'control-plane-critical-gate:'
       - Run control-plane critical gate
-      - ./scripts/control_plane.sh critical-gate
+      - dc-runner governance critical
       - 'needs: control-plane-critical-gate'
       - 'continue-on-error: true'
     check:

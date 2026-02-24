@@ -58,7 +58,7 @@ contracts:
         assert:
           std.string.contains:
           - var: text
-          - /.artifacts/job-hooks/DCCONF-JOB-008.complete.json
+          - /.artifacts/governance-trace.json
       - id: assert_9
         assert:
           std.string.contains:

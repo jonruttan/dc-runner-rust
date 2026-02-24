@@ -9,7 +9,7 @@ contracts:
     harness:
       root: "."
       ingest_script:
-        path: "/scripts/runner_status_ingest.sh"
+        path: "dc-runner governance run"
         required_tokens:
         - require_tool curl
         - require_tool jq

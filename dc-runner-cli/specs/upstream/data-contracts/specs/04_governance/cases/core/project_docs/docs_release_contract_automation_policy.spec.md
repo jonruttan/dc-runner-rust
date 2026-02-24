@@ -12,7 +12,7 @@ harness:
       required_tokens:
       - Release readiness is defined by executable gates, not manual checklists.
       - make ci-smoke
-      - ./scripts/ci_gate.sh
+      - dc-runner governance critical
       - convert it into an executable
       forbidden_patterns:
       - (?m)^##\s+[0-9]+\)

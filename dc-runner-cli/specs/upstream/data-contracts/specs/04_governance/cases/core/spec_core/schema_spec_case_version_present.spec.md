@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     schema_pin_validator:
-      path: /scripts/spec_schema_pin_validate.sh
+      path: dc-runner governance run
       required_tokens:
       - missing_spec_version_count
     check:

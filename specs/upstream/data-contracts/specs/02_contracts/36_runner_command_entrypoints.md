@@ -15,7 +15,23 @@ Canonical user-facing commands are:
 - `dc-runner docs build-check`
 - `dc-runner docs lint`
 - `dc-runner docs graph`
+- `dc-runner bundle list`
+- `dc-runner bundle inspect`
+- `dc-runner bundle install`
 - `dc-runner governance-broad-native`
+
+Optional state-management commands for spec cache lifecycle MAY also be exposed and are represented as
+`visibility: hidden` entries:
+
+- `dc-runner specs refresh`
+- `dc-runner specs status`
+- `dc-runner specs versions`
+- `dc-runner specs use`
+- `dc-runner specs rollback`
+- `dc-runner specs verify`
+- `dc-runner specs clean`
+- `dc-runner specs info`
+- `dc-runner specs prune`
 
 The mapping source of truth is:
 
@@ -40,7 +56,7 @@ Each command entry defines:
 
 The runner resolves command id to profile and executes the profile from:
 
-- `/specs/governance/check_sets_v1.yaml`
+- `/specs/04_governance/check_sets_v1.yaml`
 
 Entrypoint resolution MUST respect runner source mode:
 

@@ -108,6 +108,26 @@ fields:
     type: string
     required: false
     since: v1
+  harness.docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  harness.docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  harness.docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  harness.docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   harness.docs[].type:
     type: string
     required: false
@@ -314,6 +334,26 @@ fields:
     type: string
     required: false
     since: v1
+  adapters[].defaults.docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  adapters[].defaults.docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  adapters[].defaults.docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  adapters[].defaults.docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   adapters[].defaults.docs[].type:
     type: string
     required: false
@@ -536,6 +576,26 @@ fields:
     type: string
     required: false
     since: v1
+  adapters[].actions[].docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  adapters[].actions[].docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  adapters[].actions[].docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  adapters[].actions[].docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   adapters[].actions[].docs[].type:
     type: string
     required: false
@@ -670,6 +730,26 @@ fields:
     type: string
     required: false
     since: v1
+  assets[].docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  assets[].docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  assets[].docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  assets[].docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   assets[].docs[].type:
     type: string
     required: false
@@ -805,6 +885,26 @@ fields:
     type: string
     required: false
     since: v1
+  artifacts[].docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  artifacts[].docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  artifacts[].docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  artifacts[].docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   artifacts[].docs[].type:
     type: string
     required: false
@@ -942,6 +1042,26 @@ fields:
     type: string
     required: false
     since: v1
+  exports[].docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  exports[].docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  exports[].docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  exports[].docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   exports[].docs[].type:
     type: string
     required: false
@@ -1064,6 +1184,26 @@ fields:
     type: string
     required: false
     since: v1
+  docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   docs[].type:
     type: string
     required: false
@@ -1172,6 +1312,26 @@ fields:
     type: string
     required: false
     since: v1
+  contracts.clauses[].docs[].inputs:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored input context for the documentation entry.
+  contracts.clauses[].docs[].returns:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored return or output shape notes.
+  contracts.clauses[].docs[].errors:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored error and caveat notes.
+  contracts.clauses[].docs[].usage_context:
+    type: list
+    required: false
+    since: v1
+    description: Human-authored audience-specific usage and operational context.
   contracts.clauses[].docs[].type:
     type: string
     required: false

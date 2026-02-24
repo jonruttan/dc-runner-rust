@@ -65,7 +65,9 @@ Related docs/reference schemas:
   - `docs[].audience` default: `implementer`
   - `id` is optional metadata; when omitted, runners may emit deterministic
     report labels only (not schema/reference identity)
-  - optional entry keys: `description`, `type`, `since`, `updated_at`, `tags`, `owners`, `links`, `examples`
+  - optional entry keys: `description`, `purpose`, `inputs`, `outputs`, `returns`,
+    `errors`, `usage_context`, `caveats`, `preconditions`, `side_effects`,
+    `examples`, `type`, `since`, `updated_at`, `tags`, `owners`, `links`
   - `docs[].type` enum: `overview|reference|howto|policy|contract|changelog`
   - explicit `docs[].id` values MUST be unique within each containing `docs[]` array scope
 
@@ -882,6 +884,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `harness.docs[].audience` | `string` | `true` | `v1` |
 | `harness.docs[].status` | `string` | `true` | `v1` |
 | `harness.docs[].description` | `string` | `false` | `v1` |
+| `harness.docs[].inputs` | `list` | `false` | `v1` |
+| `harness.docs[].returns` | `list` | `false` | `v1` |
+| `harness.docs[].errors` | `list` | `false` | `v1` |
+| `harness.docs[].usage_context` | `list` | `false` | `v1` |
 | `harness.docs[].type` | `string` | `false` | `v1` |
 | `harness.docs[].since` | `string` | `false` | `v1` |
 | `harness.docs[].updated_at` | `string` | `false` | `v1` |
@@ -911,6 +917,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `services[].docs[].audience` | `string` | `true` | `v1` |
 | `services[].docs[].status` | `string` | `true` | `v1` |
 | `services[].docs[].description` | `string` | `false` | `v1` |
+| `services[].docs[].inputs` | `list` | `false` | `v1` |
+| `services[].docs[].returns` | `list` | `false` | `v1` |
+| `services[].docs[].errors` | `list` | `false` | `v1` |
+| `services[].docs[].usage_context` | `list` | `false` | `v1` |
 | `services[].docs[].type` | `string` | `false` | `v1` |
 | `services[].docs[].since` | `string` | `false` | `v1` |
 | `services[].docs[].updated_at` | `string` | `false` | `v1` |
@@ -969,6 +979,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `artifacts[].docs[].audience` | `string` | `true` | `v1` |
 | `artifacts[].docs[].status` | `string` | `true` | `v1` |
 | `artifacts[].docs[].description` | `string` | `false` | `v1` |
+| `artifacts[].docs[].inputs` | `list` | `false` | `v1` |
+| `artifacts[].docs[].returns` | `list` | `false` | `v1` |
+| `artifacts[].docs[].errors` | `list` | `false` | `v1` |
+| `artifacts[].docs[].usage_context` | `list` | `false` | `v1` |
 | `artifacts[].docs[].type` | `string` | `false` | `v1` |
 | `artifacts[].docs[].since` | `string` | `false` | `v1` |
 | `artifacts[].docs[].updated_at` | `string` | `false` | `v1` |
@@ -994,6 +1008,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `artifacts[].docs[].audience` | `string` | `true` | `v1` |
 | `artifacts[].docs[].status` | `string` | `true` | `v1` |
 | `artifacts[].docs[].description` | `string` | `false` | `v1` |
+| `artifacts[].docs[].inputs` | `list` | `false` | `v1` |
+| `artifacts[].docs[].returns` | `list` | `false` | `v1` |
+| `artifacts[].docs[].errors` | `list` | `false` | `v1` |
+| `artifacts[].docs[].usage_context` | `list` | `false` | `v1` |
 | `artifacts[].docs[].type` | `string` | `false` | `v1` |
 | `artifacts[].docs[].since` | `string` | `false` | `v1` |
 | `artifacts[].docs[].updated_at` | `string` | `false` | `v1` |
@@ -1020,6 +1038,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `exports[].docs[].audience` | `string` | `true` | `v1` |
 | `exports[].docs[].status` | `string` | `true` | `v1` |
 | `exports[].docs[].description` | `string` | `false` | `v1` |
+| `exports[].docs[].inputs` | `list` | `false` | `v1` |
+| `exports[].docs[].returns` | `list` | `false` | `v1` |
+| `exports[].docs[].errors` | `list` | `false` | `v1` |
+| `exports[].docs[].usage_context` | `list` | `false` | `v1` |
 | `exports[].docs[].type` | `string` | `false` | `v1` |
 | `exports[].docs[].since` | `string` | `false` | `v1` |
 | `exports[].docs[].updated_at` | `string` | `false` | `v1` |
@@ -1044,6 +1066,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `docs[].audience` | `string` | `true` | `v1` |
 | `docs[].status` | `string` | `true` | `v1` |
 | `docs[].description` | `string` | `false` | `v1` |
+| `docs[].inputs` | `list` | `false` | `v1` |
+| `docs[].returns` | `list` | `false` | `v1` |
+| `docs[].errors` | `list` | `false` | `v1` |
+| `docs[].usage_context` | `list` | `false` | `v1` |
 | `docs[].type` | `string` | `false` | `v1` |
 | `docs[].since` | `string` | `false` | `v1` |
 | `docs[].updated_at` | `string` | `false` | `v1` |
@@ -1068,6 +1094,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `contracts.clauses[].docs[].audience` | `string` | `true` | `v1` |
 | `contracts.clauses[].docs[].status` | `string` | `true` | `v1` |
 | `contracts.clauses[].docs[].description` | `string` | `false` | `v1` |
+| `contracts.clauses[].docs[].inputs` | `list` | `false` | `v1` |
+| `contracts.clauses[].docs[].returns` | `list` | `false` | `v1` |
+| `contracts.clauses[].docs[].errors` | `list` | `false` | `v1` |
+| `contracts.clauses[].docs[].usage_context` | `list` | `false` | `v1` |
 | `contracts.clauses[].docs[].type` | `string` | `false` | `v1` |
 | `contracts.clauses[].docs[].since` | `string` | `false` | `v1` |
 | `contracts.clauses[].docs[].updated_at` | `string` | `false` | `v1` |
@@ -1133,6 +1163,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `harness.docs[].audience` | `string` | true | `v1` |
 | `harness.docs[].status` | `string` | true | `v1` |
 | `harness.docs[].description` | `string` | false | `v1` |
+| `harness.docs[].inputs` | `list` | `false` | `v1` |
+| `harness.docs[].returns` | `list` | `false` | `v1` |
+| `harness.docs[].errors` | `list` | `false` | `v1` |
+| `harness.docs[].usage_context` | `list` | `false` | `v1` |
 | `harness.docs[].type` | `string` | false | `v1` |
 | `harness.docs[].since` | `string` | false | `v1` |
 | `harness.docs[].updated_at` | `string` | false | `v1` |
@@ -1162,6 +1196,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `services[].docs[].audience` | `string` | true | `v1` |
 | `services[].docs[].status` | `string` | true | `v1` |
 | `services[].docs[].description` | `string` | false | `v1` |
+| `services[].docs[].inputs` | `list` | `false` | `v1` |
+| `services[].docs[].returns` | `list` | `false` | `v1` |
+| `services[].docs[].errors` | `list` | `false` | `v1` |
+| `services[].docs[].usage_context` | `list` | `false` | `v1` |
 | `services[].docs[].type` | `string` | false | `v1` |
 | `services[].docs[].since` | `string` | false | `v1` |
 | `services[].docs[].updated_at` | `string` | false | `v1` |
@@ -1220,6 +1258,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `artifacts[].docs[].audience` | `string` | true | `v1` |
 | `artifacts[].docs[].status` | `string` | true | `v1` |
 | `artifacts[].docs[].description` | `string` | false | `v1` |
+| `artifacts[].docs[].inputs` | `list` | `false` | `v1` |
+| `artifacts[].docs[].returns` | `list` | `false` | `v1` |
+| `artifacts[].docs[].errors` | `list` | `false` | `v1` |
+| `artifacts[].docs[].usage_context` | `list` | `false` | `v1` |
 | `artifacts[].docs[].type` | `string` | false | `v1` |
 | `artifacts[].docs[].since` | `string` | false | `v1` |
 | `artifacts[].docs[].updated_at` | `string` | false | `v1` |
@@ -1245,6 +1287,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `artifacts[].docs[].audience` | `string` | true | `v1` |
 | `artifacts[].docs[].status` | `string` | true | `v1` |
 | `artifacts[].docs[].description` | `string` | false | `v1` |
+| `artifacts[].docs[].inputs` | `list` | `false` | `v1` |
+| `artifacts[].docs[].returns` | `list` | `false` | `v1` |
+| `artifacts[].docs[].errors` | `list` | `false` | `v1` |
+| `artifacts[].docs[].usage_context` | `list` | `false` | `v1` |
 | `artifacts[].docs[].type` | `string` | false | `v1` |
 | `artifacts[].docs[].since` | `string` | false | `v1` |
 | `artifacts[].docs[].updated_at` | `string` | false | `v1` |
@@ -1271,6 +1317,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `exports[].docs[].audience` | `string` | true | `v1` |
 | `exports[].docs[].status` | `string` | true | `v1` |
 | `exports[].docs[].description` | `string` | false | `v1` |
+| `exports[].docs[].inputs` | `list` | `false` | `v1` |
+| `exports[].docs[].returns` | `list` | `false` | `v1` |
+| `exports[].docs[].errors` | `list` | `false` | `v1` |
+| `exports[].docs[].usage_context` | `list` | `false` | `v1` |
 | `exports[].docs[].type` | `string` | false | `v1` |
 | `exports[].docs[].since` | `string` | false | `v1` |
 | `exports[].docs[].updated_at` | `string` | false | `v1` |
@@ -1295,6 +1345,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `docs[].audience` | `string` | true | `v1` |
 | `docs[].status` | `string` | true | `v1` |
 | `docs[].description` | `string` | false | `v1` |
+| `docs[].inputs` | `list` | `false` | `v1` |
+| `docs[].returns` | `list` | `false` | `v1` |
+| `docs[].errors` | `list` | `false` | `v1` |
+| `docs[].usage_context` | `list` | `false` | `v1` |
 | `docs[].type` | `string` | false | `v1` |
 | `docs[].since` | `string` | false | `v1` |
 | `docs[].updated_at` | `string` | false | `v1` |
@@ -1319,6 +1373,10 @@ This section is generated from `specs/01_schema/registry/v1/*.yaml`.
 | `contracts.clauses[].docs[].audience` | `string` | true | `v1` |
 | `contracts.clauses[].docs[].status` | `string` | true | `v1` |
 | `contracts.clauses[].docs[].description` | `string` | false | `v1` |
+| `contracts.clauses[].docs[].inputs` | `list` | `false` | `v1` |
+| `contracts.clauses[].docs[].returns` | `list` | `false` | `v1` |
+| `contracts.clauses[].docs[].errors` | `list` | `false` | `v1` |
+| `contracts.clauses[].docs[].usage_context` | `list` | `false` | `v1` |
 | `contracts.clauses[].docs[].type` | `string` | false | `v1` |
 | `contracts.clauses[].docs[].since` | `string` | false | `v1` |
 | `contracts.clauses[].docs[].updated_at` | `string` | false | `v1` |
