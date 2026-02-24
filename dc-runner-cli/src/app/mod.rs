@@ -969,6 +969,24 @@ fn specs_bundle_state_entry(state: &SpecSourceState, version: &str) -> Option<Ca
         .cloned()
 }
 
+fn guess_bundle_id_from_source_ref(source_ref: &str) -> Option<String> {
+    let filename = source_ref
+        .split('/')
+        .next_back()
+        .unwrap_or(source_ref)
+        .to_string();
+    let filename = filename
+        .strip_suffix(".tar.gz.sha256")
+        .unwrap_or(&filename)
+        .to_string();
+    if let Some(basis) = filename.strip_prefix("data-contract-bundle-") {
+        if let Some((bundle_id, _)) = basis.split_once("-v") {
+            return Some(bundle_id.to_string());
+        }
+    }
+    None
+}
+
 fn run_specs_status_native(_root: &Path, _forwarded: &[String]) -> i32 {
     if !_forwarded.is_empty() {
         eprintln!("ERROR: specs status does not accept extra args");
@@ -996,6 +1014,14 @@ fn run_specs_status_native(_root: &Path, _forwarded: &[String]) -> i32 {
                 entry.checksum.unwrap_or_else(|| "n/a".to_string())
             );
             println!("  active_verified: {}", entry.verified);
+            println!("  active_source_ref: {}", entry.source_ref);
+            if let Some(bundle_id) = guess_bundle_id_from_source_ref(&entry.source_ref) {
+                if bundle_id == "core" {
+                    println!("  active_bundle_id: core (default)");
+                } else {
+                    println!("  active_bundle_id: {bundle_id} (explicit)");
+                }
+            }
         }
     }
     if let Some(error) = state.last_error.as_ref() {
