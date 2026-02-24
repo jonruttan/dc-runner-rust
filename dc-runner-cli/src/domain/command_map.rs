@@ -195,4 +195,55 @@ mod tests {
             )
         );
     }
+
+    #[test]
+    fn command_spec_ref_mapped_ids_are_fragmented_references() {
+        let mapped_ids = [
+            "validate-report",
+            "schema-check",
+            "schema-lint",
+            "schema-format",
+            "docs-lint",
+            "docs-generate",
+            "docs-generate-check",
+            "docs-build",
+            "docs-build-check",
+            "docs-graph",
+            "runner-certify",
+            "spec-lang-stdlib-json",
+            "spec-lang-stdlib-md",
+            "contract-assertions-json",
+            "contract-assertions-md",
+            "conformance-purpose-json",
+            "conformance-purpose-md",
+            "spec-portability-json",
+            "spec-portability-md",
+            "spec-lang-adoption-json",
+            "spec-lang-adoption-md",
+            "runner-independence-json",
+            "runner-independence-md",
+            "python-dependency-json",
+            "python-dependency-md",
+            "docs-operability-json",
+            "docs-operability-md",
+            "objective-scorecard-json",
+            "objective-scorecard-md",
+            "bundle-list",
+            "bundle-install",
+            "bundle-inspect",
+            "bundler-resolve",
+            "bundler-package",
+            "bundler-check",
+        ];
+
+        for id in mapped_ids {
+            let spec_ref = command_spec_ref(id);
+            assert!(spec_ref.is_some(), "expected command map entry for {id}");
+            let spec_ref = spec_ref.expect("exists");
+            assert!(
+                spec_ref.contains('#'),
+                "mapped ref for {id} must be anchored: {spec_ref}"
+            );
+        }
+    }
 }

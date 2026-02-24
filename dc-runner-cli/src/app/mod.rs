@@ -3652,24 +3652,25 @@ fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[Stri
         return 2;
     };
 
-    let has_mapping = crate::domain::command_map::command_spec_ref(command_id).is_some();
-    let code = if has_mapping {
-        run_job_for_command(root, command_id, forwarded)
-    } else {
-        let mut gov_args = vec!["--profile".to_string(), entry.profile.clone()];
-        for a in &entry.artifacts {
-            if a.ends_with("-summary.json") {
-                gov_args.push("--out".to_string());
-                gov_args.push(a.trim_start_matches('/').to_string());
-            } else if a.ends_with("-trace.json") {
-                gov_args.push("--trace-out".to_string());
-                gov_args.push(a.trim_start_matches('/').to_string());
-            } else if a.ends_with("-summary.md") {
-                gov_args.push("--summary-out".to_string());
-                gov_args.push(a.trim_start_matches('/').to_string());
+    let code = match command_id {
+        _ => {
+            let has_mapping = crate::domain::command_map::command_spec_ref(command_id).is_some();
+            if has_mapping {
+                run_job_for_command(root, command_id, forwarded)
+            } else if let Some(code) =
+                run_native_entrypoint_command(root, command_id, forwarded, entry)
+            {
+                code
+            } else {
+                eprintln!(
+                    "ERROR: no registered spec ref for command: {command_id}. This command is not mapped to a spec-backed entrypoint yet."
+                );
+                eprintln!(
+                    "HINT: add an explicit native mapping in dc-runner-cli dispatch or publish a command contract entrypoint mapping."
+                );
+                return 1;
             }
         }
-        run_governance_native(root, &gov_args)
     };
     if !entry.allowed_exit_codes.contains(&code) {
         eprintln!(
@@ -3690,6 +3691,33 @@ fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[Stri
         }
     }
     code
+}
+
+fn run_native_entrypoint_command(
+    root: &Path,
+    command_id: &str,
+    _forwarded: &[String],
+    entry: &RunnerEntrypoint,
+) -> Option<i32> {
+    match command_id {
+        "critical-gate" | "governance" | "governance-broad-native" => {
+            let mut gov_args = vec!["--profile".to_string(), entry.profile.clone()];
+            for a in &entry.artifacts {
+                if a.ends_with("-summary.json") {
+                    gov_args.push("--out".to_string());
+                    gov_args.push(a.trim_start_matches('/').to_string());
+                } else if a.ends_with("-trace.json") {
+                    gov_args.push("--trace-out".to_string());
+                    gov_args.push(a.trim_start_matches('/').to_string());
+                } else if a.ends_with("-summary.md") {
+                    gov_args.push("--summary-out".to_string());
+                    gov_args.push(a.trim_start_matches('/').to_string());
+                }
+            }
+            Some(run_governance_native(root, &gov_args))
+        }
+        _ => None,
+    }
 }
 
 fn run_lint_native(root: &Path, forwarded: &[String]) -> i32 {
