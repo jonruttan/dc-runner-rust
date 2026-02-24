@@ -1,6 +1,6 @@
 [package]
 name = "dc-runner-cli"
-version = "0.2.7"
+version = "0.2.8"
 edition = "2021"
 description = "Required Rust runner lane for Data Contracts."
 license = "MIT"
