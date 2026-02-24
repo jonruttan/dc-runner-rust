@@ -6,6 +6,8 @@ The format is based on Keep a Changelog, and this project follows SemVer.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-02-24
+
 ### Added
 - Publication readiness baseline (`.gitignore`, contribution guide, crate metadata).
 - Upstream Data Contracts spec pinning + vendored compatibility snapshot workflow:
