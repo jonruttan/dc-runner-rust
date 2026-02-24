@@ -7,7 +7,8 @@ use clap::Parser;
 use crate::cli::args::BundlerSubcommand;
 use crate::cli::args::{
     BundleSubcommand, CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand,
-    GovernanceSubcommand, ProjectSubcommand, QualitySubcommand, ReportsSubcommand,
+    GovernanceSubcommand, ProjectSubcommand, QualitySubcommand,
+    ReportsSubcommand,
     SchemaSubcommand, SpecRefreshSourceOption, SpecSourceOption, SpecUseSourceOption,
     SpecsSubcommand,
 };
@@ -208,7 +209,9 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             }
         },
         CommandGroup::Quality(q) => match q.command {
-            QualitySubcommand::Lint => map_passthrough("lint", vec![]),
+            QualitySubcommand::Lint { mode } => {
+                map_passthrough("quality-lint", vec!["--input".to_string(), format!("mode={}", mode.as_str())])
+            }
             QualitySubcommand::Typecheck => map_passthrough("typecheck", vec![]),
             QualitySubcommand::Compilecheck => map_passthrough("compilecheck", vec![]),
             QualitySubcommand::StyleCheck => map_passthrough("style-check", vec![]),
@@ -374,7 +377,10 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             }
         },
         CommandGroup::StyleCheck(x) => map_passthrough("style-check", x.args),
-        CommandGroup::Lint(x) => map_passthrough("lint", x.args),
+        CommandGroup::Lint(x) => map_passthrough(
+            "lint",
+            vec!["--input".to_string(), format!("mode={}", x.mode.as_str())],
+        ),
         CommandGroup::Typecheck(x) => map_passthrough("typecheck", x.args),
         CommandGroup::Compilecheck(x) => map_passthrough("compilecheck", x.args),
         CommandGroup::ConformancePurposeJson(x) => {
@@ -569,6 +575,30 @@ mod tests {
         assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
         assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
         assert!(parsed.forwarded.contains(&"--install-dir".to_string()));
+    }
+
+    #[test]
+    fn parse_entry_supports_quality_lint_strict_default() {
+        let args = argv(&["dc-runner", "quality", "lint"]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "quality-lint");
+        assert_eq!(parsed.forwarded, vec!["--input".to_string(), "mode=strict".to_string()]);
+    }
+
+    #[test]
+    fn parse_entry_supports_quality_lint_pedantic() {
+        let args = argv(&["dc-runner", "quality", "lint", "--mode", "pedantic"]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "quality-lint");
+        assert_eq!(parsed.forwarded, vec!["--input".to_string(), "mode=pedantic".to_string()]);
+    }
+
+    #[test]
+    fn parse_entry_supports_hidden_lint_alias() {
+        let args = argv(&["dc-runner", "lint", "--mode", "pedantic"]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "lint");
+        assert_eq!(parsed.forwarded, vec!["--input".to_string(), "mode=pedantic".to_string()]);
     }
 
     #[test]

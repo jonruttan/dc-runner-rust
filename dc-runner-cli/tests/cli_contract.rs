@@ -278,6 +278,8 @@ fn entrypoints_list_includes_required_ids() {
     assert!(stdout.contains("specs-clean"));
     assert!(stdout.contains("specs-info"));
     assert!(stdout.contains("specs-prune"));
+    assert!(stdout.contains("quality-lint"));
+    assert!(stdout.contains("lint"));
 }
 
 #[test]
@@ -315,6 +317,27 @@ fn docs_commands_resolve_via_entrypoints() {
         let (code, _stdout, _stderr) = run_cli(&cmd);
         assert_ne!(code, 2, "docs command returned usage error: {:?}", cmd);
     }
+}
+
+#[test]
+fn quality_lint_is_discoverable_via_entrypoints() {
+    let (code, stdout, _stderr) = run_cli(&["entrypoints", "list"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("quality-lint"));
+}
+
+#[test]
+fn quality_lint_default_and_mode_flags_are_accepted() {
+    let (code_default, _stdout, stderr_default) = run_cli(&["quality", "lint"]);
+    assert_ne!(code_default, 2, "quality lint should parse as supported command: {stderr_default}");
+    let (code_pedantic, _stdout, _stderr) = run_cli(&["quality", "lint", "--mode", "pedantic"]);
+    assert_ne!(code_pedantic, 2, "quality lint --mode pedantic should parse: {_stderr}");
+}
+
+#[test]
+fn lint_alias_supports_mode_default_and_hidden_path() {
+    let (code, _stdout, stderr) = run_cli(&["lint", "--help"]);
+    assert_eq!(code, 0, "expected hidden lint alias help text: {stderr}");
 }
 
 #[test]

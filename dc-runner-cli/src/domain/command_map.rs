@@ -18,6 +18,16 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
                 "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-014",
             )
         }
+        "quality-lint" => {
+            Some(
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-018",
+            )
+        }
+        "lint" => {
+            Some(
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-018",
+            )
+        }
         "docs-lint" => Some(
             "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-006",
         ),
@@ -203,6 +213,8 @@ mod tests {
             "schema-check",
             "schema-lint",
             "schema-format",
+            "quality-lint",
+            "lint",
             "docs-lint",
             "docs-generate",
             "docs-generate-check",

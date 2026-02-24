@@ -59,6 +59,28 @@ commands:
     exit_codes:
       allowed: [0, 1]
 
+  - id: quality-lint
+    cli: dc-runner quality lint
+    profile: full
+    visibility: top_level
+    group: quality
+    source: core
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-018.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: lint
+    cli: dc-runner lint
+    profile: full
+    visibility: hidden
+    group: quality
+    source: core
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-018.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
   - id: docs-generate
     cli: dc-runner docs generate
     profile: full

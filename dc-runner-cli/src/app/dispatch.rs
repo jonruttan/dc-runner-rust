@@ -64,7 +64,8 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
         }
         #[cfg(feature = "bundler")]
         "bundler-check" => super::run_registered_entry_command(root, "bundler-check", forwarded),
-        "lint" => super::run_lint_native(root, forwarded),
+        "quality-lint" => super::run_registered_entry_command(root, "quality-lint", forwarded),
+        "lint" => super::run_registered_entry_command(root, "lint", forwarded),
         "typecheck" => super::run_typecheck_native(root, forwarded),
         "compilecheck" => super::run_compilecheck_native(root, forwarded),
         "conformance-purpose-json" => {
@@ -179,6 +180,23 @@ mod tests {
         ];
         let code = dispatch(Path::new("."), "bundle-install", &forwarded);
         assert!(matches!(code, 0 | 1));
+    }
+
+    #[test]
+    fn dispatch_supports_quality_lint_and_alias_input() {
+        let code = dispatch(
+            Path::new("."),
+            "quality-lint",
+            &["--input".to_string(), "mode=pedantic".to_string()],
+        );
+        assert!(matches!(code, 0 | 1));
+
+        let code_alias = dispatch(
+            Path::new("."),
+            "lint",
+            &["--input".to_string(), "mode=strict".to_string()],
+        );
+        assert!(matches!(code_alias, 0 | 1));
     }
 
     #[test]

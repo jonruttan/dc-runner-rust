@@ -3720,31 +3720,6 @@ fn run_native_entrypoint_command(
     }
 }
 
-fn run_lint_native(root: &Path, forwarded: &[String]) -> i32 {
-    if !forwarded.is_empty() {
-        eprintln!("ERROR: lint does not accept extra args");
-        return 2;
-    }
-    let status = Command::new("cargo")
-        .args([
-            "fmt",
-            "--manifest-path",
-            "dc-runner-cli/Cargo.toml",
-            "--all",
-            "--",
-            "--check",
-        ])
-        .current_dir(root)
-        .status();
-    match status {
-        Ok(s) => s.code().unwrap_or(1),
-        Err(e) => {
-            eprintln!("ERROR: failed to run cargo fmt: {e}");
-            1
-        }
-    }
-}
-
 fn run_typecheck_native(root: &Path, forwarded: &[String]) -> i32 {
     if !forwarded.is_empty() {
         eprintln!("ERROR: typecheck does not accept extra args");
@@ -3918,7 +3893,8 @@ fn run_cert_command(root: &Path, command: &str, args: &[String]) -> i32 {
         "schema-check" => run_registered_entry_command(root, "schema-check", args),
         "schema-lint" => run_registered_entry_command(root, "schema-lint", args),
         "schema-format" => run_registered_entry_command(root, "schema-format", args),
-        "lint" => run_lint_native(root, args),
+        "quality-lint" => run_registered_entry_command(root, "quality-lint", args),
+        "lint" => run_registered_entry_command(root, "lint", args),
         "typecheck" => run_typecheck_native(root, args),
         "compilecheck" => run_compilecheck_native(root, args),
         "test-core" => run_tests_native(root, args),

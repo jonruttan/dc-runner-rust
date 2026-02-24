@@ -94,7 +94,7 @@ pub enum CommandGroup {
     #[command(name = "style-check", hide = true)]
     StyleCheck(PassthroughArgs),
     #[command(name = "lint", hide = true)]
-    Lint(PassthroughArgs),
+    Lint(LintAliasCommand),
     #[command(name = "typecheck", hide = true)]
     Typecheck(PassthroughArgs),
     #[command(name = "compilecheck", hide = true)]
@@ -316,12 +316,39 @@ pub struct QualityCommand {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum QualitySubcommand {
-    Lint,
+    /// Run schema linting checks.
+    Lint {
+        #[arg(long, value_enum, default_value_t = LintMode::Strict)]
+        mode: LintMode,
+    },
     Typecheck,
     Compilecheck,
     StyleCheck,
     TestCore,
     TestFull,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct LintAliasCommand {
+    #[arg(long, value_enum, default_value_t = LintMode::Strict)]
+    pub mode: LintMode,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum LintMode {
+    /// Validate schema shape and structure.
+    Strict,
+    /// Strict checks plus additional value-level linting.
+    Pedantic,
+}
+
+impl LintMode {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Strict => "strict",
+            Self::Pedantic => "pedantic",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Args)]

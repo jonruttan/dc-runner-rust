@@ -1,4 +1,5 @@
 use serde_json::{json, Map, Value};
+use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -493,6 +494,148 @@ fn helper_schema_normalize_runner(root: &Path, payload: &Value) -> Result<Value,
     }))
 }
 
+fn helper_schema_lint(root: &Path, payload: &Value) -> Result<Value, String> {
+    let payload_mode = payload
+        .get("mode")
+        .and_then(|v| v.as_str())
+        .unwrap_or("strict");
+    let raw_path = payload
+        .get("path")
+        .and_then(|v| v.as_str())
+        .unwrap_or("/specs");
+    let mut mode = payload_mode.to_ascii_lowercase();
+    let mut input_mode: Option<String> = None;
+    if let Ok(raw_overrides) = std::env::var("SPEC_RUNNER_JOB_INPUT_OVERRIDES_JSON") {
+        if let Ok(overrides_json) = serde_json::from_str::<Value>(&raw_overrides) {
+            if let Some(v) = overrides_json
+                .get("mode")
+                .and_then(|v| v.as_str())
+                .map(|s| s.trim().to_ascii_lowercase())
+            {
+                if !v.is_empty() {
+                    input_mode = Some(v);
+                }
+            }
+        }
+    }
+    if let Some(v) = input_mode {
+        mode = v;
+    }
+
+    if mode != "strict" && mode != "pedantic" {
+        return Err(format!(
+            "helper.schema.lint unsupported mode `{mode}` (expected strict|pedantic)"
+        ));
+    }
+
+    let root_path = resolve(root, raw_path);
+    if !root_path.exists() {
+        return Err(format!("schema lint path does not exist: {}", root_path.display()));
+    }
+
+    let mut files_scanned = 0_i64;
+    let mut contract_blocks = 0_i64;
+    let mut contracts_with_errors = 0_i64;
+    let mut seen_ids: HashSet<String> = HashSet::new();
+    let mut stack: Vec<PathBuf> = vec![root_path.clone()];
+
+    while let Some(cur) = stack.pop() {
+        let rd = match fs::read_dir(&cur) {
+            Ok(x) => x,
+            Err(_) => continue,
+        };
+        for entry in rd.flatten() {
+            let p = entry.path();
+            if p.is_dir() {
+                stack.push(p);
+                continue;
+            }
+            if !p.is_file() {
+                continue;
+            }
+            let rel_name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if !rel_name.ends_with(".spec.md") {
+                continue;
+            }
+            files_scanned += 1;
+            let raw = match fs::read_to_string(&p) {
+                Ok(v) => v,
+                Err(_) => continue,
+            };
+            let mut in_yaml_block = false;
+            let mut block = String::new();
+            for line in raw.lines() {
+                let trimmed = line.trim();
+                if !in_yaml_block {
+                    if trimmed == "```yaml contract-spec" {
+                        in_yaml_block = true;
+                        block.clear();
+                    }
+                    continue;
+                }
+                if trimmed == "```" {
+                    in_yaml_block = false;
+                    let parsed: serde_yaml::Value = match serde_yaml::from_str(&block) {
+                        Ok(v) => v,
+                        Err(e) => {
+                            eprintln!("ERROR: invalid contract-spec YAML in {}: {e}", p.display());
+                            contracts_with_errors += 1;
+                            continue;
+                        }
+                    };
+                    contract_blocks += 1;
+                    let Some(mapping) = parsed.as_mapping() else {
+                        contracts_with_errors += 1;
+                        continue;
+                    };
+                    let raw_id = mapping
+                        .get(&serde_yaml::Value::String("id".to_string()))
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .trim()
+                        .to_string();
+                    if raw_id.is_empty() {
+                        contracts_with_errors += 1;
+                        continue;
+                    }
+                    if mode == "pedantic" {
+                        let raw_type = mapping
+                            .get(&serde_yaml::Value::String("type".to_string()))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .trim()
+                            .to_string();
+                        if raw_type.is_empty() {
+                            contracts_with_errors += 1;
+                        }
+                        if !seen_ids.insert(raw_id) {
+                            contracts_with_errors += 1;
+                        }
+                    }
+                    continue;
+                }
+                block.push_str(line);
+                block.push('\n');
+            }
+        }
+    }
+
+    if mode == "strict" && contracts_with_errors > 0 {
+        return Err("schema lint strict mode found invalid spec blocks".to_string());
+    }
+    if mode == "pedantic" && contracts_with_errors > 0 {
+        return Err("schema lint pedantic mode found contract spec violations".to_string());
+    }
+
+    Ok(json!({
+        "ok": true,
+        "mode": mode,
+        "path": root_path.to_string_lossy().to_string(),
+        "files_scanned": files_scanned,
+        "contract_blocks": contract_blocks,
+    }))
+}
+
 fn helper_docs_lint(root: &Path, _payload: &Value) -> Result<Value, String> {
     let required = [
         root.join("docs").join("book").join("index.md"),
@@ -571,6 +714,7 @@ pub fn run_helper(root: &Path, helper_id: &str, payload: &Value) -> Result<Value
         "helper.schema.compile_registry" => helper_schema_compile_registry(root, payload),
         "helper.schema.registry_report" => helper_schema_registry_report(root, payload),
         "helper.schema.normalize_runner" => helper_schema_normalize_runner(root, payload),
+        "helper.schema.lint" => helper_schema_lint(root, payload),
         "helper.docs.lint" => helper_docs_lint(root, payload),
         "helper.docs.generate_all" => helper_docs_generate_all(root, payload),
         "helper.parity.compare_conformance" => helper_parity_compare_conformance(root, payload),
