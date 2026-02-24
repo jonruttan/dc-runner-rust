@@ -497,3 +497,174 @@ when:
     - ops.job.dispatch:
         - on_complete
 ```
+
+```yaml contract-spec
+id: DCCONF-JOB-015
+title: bundle list command via contract.job
+type: contract.job
+harness:
+  spec_lang:
+    capabilities:
+      - ops.helper
+      - ops.job
+  jobs:
+    main:
+      mode: build
+      helper: helper.report.emit
+      inputs:
+        out: .artifacts/job-hooks/DCCONF-JOB-015.main.json
+        format: json
+        report_name: bundle.list
+    on_fail:
+      helper: helper.report.emit
+      mode: report
+      inputs:
+        out: .artifacts/job-hooks/DCCONF-JOB-015.fail.json
+        format: json
+        report_name: DCCONF-JOB-015.fail
+    on_complete:
+      helper: helper.report.emit
+      mode: report
+      inputs:
+        out: .artifacts/bundle-list.json
+        format: json
+        report_name: DCCONF-JOB-015.complete
+contract:
+  defaults:
+    class: MUST
+  imports:
+    - from: artifact
+      names:
+        - summary_json
+  steps:
+    - id: assert_1
+      assert:
+        - ops.job.dispatch:
+            - main
+        - std.logic.eq:
+            - std.object.get:
+                - { var: summary_json }
+                - ok
+            - true
+when:
+  fail:
+    - ops.job.dispatch:
+        - on_fail
+  complete:
+    - ops.job.dispatch:
+        - on_complete
+```
+
+```yaml contract-spec
+id: DCCONF-JOB-016
+title: bundle install command via contract.job
+type: contract.job
+harness:
+  spec_lang:
+    capabilities:
+      - ops.helper
+      - ops.job
+  jobs:
+    main:
+      mode: build
+      helper: helper.report.emit
+      inputs:
+        out: .artifacts/job-hooks/DCCONF-JOB-016.main.json
+        format: json
+        report_name: bundle.install
+    on_fail:
+      helper: helper.report.emit
+      mode: report
+      inputs:
+        out: .artifacts/job-hooks/DCCONF-JOB-016.fail.json
+        format: json
+        report_name: DCCONF-JOB-016.fail
+    on_complete:
+      helper: helper.report.emit
+      mode: report
+      inputs:
+        out: .artifacts/bundle-install.json
+        format: json
+        report_name: DCCONF-JOB-016.complete
+contract:
+  defaults:
+    class: MUST
+  imports:
+    - from: artifact
+      names:
+        - summary_json
+  steps:
+    - id: assert_1
+      assert:
+        - ops.job.dispatch:
+            - main
+        - std.logic.eq:
+            - std.object.get:
+                - { var: summary_json }
+                - ok
+            - true
+when:
+  fail:
+    - ops.job.dispatch:
+        - on_fail
+  complete:
+    - ops.job.dispatch:
+        - on_complete
+```
+
+```yaml contract-spec
+id: DCCONF-JOB-017
+title: bundle inspect command via contract.job
+type: contract.job
+harness:
+  spec_lang:
+    capabilities:
+      - ops.helper
+      - ops.job
+  jobs:
+    main:
+      mode: build
+      helper: helper.report.emit
+      inputs:
+        out: .artifacts/job-hooks/DCCONF-JOB-017.main.json
+        format: json
+        report_name: bundle.inspect
+    on_fail:
+      helper: helper.report.emit
+      mode: report
+      inputs:
+        out: .artifacts/job-hooks/DCCONF-JOB-017.fail.json
+        format: json
+        report_name: DCCONF-JOB-017.fail
+    on_complete:
+      helper: helper.report.emit
+      mode: report
+      inputs:
+        out: .artifacts/bundle-inspect.json
+        format: json
+        report_name: DCCONF-JOB-017.complete
+contract:
+  defaults:
+    class: MUST
+  imports:
+    - from: artifact
+      names:
+        - summary_json
+  steps:
+    - id: assert_1
+      assert:
+        - ops.job.dispatch:
+            - main
+        - std.logic.eq:
+            - std.object.get:
+                - { var: summary_json }
+                - ok
+            - true
+when:
+  fail:
+    - ops.job.dispatch:
+        - on_fail
+  complete:
+    - ops.job.dispatch:
+        - on_complete
+```

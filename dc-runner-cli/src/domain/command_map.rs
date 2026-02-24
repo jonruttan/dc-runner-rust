@@ -137,6 +137,15 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
                 "/specs/upstream/data-contracts/specs/03_conformance/cases/core/report_job_contracts.spec.md#DCCONF-JOB-REP-016",
             )
         }
+        "bundle-list" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-015",
+        ),
+        "bundle-install" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-016",
+        ),
+        "bundle-inspect" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-017",
+        ),
         "conformance-parity" => {
             Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-002")
         }
@@ -166,9 +175,24 @@ mod tests {
     }
 
     #[test]
-    fn command_spec_ref_does_not_keep_removed_bundle_placeholders() {
-        for command in ["bundle-list", "bundle-inspect", "bundle-install"] {
-            assert_eq!(command_spec_ref(command), None, "unexpected mapping kept for {command}");
-        }
+    fn command_spec_ref_has_bundle_command_mapping() {
+        assert_eq!(
+            command_spec_ref("bundle-list"),
+            Some(
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-015"
+            )
+        );
+        assert_eq!(
+            command_spec_ref("bundle-install"),
+            Some(
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-016"
+            )
+        );
+        assert_eq!(
+            command_spec_ref("bundle-inspect"),
+            Some(
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-017"
+            )
+        );
     }
 }
