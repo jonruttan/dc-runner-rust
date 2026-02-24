@@ -6329,6 +6329,7 @@ mod tests {
     use std::panic;
 
     static TEST_SPEC_CACHE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    static TEST_SPEC_SOURCE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
     fn isolated_spec_cache_root() -> PathBuf {
         let unique_suffix = SystemTime::now()
@@ -6339,6 +6340,7 @@ mod tests {
     }
 
     fn with_workspace_spec_source<T>(test: impl FnOnce() -> T) -> T {
+        let _guard = TEST_SPEC_SOURCE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let previous_spec_source = env::var_os("DC_RUNNER_SPEC_SOURCE");
         env::set_var("DC_RUNNER_SPEC_SOURCE", "workspace");
 
