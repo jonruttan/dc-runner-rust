@@ -3048,7 +3048,7 @@ fn run_entrypoints_run_native(root: &Path, forwarded: &[String]) -> i32 {
     run_registered_entry_command(root, command_id, &[])
 }
 
-fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[String]) -> i32 {
+fn run_registered_entry_command(root: &Path, command_id: &str, _forwarded: &[String]) -> i32 {
     let entries = match load_runner_entrypoints(root) {
         Ok(v) => v,
         Err(e) => {
@@ -3062,11 +3062,11 @@ fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[Stri
         return 2;
     };
 
-    let code = if crate::domain::command_map::command_spec_ref(command_id).is_some() {
+    let has_mapping = crate::domain::command_map::command_spec_ref(command_id).is_some();
+    let code = if has_mapping {
         run_job_for_command(root, command_id, &[])
     } else {
         let mut gov_args = vec!["--profile".to_string(), entry.profile.clone()];
-        gov_args.extend(forwarded.iter().cloned());
         for a in &entry.artifacts {
             if a.ends_with("-summary.json") {
                 gov_args.push("--out".to_string());
