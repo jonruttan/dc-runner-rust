@@ -529,7 +529,7 @@ fn helper_docs_generate_all(root: &Path, payload: &Value) -> Result<Value, Strin
                     "action": action,
                     "surface": surface,
                     "marker": marker.to_string_lossy().to_string(),
-                    "note": "fallback check passed via canonical docs index",
+                    "note": "fallback check passed via existing canonical docs artifacts",
                 }));
             }
             return Err(format!(
