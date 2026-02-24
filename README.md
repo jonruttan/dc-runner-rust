@@ -80,6 +80,22 @@ dc-runner docs build-check
 dc-runner governance run
 ```
 
+## Bundle-first Scaffold (Canonical)
+
+Canonical scaffold/install flow uses bundle ID plus explicit bundle version from
+`jonruttan/data-contracts-bundles` releases:
+
+```sh
+dc-runner project scaffold --project-root ./my-project --bundle-id data-contracts-lang-project-scaffold --bundle-version 1.0.0
+```
+
+External URL scaffold mode is available for emergency/manual recovery only and
+is non-canonical:
+
+```sh
+dc-runner project scaffold --project-root ./my-project --bundle-url <url> --sha256 <hex> --allow-external
+```
+
 Optional bundler command group (feature-gated build):
 
 ```sh

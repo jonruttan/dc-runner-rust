@@ -25,6 +25,20 @@ dc-runner docs lint
 dc-runner docs graph
 ```
 
+## Scaffold from Canonical Bundles
+
+Use bundle ID plus explicit version for canonical installs:
+
+```sh
+dc-runner project scaffold --project-root ./my-project --bundle-id data-contracts-lang-project-scaffold --bundle-version 1.0.0
+```
+
+External URL mode is non-canonical and intended only for emergency fallback:
+
+```sh
+dc-runner project scaffold --project-root ./my-project --bundle-url <url> --sha256 <hex> --allow-external
+```
+
 Optional bundler commands (only when compiled with `--features bundler`):
 
 ```sh
