@@ -1,0 +1,12 @@
+version: 1
+runner:
+  repo: dc-runner-rust
+  release_version: v0.2.2
+  artifact_name_template: dc-runner-rust-{platform}
+artifacts:
+  darwin-arm64:
+    url: https://github.com/jonruttan/dc%2Drunner%2Drust/releases/download/v0.2.2/dc-runner-rust-darwin-arm64
+    sha256: e687220265cade4cabf20c5655d25998b7f35507590a58498ff14c62b935e81d
+  linux-x86_64:
+    url: https://github.com/jonruttan/dc%2Drunner%2Drust/releases/download/v0.2.2/dc-runner-rust-linux-x86_64
+    sha256: bddc28d3fdf15898eba7f497bd7aabfdcf6a1639ea275a13fc4597355a095b71

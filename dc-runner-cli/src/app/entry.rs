@@ -5,7 +5,7 @@ use clap::Parser;
 
 use crate::cli::args::{
     CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand, GovernanceSubcommand,
-    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SpecsSubcommand,
+    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SpecSourceOption, SpecsSubcommand,
 };
 use crate::cli::errors::CliError;
 
@@ -23,6 +23,14 @@ fn looks_like_governance_group_subcommand(token: &str) -> bool {
 }
 
 fn apply_global_env(cli: &Cli) {
+    if let Some(v) = &cli.spec_source {
+        let value = match v {
+            SpecSourceOption::Bundled => "bundled",
+            SpecSourceOption::Workspace => "workspace",
+            SpecSourceOption::Auto => "auto",
+        };
+        env::set_var("DC_RUNNER_SPEC_SOURCE", value);
+    }
     if cli.verbose > 0 {
         env::set_var("SPEC_RUNNER_DEBUG", "1");
         env::set_var("SPEC_RUNNER_DEBUG_LEVEL", cli.verbose.to_string());

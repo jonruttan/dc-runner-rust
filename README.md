@@ -77,6 +77,23 @@ dc-runner docs build-check
 dc-runner governance run
 ```
 
+## Spec Source Mode
+
+`dc-runner` ships with an embedded `data-contracts` spec snapshot and resolves
+spec refs from the bundled payload by default.
+
+- Default: `bundled`
+- Override per command: `--spec-source bundled|workspace|auto`
+- Override via env: `DC_RUNNER_SPEC_SOURCE=bundled|workspace|auto`
+
+Examples:
+
+```sh
+dc-runner --spec-source bundled entrypoints list
+dc-runner --spec-source workspace docs generate-check
+DC_RUNNER_SPEC_SOURCE=auto dc-runner governance run
+```
+
 For full command help:
 
 ```sh

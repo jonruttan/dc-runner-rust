@@ -22,6 +22,7 @@ use crate::service_runtime::{
 use crate::services::gate_summary::summarize as summarize_gate;
 use crate::services::specs_ui;
 use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
+use crate::spec_source::{effective_mode, read_spec_text, spec_exists, SpecSourceMode};
 use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -120,6 +121,20 @@ fn find_repo_root() -> Result<PathBuf, String> {
                 cur = next;
             }
             None => return Err("unable to find repository root (.git)".to_string()),
+        }
+    }
+}
+
+fn find_repo_root_for_mode() -> Result<PathBuf, String> {
+    match find_repo_root() {
+        Ok(path) => Ok(path),
+        Err(base_err) => {
+            let mode = effective_mode()?;
+            match mode {
+                SpecSourceMode::Workspace => Err(base_err),
+                SpecSourceMode::Bundled | SpecSourceMode::Auto => env::current_dir()
+                    .map_err(|e| format!("failed to read cwd for bundled mode: {e}")),
+            }
         }
     }
 }
@@ -1898,26 +1913,11 @@ struct RunnerEntrypoint {
 }
 
 fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String> {
-    let mut candidates = vec![
-        root.join("specs/04_governance/runner_entrypoints_v1.yaml"),
-        root.join("specs/upstream/data-contracts/specs/04_governance/runner_entrypoints_v1.yaml"),
-    ];
-    if let Some(parent) = root.parent() {
-        candidates
-            .push(parent.join("data-contracts/specs/04_governance/runner_entrypoints_v1.yaml"));
-    }
-    let path = candidates.iter().find(|p| p.exists()).ok_or_else(|| {
-        "missing runner entrypoint manifest: specs/04_governance/runner_entrypoints_v1.yaml"
-            .to_string()
-    })?;
-    let raw = fs::read_to_string(path).map_err(|e| {
-        format!(
-            "failed reading runner entrypoint manifest {}: {e}",
-            path.display()
-        )
-    })?;
+    let manifest_ref = "/specs/04_governance/runner_entrypoints_v1.yaml";
+    let raw = read_spec_text(root, manifest_ref)
+        .map_err(|e| format!("failed reading runner entrypoint manifest {manifest_ref}: {e}"))?;
     let y: YamlValue = serde_yaml::from_str(&raw)
-        .map_err(|e| format!("invalid runner entrypoint manifest {}: {e}", path.display()))?;
+        .map_err(|e| format!("invalid runner entrypoint manifest {manifest_ref}: {e}"))?;
     let root_map = y
         .as_mapping()
         .ok_or_else(|| "runner entrypoint manifest root must be mapping".to_string())?;
@@ -3140,7 +3140,7 @@ fn load_case_block_from_spec_ref(root: &Path, spec_ref: &str) -> Result<String, 
     let (path_raw, case_id) = parse_spec_ref(spec_ref)?;
     let rel = path_raw.trim_start_matches('/');
     let path = resolve_spec_ref_path(root, rel);
-    let text = fs::read_to_string(&path)
+    let text = read_spec_text(root, &path_raw)
         .map_err(|e| format!("failed to read producer spec {}: {e}", path.display()))?;
     let blocks = extract_spec_test_blocks(&text);
     if blocks.is_empty() {
@@ -3298,6 +3298,10 @@ fn resolve_spec_ref_path(root: &Path, rel: &str) -> PathBuf {
     let upstream_prefix = "specs/upstream/data-contracts/";
     let direct = root.join(rel);
     if direct.exists() {
+        return direct;
+    }
+
+    if let Ok(true) = spec_exists(root, &format!("/{}", rel)) {
         return direct;
     }
 
@@ -5300,7 +5304,7 @@ pub fn run() {
         forwarded.len()
     ));
 
-    let root = match find_repo_root() {
+    let root = match find_repo_root_for_mode() {
         Ok(p) => p,
         Err(msg) => {
             eprintln!("ERROR: {msg}");

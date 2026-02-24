@@ -34,8 +34,10 @@ Pinned upstream compatibility artifacts:
 Runtime flow:
 
 1. Caller invokes `dc-runner <subcommand>`.
-2. CLI resolves and executes subcommand behavior.
-3. CLI runs checks/gates and returns stable exit semantics.
+2. CLI resolves spec refs through source mode (`bundled` default, `workspace`,
+   `auto` override).
+3. CLI resolves and executes subcommand behavior.
+4. CLI runs checks/gates and returns stable exit semantics.
 
 ## Compatibility Verification Model
 

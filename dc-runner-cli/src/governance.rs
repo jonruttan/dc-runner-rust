@@ -1,3 +1,4 @@
+use crate::spec_source::{read_spec_text, spec_exists};
 use serde_json::{json, Value};
 use serde_yaml::Value as YamlValue;
 use std::fs;
@@ -39,6 +40,25 @@ fn resolve(root: &Path, raw: &str) -> std::path::PathBuf {
     root.join(raw.trim_start_matches('/'))
 }
 
+fn is_specs_path(raw: &str) -> bool {
+    raw.trim_start_matches('/').starts_with("specs/")
+}
+
+fn read_check_subject(root: &Path, raw: &str) -> Result<String, String> {
+    if is_specs_path(raw) {
+        return read_spec_text(root, raw);
+    }
+    let p = resolve(root, raw);
+    fs::read_to_string(&p).map_err(|e| format!("failed to read {}: {e}", p.display()))
+}
+
+fn check_subject_exists(root: &Path, raw: &str) -> Result<bool, String> {
+    if is_specs_path(raw) {
+        return spec_exists(root, raw);
+    }
+    Ok(resolve(root, raw).exists())
+}
+
 fn yaml_str_list(map: &serde_yaml::Mapping, key: &str) -> Vec<String> {
     map.get(&YamlValue::String(key.to_string()))
         .and_then(|v| v.as_sequence())
@@ -50,11 +70,15 @@ fn yaml_str_list(map: &serde_yaml::Mapping, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-fn parse_manifest(path: &Path, profile_name: &str) -> Result<Vec<serde_yaml::Mapping>, String> {
-    let raw = fs::read_to_string(path)
-        .map_err(|e| format!("failed to read manifest {}: {e}", path.display()))?;
+fn parse_manifest(
+    root: &Path,
+    manifest_ref: &str,
+    profile_name: &str,
+) -> Result<Vec<serde_yaml::Mapping>, String> {
+    let raw = read_check_subject(root, manifest_ref)
+        .map_err(|e| format!("failed to read manifest {manifest_ref}: {e}"))?;
     let doc: YamlValue = serde_yaml::from_str(&raw)
-        .map_err(|e| format!("failed to parse manifest {}: {e}", path.display()))?;
+        .map_err(|e| format!("failed to parse manifest {manifest_ref}: {e}"))?;
     let root = doc
         .as_mapping()
         .ok_or_else(|| "critical manifest root must be mapping".to_string())?;
@@ -95,11 +119,13 @@ fn run_file_tokens(root: &Path, cfg: &serde_yaml::Mapping) -> (bool, Vec<String>
     if path_raw.trim().is_empty() {
         return (false, vec!["missing path".to_string()]);
     }
-    let p = resolve(root, path_raw);
-    if !p.exists() {
-        return (false, vec![format!("missing file: {}", p.display())]);
+    if !check_subject_exists(root, path_raw).unwrap_or(false) {
+        return (false, vec![format!("missing file: {}", path_raw)]);
     }
-    let text = fs::read_to_string(&p).unwrap_or_default();
+    let text = match read_check_subject(root, path_raw) {
+        Ok(v) => v,
+        Err(e) => return (false, vec![e]),
+    };
     let must_contain = yaml_str_list(cfg, "must_contain");
     let must_not_contain = yaml_str_list(cfg, "must_not_contain");
     let mut details = Vec::<String>::new();
@@ -127,11 +153,13 @@ fn run_file_ordered_tokens(root: &Path, cfg: &serde_yaml::Mapping) -> (bool, Vec
     if path_raw.trim().is_empty() {
         return (false, vec!["missing path".to_string()]);
     }
-    let p = resolve(root, path_raw);
-    if !p.exists() {
-        return (false, vec![format!("missing file: {}", p.display())]);
+    if !check_subject_exists(root, path_raw).unwrap_or(false) {
+        return (false, vec![format!("missing file: {}", path_raw)]);
     }
-    let text = fs::read_to_string(&p).unwrap_or_default();
+    let text = match read_check_subject(root, path_raw) {
+        Ok(v) => v,
+        Err(e) => return (false, vec![e]),
+    };
     let ordered_tokens = yaml_str_list(cfg, "ordered_tokens");
     if ordered_tokens.len() < 2 {
         return (
@@ -175,11 +203,13 @@ fn run_manifest_non_empty(root: &Path, cfg: &serde_yaml::Mapping) -> (bool, Vec<
     if path_raw.trim().is_empty() {
         return (false, vec!["missing path".to_string()]);
     }
-    let p = resolve(root, path_raw);
-    if !p.exists() {
-        return (false, vec![format!("missing file: {}", p.display())]);
+    if !check_subject_exists(root, path_raw).unwrap_or(false) {
+        return (false, vec![format!("missing file: {}", path_raw)]);
     }
-    let raw = fs::read_to_string(&p).unwrap_or_default();
+    let raw = match read_check_subject(root, path_raw) {
+        Ok(v) => v,
+        Err(e) => return (false, vec![e]),
+    };
     let doc: YamlValue = match serde_yaml::from_str(&raw) {
         Ok(v) => v,
         Err(e) => return (false, vec![format!("invalid yaml: {e}")]),
@@ -322,12 +352,12 @@ fn run_governance_profile_native(
 
     let started = now_iso_utc_fallback();
     let t0 = Instant::now();
-    let manifest_path = resolve(root, "/specs/governance/check_sets_v1.yaml");
+    let manifest_ref = "/specs/governance/check_sets_v1.yaml";
 
     let mut checks = Vec::<CriticalCheckResult>::new();
     let mut traces = Vec::<Value>::new();
 
-    let defs = match parse_manifest(&manifest_path, &profile) {
+    let defs = match parse_manifest(root, manifest_ref, &profile) {
         Ok(v) => v,
         Err(e) => {
             checks.push(CriticalCheckResult {
@@ -409,7 +439,7 @@ fn run_governance_profile_native(
 
     // run SLO checks at end (from manifest)
     let total_ms = t0.elapsed().as_millis() as i64;
-    for def in parse_manifest(&manifest_path, &profile).unwrap_or_default() {
+    for def in parse_manifest(root, manifest_ref, &profile).unwrap_or_default() {
         let kind = def
             .get(&YamlValue::String("kind".to_string()))
             .and_then(|v| v.as_str())

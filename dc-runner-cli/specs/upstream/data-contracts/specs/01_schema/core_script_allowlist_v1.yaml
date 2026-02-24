@@ -1,0 +1,7 @@
+version: 1
+core_scripts:
+  - /scripts/bundle
+  - /scripts/governance_interface_sync.sh
+  - /scripts/governance_interface_validate.sh
+  - /scripts/docs_audience_generate.sh
+  - /scripts/docs_audience_generate.py

@@ -13,6 +13,12 @@ Canonical global contracts are authored upstream in Data Contracts and consumed
 here via a pinned vendored snapshot. Canonical Rust-specific specs are consumed
 from a second pinned upstream source (`data-contracts-runner`).
 
+Runtime spec source selection:
+
+- default: bundled embedded snapshot
+- explicit local override: `--spec-source workspace`
+- hybrid dev mode: `--spec-source auto`
+
 ## Upstream Pinning Artifacts
 
 Primary artifacts:

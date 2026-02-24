@@ -22,6 +22,16 @@ dc-runner docs lint
 dc-runner docs graph
 ```
 
+### Spec source selection
+
+`dc-runner` resolves spec refs from the embedded snapshot by default.
+
+```sh
+dc-runner --spec-source bundled entrypoints list
+dc-runner --spec-source workspace docs generate-check
+DC_RUNNER_SPEC_SOURCE=auto dc-runner governance run
+```
+
 ## Spec Entrypoints (diagnostic)
 
 Entrypoints remain available for diagnostics/governance validation:

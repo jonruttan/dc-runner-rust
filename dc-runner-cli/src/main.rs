@@ -11,6 +11,7 @@ mod service_registry;
 mod service_runtime;
 mod services;
 mod spec_lang;
+mod spec_source;
 
 fn main() {
     app::run();

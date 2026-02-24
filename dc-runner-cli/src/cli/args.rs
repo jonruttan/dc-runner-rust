@@ -1,5 +1,12 @@
 use clap::{ArgAction, Args, Parser, Subcommand, ValueEnum};
 
+#[derive(Debug, Clone, ValueEnum)]
+pub enum SpecSourceOption {
+    Bundled,
+    Workspace,
+    Auto,
+}
+
 #[derive(Debug, Clone, Parser)]
 #[command(
     name = "dc-runner",
@@ -14,6 +21,8 @@ use clap::{ArgAction, Args, Parser, Subcommand, ValueEnum};
 pub struct Cli {
     #[arg(short = 'v', long = "verbose", action = ArgAction::Count, global = true)]
     pub verbose: u8,
+    #[arg(long = "spec-source", global = true, value_enum)]
+    pub spec_source: Option<SpecSourceOption>,
 
     #[arg(long = "profile-level", global = true, hide = true)]
     pub profile_level: Option<String>,

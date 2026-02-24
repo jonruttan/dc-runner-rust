@@ -268,6 +268,19 @@ fn entrypoints_list_includes_required_ids() {
 }
 
 #[test]
+fn entrypoints_list_supports_explicit_spec_source_flag() {
+    let (code, _stdout, _stderr) = run_cli(&["--spec-source", "bundled", "entrypoints", "list"]);
+    assert_eq!(code, 0);
+}
+
+#[test]
+fn invalid_spec_source_value_returns_usage_error() {
+    let (code, _stdout, stderr) = run_cli(&["--spec-source", "invalid", "entrypoints", "list"]);
+    assert_eq!(code, 2);
+    assert!(stderr.contains("invalid value"));
+}
+
+#[test]
 fn docs_commands_resolve_via_entrypoints() {
     let commands = [
         ["docs", "generate"],
