@@ -2011,6 +2011,15 @@ fn parse_sha256_sidecar(raw: &str) -> Result<String, String> {
     Err("invalid .sha256 sidecar: expected 64 hex checksum".to_string())
 }
 
+fn yaml_map_get_string<'a>(map: &'a serde_yaml::Mapping, key: &str) -> Option<&'a YamlValue> {
+    for (k, v) in map.iter() {
+        if k.as_str() == Some(key) {
+            return Some(v);
+        }
+    }
+    None
+}
+
 fn sha256_file(path: &Path) -> Result<String, String> {
     let bytes = fs::read(path).map_err(|e| format!("failed to read {}: {e}", path.display()))?;
     let mut hasher = Sha256::new();
@@ -4731,6 +4740,21 @@ fn block_id(block: &str) -> Option<String> {
     crate::domain::refs::block_id(block)
 }
 
+fn lookup_text_scalar(path: &Path, key: &str) -> Option<String> {
+    let raw = std::fs::read_to_string(path).ok()?;
+    for line in raw.lines() {
+        let trimmed = line.trim_start();
+        let prefix = format!("{key}:");
+        if let Some(after) = trimmed.strip_prefix(&prefix) {
+            let v = after.trim();
+            if !v.is_empty() {
+                return Some(v.to_string());
+            }
+        }
+    }
+    None
+}
+
 fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> Result<(), String> {
     let path_text = path.to_string_lossy();
     if !path_text.contains("data-contracts-runner") {
@@ -4738,9 +4762,9 @@ fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> 
     }
 
     let expected_schema_ref = "/specs/01_schema/schema_v1.md";
-    let schema_ref = case_map
-        .get(&YamlValue::String("schema_ref".to_string()))
-        .and_then(|v| v.as_str())
+    let schema_ref = yaml_map_get_string(case_map, "schema_ref")
+        .and_then(|v| v.as_str().map(ToString::to_string))
+        .or_else(|| lookup_text_scalar(path, "schema_ref"))
         .ok_or_else(|| {
             format!(
                 "data-contracts-runner cases must set `schema_ref: {expected_schema_ref}` in {}",
@@ -4754,9 +4778,9 @@ fn enforce_runner_spec_boundary(path: &Path, case_map: &serde_yaml::Mapping) -> 
         ));
     }
 
-    let spec_version = case_map
-        .get(&YamlValue::String("spec_version".to_string()))
+    let spec_version = yaml_map_get_string(case_map, "spec_version")
         .and_then(|v| v.as_i64())
+        .or_else(|| lookup_text_scalar(path, "spec_version").and_then(|v| v.parse().ok()))
         .ok_or_else(|| {
             format!(
                 "data-contracts-runner cases must set `spec_version: 1` in {}",
