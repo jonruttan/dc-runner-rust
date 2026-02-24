@@ -352,7 +352,7 @@ fn run_governance_profile_native(
 
     let started = now_iso_utc_fallback();
     let t0 = Instant::now();
-    let manifest_ref = "/specs/governance/check_sets_v1.yaml";
+    let manifest_ref = "/specs/04_governance/check_sets_v1.yaml";
 
     let mut checks = Vec::<CriticalCheckResult>::new();
     let mut traces = Vec::<Value>::new();
