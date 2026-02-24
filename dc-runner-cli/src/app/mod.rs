@@ -6326,6 +6326,257 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::panic;
+
+    static TEST_SPEC_CACHE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+    fn isolated_spec_cache_root() -> PathBuf {
+        let unique_suffix = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|v| v.as_nanos())
+            .unwrap_or(0);
+        std::env::temp_dir().join(format!("dc-runner-spec-cache-test-{unique_suffix}"))
+    }
+
+    fn with_isolated_spec_cache<T>(test: impl FnOnce(&Path) -> T) -> T {
+        let _guard = TEST_SPEC_CACHE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+
+        let cache_root = isolated_spec_cache_root();
+        fs::create_dir_all(&cache_root).expect("spec cache root");
+        let previous_cache_dir = env::var_os("DC_RUNNER_SPEC_CACHE_DIR");
+        let previous_spec_source = env::var_os("DC_RUNNER_SPEC_SOURCE");
+        env::set_var("DC_RUNNER_SPEC_CACHE_DIR", &cache_root);
+        env::remove_var("DC_RUNNER_SPEC_SOURCE");
+
+        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| test(&cache_root)));
+
+        if let Some(previous) = previous_cache_dir {
+            env::set_var("DC_RUNNER_SPEC_CACHE_DIR", previous);
+        } else {
+            env::remove_var("DC_RUNNER_SPEC_CACHE_DIR");
+        }
+        if let Some(previous) = previous_spec_source {
+            env::set_var("DC_RUNNER_SPEC_SOURCE", previous);
+        } else {
+            env::remove_var("DC_RUNNER_SPEC_SOURCE");
+        }
+        if cache_root.exists() {
+            let _ = fs::remove_dir_all(&cache_root);
+        }
+
+        match result {
+            Ok(v) => v,
+            Err(err) => panic::resume_unwind(err),
+        }
+    }
+
+    fn write_bundle(cache_root: &Path, version: &str, write_manifest: bool) -> PathBuf {
+        let path = cache_root.join("bundles").join(version);
+        fs::create_dir_all(path.join("specs/04_governance")).expect("create bundle governance");
+        fs::create_dir_all(path.join("specs/00_core")).expect("create bundle core");
+        if write_manifest {
+            fs::write(path.join("specs/04_governance/runner_entrypoints_v1.yaml"), "title: test\n")
+                .expect("write manifest");
+            fs::write(path.join("specs/00_core/runner_version_contract_v1.yaml"), "title: test\n")
+                .expect("write manifest");
+        }
+        path
+    }
+
+    fn make_bundle_entry(version: &str, installed_at: i64, verified: bool) -> CachedSpecBundle {
+        CachedSpecBundle {
+            version: version.to_string(),
+            installed_at,
+            source_ref: format!("test:{version}"),
+            checksum: Some("dummy".to_string()),
+            verified,
+            checksum_checked_at: Some(installed_at),
+            published_at: None,
+            signature_available: false,
+        }
+    }
+
+    #[test]
+    fn specs_refresh_bundled_updates_state() {
+        with_isolated_spec_cache(|cache_root| {
+            let base = cache_root;
+            let code = run_specs_refresh_native(base, &["--source".into(), "bundled".into()]);
+            assert_eq!(code, 0);
+
+            let state = load_state().expect("load state");
+            assert_eq!(state.installed.len(), 1);
+            assert_eq!(state.installed[0].version, "bundled");
+            assert!(state.last_refresh_at.is_some());
+            assert_eq!(state.active, "bundled");
+        });
+    }
+
+    #[test]
+    fn specs_status_reports_default_when_state_missing() {
+        let code = with_isolated_spec_cache(|base| run_specs_status_native(base, &[]));
+        assert_eq!(code, 0);
+    }
+
+    #[test]
+    fn specs_use_version_requires_verified_entry() {
+        with_isolated_spec_cache(|cache_root| {
+            let mut state = SpecSourceState {
+                version: 1,
+                active: "bundled".to_string(),
+                installed: vec![make_bundle_entry("1.2.3", 1, false)],
+                last_refresh_at: None,
+                last_check_at: None,
+                last_error: None,
+            };
+            save_state(&state).expect("seed state");
+
+            let code = run_specs_use_native(cache_root, &["1.2.3".into()]);
+            assert_eq!(code, 1);
+
+            state = load_state().expect("reload state");
+            assert_eq!(state.active, "bundled");
+        });
+    }
+
+    #[test]
+    fn specs_use_workspace_and_bundled_are_accepted_targets() {
+        with_isolated_spec_cache(|cache_root| {
+            let workspace_code =
+                run_specs_use_native(cache_root, &["workspace".into(), "--source".into(), "workspace".into()]);
+            assert_eq!(workspace_code, 0);
+            let mut state = load_state().expect("load state");
+            assert_eq!(state.active, "workspace");
+
+            let bundled_code =
+                run_specs_use_native(cache_root, &["bundled".into(), "--source".into(), "bundled".into()]);
+            assert_eq!(bundled_code, 0);
+            state = load_state().expect("load state");
+            assert_eq!(state.active, "bundled");
+        });
+    }
+
+    #[test]
+    fn specs_rollback_uses_previous_verified_version() {
+        with_isolated_spec_cache(|cache_root| {
+            let state = SpecSourceState {
+                version: 1,
+                active: "cache:2.0.0".to_string(),
+                installed: vec![
+                    make_bundle_entry("1.0.0", 200, true),
+                    make_bundle_entry("2.0.0", 300, true),
+                ],
+                last_refresh_at: None,
+                last_check_at: None,
+                last_error: None,
+            };
+            save_state(&state).expect("seed state");
+            let code = run_specs_rollback_native(cache_root, &[]);
+            assert_eq!(code, 0);
+            let state = load_state().expect("load state");
+            assert_eq!(state.active, "cache:1.0.0");
+            // rollback to bundled is also supported
+            let explicit = run_specs_rollback_native(cache_root, &["--to".into(), "bundled".into()]);
+            assert_eq!(explicit, 0);
+            let state = load_state().expect("load state");
+            assert_eq!(state.active, "bundled");
+        });
+    }
+
+    #[test]
+    fn specs_verify_reports_tamper_failure_and_marks_untrusted() {
+        with_isolated_spec_cache(|cache_root| {
+            let _ = write_bundle(cache_root, "1.0.0", false);
+            let state = SpecSourceState {
+                version: 1,
+                active: "bundled".to_string(),
+                installed: vec![make_bundle_entry("1.0.0", 42, true)],
+                last_refresh_at: None,
+                last_check_at: None,
+                last_error: None,
+            };
+            save_state(&state).expect("seed state");
+
+            let code = run_specs_verify_native(cache_root, &["--source".into(), "cache:1.0.0".into()]);
+            assert_eq!(code, 1);
+
+            let state = load_state().expect("load state");
+            assert_eq!(state.last_error.as_deref(), Some("verification_failed"));
+            assert!(!state.installed[0].verified);
+        });
+    }
+
+    #[test]
+    fn specs_clean_keeps_active_and_removes_tail_when_yes() {
+        with_isolated_spec_cache(|cache_root| {
+            let timestamps = [500, 400, 300, 200, 100];
+            for (idx, _ts) in timestamps.iter().enumerate() {
+                let version = format!("1.{}.0.0", idx + 1);
+                write_bundle(cache_root, &version, true);
+            }
+            let state = SpecSourceState {
+                version: 1,
+                active: "cache:1.4.0.0".to_string(),
+                installed: vec![
+                    make_bundle_entry("1.1.0.0", 500, true),
+                    make_bundle_entry("1.2.0.0", 400, true),
+                    make_bundle_entry("1.3.0.0", 300, true),
+                    make_bundle_entry("1.4.0.0", 200, true),
+                    make_bundle_entry("1.5.0.0", 100, true),
+                ],
+                last_refresh_at: None,
+                last_check_at: None,
+                last_error: None,
+            };
+            save_state(&state).expect("seed state");
+
+            let code = run_specs_clean_native(cache_root, &["--keep".into(), "2".into(), "--yes".into()]);
+            assert_eq!(code, 0);
+
+            let state = load_state().expect("load state");
+            let versions: Vec<_> = state
+                .installed
+                .iter()
+                .map(|entry| entry.version.as_str())
+                .collect();
+            assert!(versions.contains(&"1.1.0.0"));
+            assert!(versions.contains(&"1.2.0.0"));
+            assert!(versions.contains(&"1.4.0.0"));
+            assert_eq!(versions.len(), 3);
+            assert!(cache_root.join("bundles").join("1.4.0.0").exists());
+            assert!(!cache_root.join("bundles").join("1.3.0.0").exists());
+            assert!(!cache_root.join("bundles").join("1.5.0.0").exists());
+        });
+    }
+
+    #[test]
+    fn specs_info_reports_cached_bundle_state() {
+        with_isolated_spec_cache(|cache_root| {
+            let _ = write_bundle(cache_root, "1.0.0", true);
+            save_state(&SpecSourceState {
+                version: 1,
+                active: "cache:1.0.0".to_string(),
+                installed: vec![make_bundle_entry("1.0.0", 1, true)],
+                last_refresh_at: None,
+                last_check_at: None,
+                last_error: None,
+            })
+            .expect("seed state");
+            let code = run_specs_info_native(cache_root, &["1.0.0".into()]);
+            assert_eq!(code, 0);
+        });
+    }
+
+    #[test]
+    fn specs_versions_accepts_empty_cache() {
+        let code = with_isolated_spec_cache(|cache_root| run_specs_versions_native(cache_root, &[]));
+        assert_eq!(code, 0);
+    }
+
+    #[test]
+    fn run_specs_prune_requires_expired_flag() {
+        let code = with_isolated_spec_cache(|cache_root| run_specs_prune_native(cache_root, &[]));
+        assert_eq!(code, 2);
+    }
 
     #[test]
     fn parse_spec_ref_accepts_path_and_fragment() {
