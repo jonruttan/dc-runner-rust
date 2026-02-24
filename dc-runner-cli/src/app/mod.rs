@@ -2979,7 +2979,7 @@ pub(super) fn run_bundle_upgrade_native(root: &Path, forwarded: &[String]) -> i3
 
 pub(super) fn run_bundle_run_native(root: &Path, forwarded: &[String]) -> i32 {
     if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
-        println!("usage: bundle run --bundle-id <id> --bundle-version <semver> --entrypoint <name> [--arg <value>]...");
+        println!("usage: bundle run <bundle-id> [--bundle-version <semver|latest>] [--entrypoint <name>] [--arg <value>]...");
         return 0;
     }
     if let Err(e) = run_bundler_bundle_raw(root, "run", forwarded) {

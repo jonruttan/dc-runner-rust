@@ -348,11 +348,17 @@ fn from_cli(cli: Cli) -> ParsedEntry {
                 map_passthrough("bundle-upgrade", forwarded)
             }
             BundleSubcommand::Run {
+                bundle_id_positional,
                 bundle_id,
                 bundle_version,
                 entrypoint,
                 args,
             } => {
+                let bundle_id = bundle_id
+                    .or(bundle_id_positional)
+                    .expect("bundle id required by clap");
+                let bundle_version = bundle_version.unwrap_or_else(|| "latest".to_string());
+                let entrypoint = entrypoint.unwrap_or_else(|| "run".to_string());
                 let mut forwarded = vec![
                     "--bundle-id".to_string(),
                     bundle_id,
@@ -857,5 +863,23 @@ mod tests {
         assert_eq!(parsed.subcommand, "bundle-run");
         assert!(parsed.forwarded.contains(&"--entrypoint".to_string()));
         assert!(parsed.forwarded.contains(&"--arg".to_string()));
+    }
+
+    #[test]
+    fn parse_entry_supports_bundle_run_positional_id_defaults() {
+        let args = argv(&[
+            "dc-runner",
+            "bundle",
+            "run",
+            "data-contracts-library-review-workflow",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "bundle-run");
+        assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
+        assert!(parsed.forwarded.contains(&"data-contracts-library-review-workflow".to_string()));
+        assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
+        assert!(parsed.forwarded.contains(&"latest".to_string()));
+        assert!(parsed.forwarded.contains(&"--entrypoint".to_string()));
+        assert!(parsed.forwarded.contains(&"run".to_string()));
     }
 }

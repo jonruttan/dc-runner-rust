@@ -486,12 +486,14 @@ pub enum BundleSubcommand {
     },
     /// Run a bundle entrypoint without persistent install
     Run {
-        #[arg(long = "bundle-id")]
-        bundle_id: String,
+        #[arg(value_name = "bundle-id", required_unless_present = "bundle_id")]
+        bundle_id_positional: Option<String>,
+        #[arg(long = "bundle-id", required_unless_present = "bundle_id_positional")]
+        bundle_id: Option<String>,
         #[arg(long = "bundle-version")]
-        bundle_version: String,
+        bundle_version: Option<String>,
         #[arg(long = "entrypoint")]
-        entrypoint: String,
+        entrypoint: Option<String>,
         #[arg(long = "arg")]
         args: Vec<String>,
     },
