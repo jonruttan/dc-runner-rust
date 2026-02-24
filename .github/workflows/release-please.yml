@@ -35,7 +35,7 @@ jobs:
 
           BAD_COUNT="$(
             git log --no-merges "${LAST_TAG}..HEAD" --pretty=%s |
-            grep -Ev '^(feat|fix|perf|refactor|docs|test|chore|build|ci|revert|style)(\([^)]+\))?: .+$' || true |
+            grep -Ev '^(feat|fix|perf|refactor|docs|test|chore|build|ci|revert|style)(\([^)]+\))?: .+$' |
             sed '/^[[:space:]]*$/d' |
             wc -l
           )"
