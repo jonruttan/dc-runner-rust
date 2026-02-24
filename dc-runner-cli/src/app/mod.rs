@@ -555,6 +555,7 @@ fn run_specs_run_all_native(root: &Path, forwarded: &[String]) -> i32 {
 fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
     let mut source = String::from("remote");
     let mut version = String::from("latest");
+    let mut bundle_id = None::<String>;
     let mut force = false;
     let mut check_only = false;
     let mut skip_signature = false;
@@ -575,6 +576,14 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
                     return 2;
                 }
                 version = forwarded[i + 1].clone();
+                i += 2;
+            }
+            "--bundle-id" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --bundle-id requires value");
+                    return 2;
+                }
+                bundle_id = Some(forwarded[i + 1].clone());
                 i += 2;
             }
             "--force" => {
@@ -612,6 +621,12 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
             );
             return 2;
         }
+    }
+
+    let bundle_id = bundle_id.unwrap_or_else(|| "core".to_string());
+    if !is_valid_bundle_id(&bundle_id) {
+        eprintln!("ERROR: invalid --bundle-id `{bundle_id}` (expected lowercase id token)");
+        return 2;
     }
 
     if source == "remote" {
@@ -657,30 +672,42 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
             eprintln!("ERROR: bundle release payload was empty for v{normalized_version}");
             return 1;
         };
-        let bundle_ids = match bundle_ids_for_release_version(&release, &normalized_version) {
+        let assets = match parse_bundle_asset_reference(&release, &bundle_id, &normalized_version) {
             Ok(v) => v,
             Err(e) => {
-                eprintln!("ERROR: failed to detect remote bundle ids: {e}");
+                if bundle_id == "core" {
+                    let available =
+                        match bundle_ids_for_release_version(&release, &normalized_version) {
+                            Ok(v) => {
+                                if v.is_empty() {
+                                    "none".to_string()
+                                } else {
+                                    v.join(", ")
+                                }
+                            }
+                            Err(list_error) => {
+                                eprintln!(
+                                    "ERROR: failed to detect remote bundle ids: {list_error}"
+                                );
+                                return 1;
+                            }
+                        };
+                    eprintln!(
+                        "ERROR: no remote `core` bundle found for v{normalized_version} (available: {available})."
+                    );
+                    eprintln!(
+                        "Run `dc-runner bundle list` to see published bundle ids, then rerun specs refresh with `bundle-id` if supported."
+                    );
+                } else {
+                    eprintln!("ERROR: {e}");
+                }
                 return 1;
             }
         };
-        if !bundle_ids.contains(&"core".to_string()) {
-            let available = if bundle_ids.is_empty() {
-                "none".to_string()
-            } else {
-                bundle_ids.join(", ")
-            };
-            eprintln!(
-                "ERROR: no remote `core` bundle found for v{normalized_version} (available: {available})."
-            );
-            eprintln!(
-                "Run `dc-runner bundle list` to see published bundle ids, then rerun specs refresh with `bundle-id` if supported."
-            );
-            return 1;
-        }
-        let bundle_id = "core";
-        let (asset_name, _sidecar_name, release_tag, asset_url, sidecar_url) =
-            canonical_bundle_release(bundle_id, &normalized_version);
+        let (asset_name, _sidecar_name, release_tag, _canonical_asset_url, canonical_sidecar_url) =
+            canonical_bundle_release(&bundle_id, &normalized_version);
+        let asset_url = assets.tarball_url;
+        let sidecar_url = assets.sidecar_url.unwrap_or(canonical_sidecar_url);
         let tmp_root = std::env::temp_dir().join(format!(
             "dc-runner-spec-refresh-{}",
             SystemTime::now()
@@ -698,6 +725,11 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
         let tmp_sidecar = tmp_root.join(format!("{asset_name}.sha256"));
         let tmp_archive = tmp_root.join(&asset_name);
         if !skip_signature {
+            if sidecar_url.is_empty() {
+                eprintln!("ERROR: missing checksum sidecar for {bundle_id} v{normalized_version}");
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
             if let Err(e) = download_url_to_file(&sidecar_url, &tmp_sidecar) {
                 eprintln!("ERROR: failed fetching checksum sidecar: {e}");
                 let _ = fs::remove_dir_all(&tmp_root);
@@ -709,46 +741,52 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
             let _ = fs::remove_dir_all(&tmp_root);
             return 1;
         }
-        if let Err(e) = read_url_to_string(&sidecar_url) {
-            if !skip_signature {
-                eprintln!("ERROR: invalid checksum sidecar download: {e}");
+        if !skip_signature {
+            if sidecar_url.is_empty() {
+                eprintln!("ERROR: missing checksum sidecar for {bundle_id} v{normalized_version}");
                 let _ = fs::remove_dir_all(&tmp_root);
                 return 1;
             }
-        } else if !skip_signature {
-            let raw = match fs::read_to_string(&tmp_sidecar) {
-                Ok(v) => v,
-                Err(e) => {
+
+            if let Err(e) = read_url_to_string(&sidecar_url) {
+                eprintln!("ERROR: invalid checksum sidecar download: {e}");
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            } else if !skip_signature {
+                let raw = match fs::read_to_string(&tmp_sidecar) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        eprintln!(
+                            "ERROR: failed reading checksum sidecar {}: {e}",
+                            tmp_sidecar.display()
+                        );
+                        let _ = fs::remove_dir_all(&tmp_root);
+                        return 1;
+                    }
+                };
+                let expected = match parse_sha256_sidecar(&raw) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        eprintln!("ERROR: invalid checksum sidecar format: {e}");
+                        let _ = fs::remove_dir_all(&tmp_root);
+                        return 1;
+                    }
+                };
+                let actual = match sha256_file(&tmp_archive) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        eprintln!("ERROR: failed reading downloaded archive: {e}");
+                        let _ = fs::remove_dir_all(&tmp_root);
+                        return 1;
+                    }
+                };
+                if actual != expected {
                     eprintln!(
-                        "ERROR: failed reading checksum sidecar {}: {e}",
-                        tmp_sidecar.display()
+                        "ERROR: checksum mismatch for download (expected {expected}, got {actual})"
                     );
                     let _ = fs::remove_dir_all(&tmp_root);
                     return 1;
                 }
-            };
-            let expected = match parse_sha256_sidecar(&raw) {
-                Ok(v) => v,
-                Err(e) => {
-                    eprintln!("ERROR: invalid checksum sidecar format: {e}");
-                    let _ = fs::remove_dir_all(&tmp_root);
-                    return 1;
-                }
-            };
-            let actual = match sha256_file(&tmp_archive) {
-                Ok(v) => v,
-                Err(e) => {
-                    eprintln!("ERROR: failed reading downloaded archive: {e}");
-                    let _ = fs::remove_dir_all(&tmp_root);
-                    return 1;
-                }
-            };
-            if actual != expected {
-                eprintln!(
-                    "ERROR: checksum mismatch for download (expected {expected}, got {actual})"
-                );
-                let _ = fs::remove_dir_all(&tmp_root);
-                return 1;
             }
         }
 

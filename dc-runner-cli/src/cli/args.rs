@@ -243,6 +243,8 @@ pub enum SpecsSubcommand {
         source: SpecRefreshSourceOption,
         #[arg(long, default_value = "latest")]
         version: String,
+        #[arg(long)]
+        bundle_id: Option<String>,
         #[arg(long, action = ArgAction::SetTrue)]
         force: bool,
         #[arg(long, action = ArgAction::SetTrue)]

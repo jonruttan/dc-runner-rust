@@ -119,6 +119,7 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             SpecsSubcommand::Refresh {
                 source,
                 version,
+                bundle_id,
                 force,
                 check_only,
                 skip_signature,
@@ -132,6 +133,10 @@ fn from_cli(cli: Cli) -> ParsedEntry {
                 });
                 forwarded.push("--version".to_string());
                 forwarded.push(version);
+                if let Some(bundle_id) = bundle_id {
+                    forwarded.push("--bundle-id".to_string());
+                    forwarded.push(bundle_id);
+                }
                 if force {
                     forwarded.push("--force".to_string());
                 }
@@ -530,6 +535,28 @@ mod tests {
         ]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "specs-run");
+    }
+
+    #[test]
+    fn parse_entry_supports_specs_refresh_with_bundle_id() {
+        let args = argv(&[
+            "dc-runner",
+            "specs",
+            "refresh",
+            "--source",
+            "remote",
+            "--version",
+            "latest",
+            "--bundle-id",
+            "data-contracts-lang-project-scaffold",
+            "--force",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "specs-refresh");
+        assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
+        assert!(parsed
+            .forwarded
+            .contains(&"data-contracts-lang-project-scaffold".to_string()));
     }
 
     #[test]
