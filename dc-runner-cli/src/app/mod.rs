@@ -2114,10 +2114,7 @@ fn parse_bundle_asset_bundle_version(name: &str) -> Option<(String, String)> {
     Some((bundle_id.to_string(), version.to_string()))
 }
 
-fn bundle_ids_for_release_version(
-    release: &Value,
-    version: &str,
-) -> Result<Vec<String>, String> {
+fn bundle_ids_for_release_version(release: &Value, version: &str) -> Result<Vec<String>, String> {
     let assets = release
         .get("assets")
         .and_then(Value::as_array)
@@ -6215,11 +6212,7 @@ fn runner_command(runner_bin: &str, runner_impl: &str, subcommand: &str) -> Vec<
     vec![runner_bin.to_string(), subcommand.to_string()]
 }
 
-fn runner_command_with_args(
-    runner_bin: &str,
-    runner_impl: &str,
-    args: &[&str],
-) -> Vec<String> {
+fn runner_command_with_args(runner_bin: &str, runner_impl: &str, args: &[&str]) -> Vec<String> {
     let normalized = runner_bin.replace('\\', "/");
     let adapter_rel = "runners/public/runner_adapter.sh".to_string();
     let adapter_prefixed = format!("./{}", adapter_rel);

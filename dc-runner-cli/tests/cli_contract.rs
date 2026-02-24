@@ -329,9 +329,15 @@ fn quality_lint_is_discoverable_via_entrypoints() {
 #[test]
 fn quality_lint_default_and_mode_flags_are_accepted() {
     let (code_default, _stdout, stderr_default) = run_cli(&["quality", "lint"]);
-    assert_ne!(code_default, 2, "quality lint should parse as supported command: {stderr_default}");
+    assert_ne!(
+        code_default, 2,
+        "quality lint should parse as supported command: {stderr_default}"
+    );
     let (code_pedantic, _stdout, _stderr) = run_cli(&["quality", "lint", "--mode", "pedantic"]);
-    assert_ne!(code_pedantic, 2, "quality lint --mode pedantic should parse: {_stderr}");
+    assert_ne!(
+        code_pedantic, 2,
+        "quality lint --mode pedantic should parse: {_stderr}"
+    );
 }
 
 #[test]

@@ -530,7 +530,10 @@ fn helper_schema_lint(root: &Path, payload: &Value) -> Result<Value, String> {
 
     let root_path = resolve(root, raw_path);
     if !root_path.exists() {
-        return Err(format!("schema lint path does not exist: {}", root_path.display()));
+        return Err(format!(
+            "schema lint path does not exist: {}",
+            root_path.display()
+        ));
     }
 
     let mut files_scanned = 0_i64;
@@ -749,7 +752,8 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_nanos())
             .unwrap_or(0);
-        let root = std::env::temp_dir().join(format!("dc-runner-schema-lint-{now}-{}", process::id()));
+        let root =
+            std::env::temp_dir().join(format!("dc-runner-schema-lint-{now}-{}", process::id()));
         fs::create_dir_all(root.join("specs")).expect("create temp specs");
         root
     }
@@ -766,8 +770,7 @@ title: bad block
 class: MUST
 type: contract.job
 ```
-```"#
-            ,
+```"#,
         )
         .expect("write bad spec");
         let result = helper_schema_lint(
@@ -795,8 +798,7 @@ contract:
   defaults:
     class: MUST
 ```
-```"#
-            ,
+```"#,
         )
         .expect("write good spec");
         let result = helper_schema_lint(

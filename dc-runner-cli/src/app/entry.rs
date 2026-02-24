@@ -7,8 +7,7 @@ use clap::Parser;
 use crate::cli::args::BundlerSubcommand;
 use crate::cli::args::{
     BundleSubcommand, CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand,
-    GovernanceSubcommand, ProjectSubcommand, QualitySubcommand,
-    ReportsSubcommand,
+    GovernanceSubcommand, ProjectSubcommand, QualitySubcommand, ReportsSubcommand,
     SchemaSubcommand, SpecRefreshSourceOption, SpecSourceOption, SpecUseSourceOption,
     SpecsSubcommand,
 };
@@ -209,9 +208,10 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             }
         },
         CommandGroup::Quality(q) => match q.command {
-            QualitySubcommand::Lint { mode } => {
-                map_passthrough("quality-lint", vec!["--input".to_string(), format!("mode={}", mode.as_str())])
-            }
+            QualitySubcommand::Lint { mode } => map_passthrough(
+                "quality-lint",
+                vec!["--input".to_string(), format!("mode={}", mode.as_str())],
+            ),
             QualitySubcommand::Typecheck => map_passthrough("typecheck", vec![]),
             QualitySubcommand::Compilecheck => map_passthrough("compilecheck", vec![]),
             QualitySubcommand::StyleCheck => map_passthrough("style-check", vec![]),
@@ -582,7 +582,10 @@ mod tests {
         let args = argv(&["dc-runner", "quality", "lint"]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "quality-lint");
-        assert_eq!(parsed.forwarded, vec!["--input".to_string(), "mode=strict".to_string()]);
+        assert_eq!(
+            parsed.forwarded,
+            vec!["--input".to_string(), "mode=strict".to_string()]
+        );
     }
 
     #[test]
@@ -590,7 +593,10 @@ mod tests {
         let args = argv(&["dc-runner", "quality", "lint", "--mode", "pedantic"]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "quality-lint");
-        assert_eq!(parsed.forwarded, vec!["--input".to_string(), "mode=pedantic".to_string()]);
+        assert_eq!(
+            parsed.forwarded,
+            vec!["--input".to_string(), "mode=pedantic".to_string()]
+        );
     }
 
     #[test]
@@ -598,7 +604,10 @@ mod tests {
         let args = argv(&["dc-runner", "lint", "--mode", "pedantic"]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "lint");
-        assert_eq!(parsed.forwarded, vec!["--input".to_string(), "mode=pedantic".to_string()]);
+        assert_eq!(
+            parsed.forwarded,
+            vec!["--input".to_string(), "mode=pedantic".to_string()]
+        );
     }
 
     #[test]
