@@ -588,6 +588,16 @@ fn helper_schema_lint(root: &Path, payload: &Value) -> Result<Value, String> {
                         contracts_with_errors += 1;
                         continue;
                     };
+                    let has_forbidden_class = mapping
+                        .get(&serde_yaml::Value::String("class".to_string()))
+                        .is_some();
+                    if has_forbidden_class {
+                        eprintln!(
+                            "ERROR: invalid top-level key `class` in {}: class is not valid at contract-spec root",
+                            p.display()
+                        );
+                        contracts_with_errors += 1;
+                    }
                     let raw_id = mapping
                         .get(&serde_yaml::Value::String("id".to_string()))
                         .and_then(|v| v.as_str())
@@ -724,5 +734,75 @@ pub fn run_helper(root: &Path, helper_id: &str, payload: &Value) -> Result<Value
         "helper.parity.run_conformance" => helper_parity_run_conformance(root, payload),
         "helper.perf.run_smoke" => helper_perf_run_smoke(root, payload),
         _ => Err(format!("unsupported helper id: {helper_id}")),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::process;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temporary_root() -> PathBuf {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let root = std::env::temp_dir().join(format!("dc-runner-schema-lint-{now}-{}", process::id()));
+        fs::create_dir_all(root.join("specs")).expect("create temp specs");
+        root
+    }
+
+    #[test]
+    fn schema_lint_rejects_top_level_class() {
+        let root = temporary_root();
+        let file = root.join("specs").join("bad.spec.md");
+        fs::write(
+            &file,
+            r#"```yaml contract-spec
+id: TST-001
+title: bad block
+class: MUST
+type: contract.job
+```
+```"#
+            ,
+        )
+        .expect("write bad spec");
+        let result = helper_schema_lint(
+            &root,
+            &serde_json::json!({"mode": "strict", "path": "/specs"}),
+        );
+        assert!(result.is_err(), "expected top-level class to be rejected");
+    }
+
+    #[test]
+    fn schema_lint_accepts_nested_class_within_contract() {
+        let root = temporary_root();
+        let file = root.join("specs").join("ok.spec.md");
+        fs::write(
+            &file,
+            r#"```yaml contract-spec
+id: TST-002
+title: nested class
+type: contract.job
+harness:
+  spec_lang:
+    capabilities:
+      - ops.job
+contract:
+  defaults:
+    class: MUST
+```
+```"#
+            ,
+        )
+        .expect("write good spec");
+        let result = helper_schema_lint(
+            &root,
+            &serde_json::json!({"mode": "strict", "path": "/specs"}),
+        );
+        assert!(result.is_ok(), "nested class should be allowed: {result:?}");
     }
 }
