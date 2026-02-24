@@ -3,9 +3,12 @@ use std::env;
 use clap::error::ErrorKind;
 use clap::Parser;
 
+#[cfg(feature = "bundler")]
+use crate::cli::args::BundlerSubcommand;
 use crate::cli::args::{
     CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand, GovernanceSubcommand,
-    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SpecSourceOption, SpecsSubcommand,
+    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SchemaSubcommand, SpecSourceOption,
+    SpecsSubcommand,
 };
 use crate::cli::errors::CliError;
 
@@ -148,6 +151,17 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             DocsSubcommand::BuildCheck => map_passthrough("docs-build-check", vec![]),
             DocsSubcommand::Lint => map_passthrough("docs-lint", vec![]),
             DocsSubcommand::Graph => map_passthrough("docs-graph", vec![]),
+        },
+        CommandGroup::Schema(s) => match s.command {
+            SchemaSubcommand::Check => map_passthrough("schema-check", vec![]),
+            SchemaSubcommand::Lint => map_passthrough("schema-lint", vec![]),
+            SchemaSubcommand::Format => map_passthrough("schema-format", vec![]),
+        },
+        #[cfg(feature = "bundler")]
+        CommandGroup::Bundler(b) => match b.command {
+            BundlerSubcommand::Resolve => map_passthrough("bundler-resolve", vec![]),
+            BundlerSubcommand::Package => map_passthrough("bundler-package", vec![]),
+            BundlerSubcommand::Check => map_passthrough("bundler-check", vec![]),
         },
         CommandGroup::Reports(r) => match r.command {
             ReportsSubcommand::ConformancePurposeJson => {
@@ -297,10 +311,6 @@ fn from_cli(cli: Cli) -> ParsedEntry {
         }
         CommandGroup::NormalizeCheck(x) => map_passthrough("normalize-check", x.args),
         CommandGroup::NormalizeFix(x) => map_passthrough("normalize-fix", x.args),
-        CommandGroup::SchemaRegistryCheck(x) => map_passthrough("schema-registry-check", x.args),
-        CommandGroup::SchemaRegistryBuild(x) => map_passthrough("schema-registry-build", x.args),
-        CommandGroup::SchemaDocsCheck(x) => map_passthrough("schema-docs-check", x.args),
-        CommandGroup::SchemaDocsBuild(x) => map_passthrough("schema-docs-build", x.args),
         CommandGroup::SpecPortabilityJson(x) => map_passthrough("spec-portability-json", x.args),
         CommandGroup::SpecPortabilityMd(x) => map_passthrough("spec-portability-md", x.args),
         CommandGroup::SpecLangAdoptionJson(x) => map_passthrough("spec-lang-adoption-json", x.args),
@@ -333,6 +343,7 @@ pub fn parse_entry(args: &[String]) -> Result<ParsedEntry, i32> {
         println!("dc-runner quick start:");
         println!("  dc-runner specs run-all");
         println!("  dc-runner specs list");
+        println!("  dc-runner schema check");
         println!("  dc-runner docs generate-check");
         println!("  dc-runner --help");
         return Err(0);

@@ -39,14 +39,19 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
         }
         "normalize-check" => super::run_normalize_mode(root, forwarded, false),
         "normalize-fix" => super::run_normalize_mode(root, forwarded, true),
-        "schema-registry-check" => {
-            super::run_job_for_command(root, "schema-registry-check", forwarded)
+        "schema-check" => super::run_registered_entry_command(root, "schema-check", forwarded),
+        "schema-lint" => super::run_registered_entry_command(root, "schema-lint", forwarded),
+        "schema-format" => super::run_registered_entry_command(root, "schema-format", forwarded),
+        #[cfg(feature = "bundler")]
+        "bundler-resolve" => {
+            super::run_registered_entry_command(root, "bundler-resolve", forwarded)
         }
-        "schema-registry-build" => {
-            super::run_job_for_command(root, "schema-registry-build", forwarded)
+        #[cfg(feature = "bundler")]
+        "bundler-package" => {
+            super::run_registered_entry_command(root, "bundler-package", forwarded)
         }
-        "schema-docs-check" => super::run_schema_docs_native(root, forwarded, true),
-        "schema-docs-build" => super::run_schema_docs_native(root, forwarded, false),
+        #[cfg(feature = "bundler")]
+        "bundler-check" => super::run_registered_entry_command(root, "bundler-check", forwarded),
         "lint" => super::run_lint_native(root, forwarded),
         "typecheck" => super::run_typecheck_native(root, forwarded),
         "compilecheck" => super::run_compilecheck_native(root, forwarded),

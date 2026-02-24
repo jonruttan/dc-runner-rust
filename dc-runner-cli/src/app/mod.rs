@@ -1857,47 +1857,6 @@ fn profile_level_or_off(raw: &str) -> String {
     }
 }
 
-fn run_schema_docs_native(root: &Path, forwarded: &[String], check: bool) -> i32 {
-    if !forwarded.is_empty() {
-        eprintln!("ERROR: schema-docs command does not accept extra args");
-        return 2;
-    }
-    let schema_root = root.join("specs").join("01_schema");
-    if !schema_root.exists() {
-        eprintln!("ERROR: missing schema root: {}", schema_root.display());
-        return 1;
-    }
-    let registry = schema_root.join("registry").join("v1");
-    if !registry.exists() {
-        eprintln!("ERROR: missing schema registry: {}", registry.display());
-        return 1;
-    }
-    let out = root.join(".artifacts").join("schema-docs-summary.md");
-    let mut content = String::new();
-    content.push_str("# Schema Docs Summary\n\n");
-    content.push_str("- source: `specs/01_schema`\n");
-    content.push_str("- status: `ok`\n");
-    if check {
-        if !out.exists() {
-            eprintln!(
-                "ERROR: schema-docs check failed: {} is missing",
-                out.display()
-            );
-            return 1;
-        }
-        return 0;
-    }
-    if let Some(parent) = out.parent() {
-        let _ = fs::create_dir_all(parent);
-    }
-    if let Err(e) = fs::write(&out, content) {
-        eprintln!("ERROR: failed writing {}: {e}", out.display());
-        return 1;
-    }
-    println!("OK: schema-docs build wrote {}", out.display());
-    0
-}
-
 fn resolve_repo_path(root: &Path, raw: &str) -> PathBuf {
     let rel = raw.trim_start_matches('/');
     root.join(rel)
@@ -1908,12 +1867,17 @@ struct RunnerEntrypoint {
     id: String,
     cli: String,
     profile: String,
+    visibility: String,
+    group: Option<String>,
+    source: String,
     artifacts: Vec<String>,
     allowed_exit_codes: Vec<i32>,
 }
 
-fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String> {
-    let manifest_ref = "/specs/04_governance/runner_entrypoints_v1.yaml";
+fn load_runner_entrypoints_manifest(
+    root: &Path,
+    manifest_ref: &str,
+) -> Result<Vec<RunnerEntrypoint>, String> {
     let raw = read_spec_text(root, manifest_ref)
         .map_err(|e| format!("failed reading runner entrypoint manifest {manifest_ref}: {e}"))?;
     let y: YamlValue = serde_yaml::from_str(&raw)
@@ -1949,6 +1913,23 @@ fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String>
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .ok_or_else(|| format!("commands[{idx}] missing cli"))?;
+        let visibility = map
+            .get(&YamlValue::String("visibility".to_string()))
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim().to_string())
+            .filter(|s| matches!(s.as_str(), "top_level" | "hidden"))
+            .ok_or_else(|| format!("commands[{idx}] missing visibility (top_level|hidden)"))?;
+        let group = map
+            .get(&YamlValue::String("group".to_string()))
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+        let source = map
+            .get(&YamlValue::String("source".to_string()))
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim().to_string())
+            .filter(|s| matches!(s.as_str(), "core" | "bundler"))
+            .ok_or_else(|| format!("commands[{idx}] missing source (core|bundler)"))?;
         let artifacts = map
             .get(&YamlValue::String("artifacts".to_string()))
             .and_then(|v| v.as_sequence())
@@ -1978,9 +1959,27 @@ fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String>
             id,
             cli,
             profile,
+            visibility,
+            group,
+            source,
             artifacts,
             allowed_exit_codes,
         });
+    }
+    Ok(out)
+}
+
+fn load_runner_entrypoints(root: &Path) -> Result<Vec<RunnerEntrypoint>, String> {
+    #[allow(unused_mut)]
+    let mut out =
+        load_runner_entrypoints_manifest(root, "/specs/04_governance/runner_entrypoints_v1.yaml")?;
+    #[cfg(feature = "bundler")]
+    {
+        let bundler_manifest =
+            "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/runner_entrypoints_v1.yaml";
+        if crate::spec_source::spec_exists(root, bundler_manifest)? {
+            out.extend(load_runner_entrypoints_manifest(root, bundler_manifest)?);
+        }
     }
     Ok(out)
 }
@@ -2025,9 +2024,11 @@ fn run_entrypoints_list_native(root: &Path, forwarded: &[String]) -> i32 {
             println!("spec entrypoints:");
             for entry in entries {
                 println!(
-                    "- {} (profile: {}, artifacts: {})",
+                    "- {} (profile: {}, visibility: {}, source: {}, artifacts: {})",
                     entry.id,
                     entry.profile,
+                    entry.visibility,
+                    entry.source,
                     entry.artifacts.len()
                 );
             }
@@ -2041,6 +2042,9 @@ fn run_entrypoints_list_native(root: &Path, forwarded: &[String]) -> i32 {
                         "id": entry.id,
                         "cli": entry.cli,
                         "profile": entry.profile,
+                        "visibility": entry.visibility,
+                        "group": entry.group,
+                        "source": entry.source,
                         "artifacts": entry.artifacts,
                         "exit_codes": { "allowed": entry.allowed_exit_codes },
                     })
@@ -2333,8 +2337,9 @@ fn run_cert_command(root: &Path, command: &str, args: &[String]) -> i32 {
         "spec-lang-format" => run_spec_lang_format_native(root, args),
         "normalize-check" => run_normalize_mode(root, args, false),
         "normalize-fix" => run_normalize_mode(root, args, true),
-        "schema-docs-check" => run_schema_docs_native(root, args, true),
-        "schema-docs-build" => run_schema_docs_native(root, args, false),
+        "schema-check" => run_registered_entry_command(root, "schema-check", args),
+        "schema-lint" => run_registered_entry_command(root, "schema-lint", args),
+        "schema-format" => run_registered_entry_command(root, "schema-format", args),
         "lint" => run_lint_native(root, args),
         "typecheck" => run_typecheck_native(root, args),
         "compilecheck" => run_compilecheck_native(root, args),
@@ -2348,8 +2353,12 @@ fn run_cert_command(root: &Path, command: &str, args: &[String]) -> i32 {
         "docs-graph" => run_registered_entry_command(root, "docs-graph", args),
         "conformance-parity" => run_job_for_command(root, "conformance-parity", args),
         "perf-smoke" => run_job_for_command(root, "perf-smoke", args),
-        "schema-registry-check" => run_job_for_command(root, "schema-registry-check", args),
-        "schema-registry-build" => run_job_for_command(root, "schema-registry-build", args),
+        #[cfg(feature = "bundler")]
+        "bundler-resolve" => run_registered_entry_command(root, "bundler-resolve", args),
+        #[cfg(feature = "bundler")]
+        "bundler-package" => run_registered_entry_command(root, "bundler-package", args),
+        #[cfg(feature = "bundler")]
+        "bundler-check" => run_registered_entry_command(root, "bundler-check", args),
         "ci-gate-summary" => run_ci_gate_summary_native(root, args),
         _ => 2,
     }
@@ -4877,16 +4886,12 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
             runner_command(&runner_bin, &runner_impl, "normalize-check"),
         ),
         (
-            "schema_registry_build",
-            runner_command(&runner_bin, &runner_impl, "schema-registry-build"),
+            "schema_check",
+            runner_command(&runner_bin, &runner_impl, "schema-check"),
         ),
         (
-            "schema_registry_check",
-            runner_command(&runner_bin, &runner_impl, "schema-registry-check"),
-        ),
-        (
-            "schema_docs_check",
-            runner_command(&runner_bin, &runner_impl, "schema-docs-check"),
+            "schema_lint",
+            runner_command(&runner_bin, &runner_impl, "schema-lint"),
         ),
         (
             "evaluate_style",

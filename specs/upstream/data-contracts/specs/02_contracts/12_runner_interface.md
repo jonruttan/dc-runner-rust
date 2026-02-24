@@ -36,6 +36,14 @@ Command semantics are source-controlled in:
 
 - `/specs/04_governance/runner_entrypoints_v1.yaml`
 
+Runtime source selection is bundled-first:
+
+- default: `bundled` embedded snapshot
+- override: `--spec-source` / `DC_RUNNER_SPEC_SOURCE`
+
+Entrypoints with `visibility: top_level` are canonical user command surfaces
+and must appear in runner help output.
+
 Shared governance semantics MUST be sourced from spec surfaces (`specs/04_governance/**`
 `specs/05_libraries/policy/**`) and executed by runners. Shell scripts are not
 canonical command entrypoints.
@@ -64,7 +72,7 @@ Runner repositories publish release assets that conform to:
 
 The control plane ingests and normalizes status through:
 
-- `/scripts/runner_status_ingest.sh`
+- `dc-runner governance run`
 - `/specs/01_schema/runner_status_matrix_v1.yaml`
 - `/specs/02_contracts/25_compatibility_matrix.md`
 - `/specs/02_contracts/27_runner_status_exchange.md`
@@ -74,10 +82,10 @@ Portable CLI surface is defined by:
 - `/specs/02_contracts/29_runner_cli_interface.md`
 - `/specs/01_schema/runner_cli_contract_v1.yaml`
 
-Rust-first required-lane formatter implementation ownership:
+Rust-first required-lane schema suite implementation ownership:
 
-- `dc-runner-rust` MUST implement `contract-spec-format` (`--check`, `--write`)
-  for v1 contract-spec key-order normalization.
+- `dc-runner-rust` MUST implement `schema check`, `schema lint`, and
+  `schema format` for v1 schema/spec validation and key-order normalization.
 
 Bundle package management surface is defined by:
 

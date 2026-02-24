@@ -22,18 +22,7 @@ fn to_unix(path: &Path) -> String {
     path.to_string_lossy().replace('\\', "/")
 }
 
-fn main() {
-    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_default());
-    let candidates = [
-        manifest_dir.join("specs/upstream/data-contracts"),
-        manifest_dir.join("../specs/upstream/data-contracts"),
-    ];
-    let source_root = candidates
-        .iter()
-        .find(|p| p.exists() && p.is_dir())
-        .cloned()
-        .expect("missing data-contracts snapshot source for embedding");
-
+fn emit_snapshot(source_root: &Path, prefix: &str, out_name: &str) {
     println!("cargo:rerun-if-changed={}", source_root.display());
 
     let mut files = Vec::<PathBuf>::new();
@@ -46,7 +35,7 @@ fn main() {
         let rel = file
             .strip_prefix(&source_root)
             .expect("strip prefix for source root");
-        let key = format!("specs/upstream/data-contracts/{}", to_unix(rel));
+        let key = format!("{}/{}", prefix.trim_end_matches('/'), to_unix(rel));
         let text = fs::read_to_string(&file)
             .unwrap_or_else(|e| panic!("failed to read {}: {e}", file.display()));
         hasher.update(key.as_bytes());
@@ -58,7 +47,7 @@ fn main() {
 
     let snapshot_sha256 = format!("{:x}", hasher.finalize());
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
-    let out_path = out_dir.join("embedded_data_contracts.rs");
+    let out_path = out_dir.join(out_name);
     let mut out = fs::File::create(&out_path)
         .unwrap_or_else(|e| panic!("failed to create {}: {e}", out_path.display()));
 
@@ -79,4 +68,39 @@ fn main() {
         writeln!(out, "    ({:?}, {:?}),", key, text).expect("write row");
     }
     writeln!(out, "];").expect("write footer");
+}
+
+fn main() {
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_default());
+    let core_candidates = [
+        manifest_dir.join("specs/upstream/data-contracts"),
+        manifest_dir.join("../specs/upstream/data-contracts"),
+    ];
+    let core_root = core_candidates
+        .iter()
+        .find(|p| p.exists() && p.is_dir())
+        .cloned()
+        .expect("missing data-contracts snapshot source for embedding");
+    emit_snapshot(
+        &core_root,
+        "specs/upstream/data-contracts",
+        "embedded_data_contracts.rs",
+    );
+
+    if env::var("CARGO_FEATURE_BUNDLER").is_ok() {
+        let bundler_candidates = [
+            manifest_dir.join("specs/upstream/data-contracts-library"),
+            manifest_dir.join("../specs/upstream/data-contracts-library"),
+        ];
+        let bundler_root = bundler_candidates
+            .iter()
+            .find(|p| p.exists() && p.is_dir())
+            .cloned()
+            .expect("missing data-contracts-library snapshot source for bundler embedding");
+        emit_snapshot(
+            &bundler_root,
+            "specs/upstream/data-contracts-library",
+            "embedded_data_contracts_library.rs",
+        );
+    }
 }

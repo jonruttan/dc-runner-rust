@@ -1,6 +1,7 @@
 use serde_json::{json, Map, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 fn as_str<'a>(v: &'a Value, key: &str) -> Result<&'a str, String> {
     v.get(key)
@@ -447,6 +448,51 @@ fn helper_schema_registry_report(root: &Path, payload: &Value) -> Result<Value, 
     }))
 }
 
+fn helper_schema_normalize_runner(root: &Path, payload: &Value) -> Result<Value, String> {
+    let mode = payload
+        .get("mode")
+        .and_then(|v| v.as_str())
+        .unwrap_or("check");
+    let subcommand = match mode {
+        "check" => "normalize-check",
+        "fix" => "normalize-fix",
+        other => {
+            return Err(format!(
+                "helper.schema.normalize_runner unsupported mode `{other}` (expected check|fix)"
+            ));
+        }
+    };
+
+    let mut args = vec![subcommand.to_string()];
+    if let Some(path) = payload.get("path").and_then(|v| v.as_str()) {
+        args.push("--path".to_string());
+        args.push(path.to_string());
+    }
+
+    let exe = std::env::current_exe()
+        .map_err(|e| format!("failed resolving current runner executable: {e}"))?;
+    let status = Command::new(&exe)
+        .args(&args)
+        .current_dir(root)
+        .status()
+        .map_err(|e| format!("failed invoking {}: {e}", exe.display()))?;
+    let exit_code = status.code().unwrap_or(1);
+    if !status.success() {
+        return Err(format!(
+            "schema normalize runner command failed: {} {} (exit {})",
+            exe.display(),
+            args.join(" "),
+            exit_code
+        ));
+    }
+    Ok(json!({
+        "ok": true,
+        "mode": mode,
+        "command": args,
+        "exit_code": exit_code,
+    }))
+}
+
 fn helper_docs_lint(root: &Path, _payload: &Value) -> Result<Value, String> {
     let required = [
         root.join("docs").join("book").join("index.md"),
@@ -524,6 +570,7 @@ pub fn run_helper(root: &Path, helper_id: &str, payload: &Value) -> Result<Value
         "helper.docs.catalog_generate" => helper_docs_catalog_generate(payload),
         "helper.schema.compile_registry" => helper_schema_compile_registry(root, payload),
         "helper.schema.registry_report" => helper_schema_registry_report(root, payload),
+        "helper.schema.normalize_runner" => helper_schema_normalize_runner(root, payload),
         "helper.docs.lint" => helper_docs_lint(root, payload),
         "helper.docs.generate_all" => helper_docs_generate_all(root, payload),
         "helper.parity.compare_conformance" => helper_parity_compare_conformance(root, payload),

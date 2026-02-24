@@ -3,6 +3,9 @@ commands:
   - id: governance
     cli: dc-runner governance
     profile: full
+    visibility: top_level
+    group: governance
+    source: core
     artifacts:
       - /.artifacts/governance-summary.json
       - /.artifacts/governance-trace.json
@@ -13,6 +16,9 @@ commands:
   - id: critical-gate
     cli: dc-runner critical-gate
     profile: critical
+    visibility: top_level
+    group: governance
+    source: core
     artifacts:
       - /.artifacts/critical-gate-summary.json
       - /.artifacts/critical-gate-trace.json
@@ -20,9 +26,45 @@ commands:
     exit_codes:
       allowed: [0, 1]
 
+  - id: schema-check
+    cli: dc-runner schema check
+    profile: full
+    visibility: top_level
+    group: schema
+    source: core
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-012.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: schema-lint
+    cli: dc-runner schema lint
+    profile: full
+    visibility: top_level
+    group: schema
+    source: core
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-013.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: schema-format
+    cli: dc-runner schema format
+    profile: full
+    visibility: top_level
+    group: schema
+    source: core
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-014.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
   - id: docs-generate
     cli: dc-runner docs generate
     profile: full
+    visibility: top_level
+    group: docs
+    source: core
     artifacts:
       - /.artifacts/job-hooks/DCCONF-JOB-007.complete.json
     exit_codes:
@@ -31,6 +73,9 @@ commands:
   - id: docs-generate-check
     cli: dc-runner docs generate-check
     profile: full
+    visibility: top_level
+    group: docs
+    source: core
     artifacts:
       - /.artifacts/job-hooks/DCCONF-JOB-008.complete.json
     exit_codes:
@@ -39,6 +84,9 @@ commands:
   - id: docs-build
     cli: dc-runner docs build
     profile: full
+    visibility: top_level
+    group: docs
+    source: core
     artifacts:
       - /.artifacts/job-hooks/DCCONF-JOB-009.complete.json
     exit_codes:
@@ -47,6 +95,9 @@ commands:
   - id: docs-build-check
     cli: dc-runner docs build-check
     profile: full
+    visibility: top_level
+    group: docs
+    source: core
     artifacts:
       - /.artifacts/job-hooks/DCCONF-JOB-010.complete.json
     exit_codes:
@@ -55,6 +106,9 @@ commands:
   - id: docs-lint
     cli: dc-runner docs lint
     profile: full
+    visibility: top_level
+    group: docs
+    source: core
     artifacts:
       - /.artifacts/job-hooks/DCCONF-JOB-006.complete.json
     exit_codes:
@@ -63,6 +117,9 @@ commands:
   - id: docs-graph
     cli: dc-runner docs graph
     profile: full
+    visibility: top_level
+    group: docs
+    source: core
     artifacts:
       - /.artifacts/job-hooks/DCCONF-JOB-011.complete.json
     exit_codes:
@@ -71,6 +128,9 @@ commands:
   - id: governance-broad-native
     cli: dc-runner governance-broad-native
     profile: full
+    visibility: hidden
+    group: governance
+    source: core
     artifacts:
       - /.artifacts/governance-broad-native-summary.json
       - /.artifacts/governance-broad-native-trace.json

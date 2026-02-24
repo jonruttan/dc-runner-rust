@@ -218,6 +218,7 @@ fn help_works_and_mentions_specs_group() {
     assert!(stdout.contains("specs"));
     assert!(stdout.contains("governance"));
     assert!(stdout.contains("docs"));
+    assert!(stdout.contains("schema"));
     assert!(!stdout.contains("entrypoints"));
     assert!(!stdout.contains("--profile-level"));
 }
@@ -274,6 +275,14 @@ fn entrypoints_list_supports_explicit_spec_source_flag() {
 }
 
 #[test]
+fn entrypoints_json_includes_visibility_group_and_source() {
+    let (code, stdout, _stderr) = run_cli(&["entrypoints", "list", "--format", "json"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("\"visibility\""));
+    assert!(stdout.contains("\"source\""));
+}
+
+#[test]
 fn invalid_spec_source_value_returns_usage_error() {
     let (code, _stdout, stderr) = run_cli(&["--spec-source", "invalid", "entrypoints", "list"]);
     assert_eq!(code, 2);
@@ -294,6 +303,58 @@ fn docs_commands_resolve_via_entrypoints() {
         let (code, _stdout, _stderr) = run_cli(&cmd);
         assert_ne!(code, 2, "docs command returned usage error: {:?}", cmd);
     }
+}
+
+#[test]
+fn schema_commands_resolve_via_entrypoints() {
+    let commands = [
+        ["schema", "check"],
+        ["schema", "lint"],
+        ["schema", "format"],
+    ];
+    for cmd in commands {
+        let (code, _stdout, _stderr) = run_cli(&cmd);
+        assert_ne!(code, 2, "schema command returned usage error: {:?}", cmd);
+    }
+}
+
+#[test]
+fn legacy_schema_aliases_are_rejected() {
+    let commands = [
+        ["schema-registry-build"],
+        ["schema-registry-check"],
+        ["schema-docs-build"],
+        ["schema-docs-check"],
+    ];
+    for cmd in commands {
+        let (code, _stdout, stderr) = run_cli(&cmd);
+        assert_eq!(code, 2, "expected usage error for legacy alias {:?}", cmd);
+        assert!(stderr.contains("unrecognized subcommand"));
+    }
+}
+
+#[cfg(not(feature = "bundler"))]
+#[test]
+fn bundler_group_is_absent_without_feature() {
+    let (code, stdout, _stderr) = run_cli(&["--help"]);
+    assert_eq!(code, 0);
+    assert!(!stdout.contains("bundler"));
+    let (code2, _stdout2, stderr2) = run_cli(&["bundler", "resolve"]);
+    assert_eq!(code2, 2);
+    assert!(stderr2.contains("unrecognized subcommand"));
+}
+
+#[cfg(feature = "bundler")]
+#[test]
+fn bundler_group_is_present_with_feature() {
+    let (code, stdout, _stderr) = run_cli(&["--help"]);
+    assert_eq!(code, 0);
+    assert!(stdout.contains("bundler"));
+    let (code2, stdout2, _stderr2) = run_cli(&["entrypoints", "list"]);
+    assert_eq!(code2, 0);
+    assert!(stdout2.contains("bundler-resolve"));
+    assert!(stdout2.contains("bundler-package"));
+    assert!(stdout2.contains("bundler-check"));
 }
 
 #[test]

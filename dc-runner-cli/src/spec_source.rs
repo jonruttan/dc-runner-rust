@@ -24,10 +24,30 @@ impl SpecSourceMode {
 mod embedded_data_contracts {
     include!(concat!(env!("OUT_DIR"), "/embedded_data_contracts.rs"));
 }
+#[cfg(feature = "bundler")]
+mod embedded_data_contracts_library {
+    include!(concat!(
+        env!("OUT_DIR"),
+        "/embedded_data_contracts_library.rs"
+    ));
+}
 
-fn bundled_index() -> &'static HashMap<&'static str, &'static str> {
+fn bundled_index_core() -> &'static HashMap<&'static str, &'static str> {
     static INDEX: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
     INDEX.get_or_init(|| embedded_data_contracts::FILES.iter().copied().collect())
+}
+
+#[cfg(feature = "bundler")]
+fn bundled_index_bundler() -> &'static HashMap<&'static str, &'static str> {
+    static INDEX: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
+    let _ = embedded_data_contracts_library::SNAPSHOT_SOURCE_ROOT;
+    let _ = embedded_data_contracts_library::SNAPSHOT_SHA256;
+    INDEX.get_or_init(|| {
+        embedded_data_contracts_library::FILES
+            .iter()
+            .copied()
+            .collect()
+    })
 }
 
 pub fn bundled_snapshot_sha256() -> &'static str {
@@ -75,9 +95,12 @@ fn bundled_candidate_paths(raw: &str) -> Vec<String> {
 }
 
 fn read_bundled(raw: &str) -> Result<Option<String>, String> {
-    let index = bundled_index();
     for candidate in bundled_candidate_paths(raw) {
-        if let Some(text) = index.get(candidate.as_str()) {
+        if let Some(text) = bundled_index_core().get(candidate.as_str()) {
+            return Ok(Some((*text).to_string()));
+        }
+        #[cfg(feature = "bundler")]
+        if let Some(text) = bundled_index_bundler().get(candidate.as_str()) {
             return Ok(Some((*text).to_string()));
         }
     }
@@ -85,13 +108,32 @@ fn read_bundled(raw: &str) -> Result<Option<String>, String> {
 }
 
 fn read_workspace(root: &Path, raw: &str) -> Result<Option<String>, String> {
-    let path = root.join(normalize_repo_path(raw));
-    if !path.exists() {
-        return Ok(None);
+    let normalized = normalize_repo_path(raw);
+    let mut candidates = vec![root.join(&normalized)];
+    if let Some(stripped) = normalized.strip_prefix("specs/upstream/data-contracts/") {
+        candidates.push(root.join(stripped));
     }
+    if let Some(stripped) = normalized.strip_prefix("specs/upstream/data-contracts-library/") {
+        candidates.push(root.join(stripped));
+    }
+
+    let Some(path) = candidates.into_iter().find(|p| p.exists()) else {
+        return Ok(None);
+    };
     let text = fs::read_to_string(&path)
         .map_err(|e| format!("failed reading workspace spec {}: {e}", path.display()))?;
     Ok(Some(text))
+}
+
+fn workspace_path_for_error(root: &Path, raw: &str) -> String {
+    let normalized = normalize_repo_path(raw);
+    if let Some(stripped) = normalized.strip_prefix("specs/upstream/data-contracts/") {
+        return root.join(stripped).display().to_string();
+    }
+    if let Some(stripped) = normalized.strip_prefix("specs/upstream/data-contracts-library/") {
+        return root.join(stripped).display().to_string();
+    }
+    root.join(normalized).display().to_string()
 }
 
 pub fn read_spec_text(root: &Path, raw: &str) -> Result<String, String> {
@@ -108,7 +150,7 @@ pub fn read_spec_text(root: &Path, raw: &str) -> Result<String, String> {
             Some(text) => Ok(text),
             None => Err(format!(
                 "spec not found in workspace: {} (mode=workspace; hint: use --spec-source bundled|auto)",
-                root.join(normalize_repo_path(raw)).display()
+                workspace_path_for_error(root, raw)
             )),
         },
         SpecSourceMode::Auto => {

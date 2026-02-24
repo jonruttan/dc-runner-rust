@@ -12,7 +12,7 @@ profiles:
         path: /.github/workflows/ci.yml
         must_contain:
           - extractor-stage:
-          - ./scripts/runner_status_ingest.sh --max-age-hours 72 --enforce-freshness
+          - dc-runner governance run
       - id: runtime.matrix_artifacts_emitted
         kind: file_tokens
         path: /.github/workflows/ci.yml
@@ -24,7 +24,8 @@ profiles:
         kind: file_tokens
         path: /.github/workflows/ci.yml
         must_not_contain:
-          - scripts/runner_bin.sh
+          - ./dc-runner governance run
+          - ./dc-runner
       - id: runtime.compatibility_status_freshness_within_slo
         kind: file_tokens
         path: /specs/04_governance/runner_entrypoints_v1.yaml
@@ -59,8 +60,19 @@ profiles:
         kind: file_tokens
         path: /specs/04_governance/runner_entrypoints_v1.yaml
         must_contain:
+          - id: schema-check
+          - cli: dc-runner schema check
+          - id: schema-lint
+          - cli: dc-runner schema lint
+          - id: schema-format
+          - cli: dc-runner schema format
           - id: docs-generate-check
-          - cli: dc-runner docs-generate-check
+          - cli: dc-runner docs generate-check
+          - id: docs-generate
+          - id: docs-build
+          - id: docs-build-check
+          - id: docs-lint
+          - id: docs-graph
       - id: schema.spec_case_schema_ref_present
         kind: file_tokens
         path: /specs/01_schema/runner_command_entrypoints_v1.yaml
@@ -73,6 +85,8 @@ profiles:
         must_contain:
           - - commands
           - - profile
+          - - visibility
+          - - source
       - id: schema.pin_pipeline_chain_valid
         kind: file_tokens
         path: /specs/04_governance/cases/core/spec_core/runtime_schema_pin_pipeline_chain.spec.md
@@ -114,9 +128,8 @@ profiles:
         kind: file_tokens
         path: /specs/01_schema/core_script_allowlist_v1.yaml
         must_contain:
-          - /scripts/bundle
-          - /scripts/governance_interface_sync.sh
-          - /scripts/governance_interface_validate.sh
+          - version: 1
+          - core_scripts: []
       - id: runtime.retired_scripts_root_absent
         kind: file_tokens
         path: /specs/01_schema/core_script_allowlist_v1.yaml
@@ -133,8 +146,16 @@ profiles:
         kind: file_tokens
         path: /specs/04_governance/runner_entrypoints_v1.yaml
         must_contain:
+          - visibility: top_level
+          - source: core
+          - group: schema
           - id: docs-generate-check
-          - cli: dc-runner docs-generate-check
+          - cli: dc-runner docs generate-check
+          - cli: dc-runner docs generate
+          - cli: dc-runner docs build
+          - cli: dc-runner docs build-check
+          - cli: dc-runner docs lint
+          - cli: dc-runner docs graph
   full:
     checks:
       - id: runtime.full_check_set_manifest_required
@@ -239,21 +260,32 @@ profiles:
         path: /specs/02_contracts/12_runner_interface.md
         must_not_contain:
           - scripts/runner_bin.sh
-          - scripts/control_plane.sh
+          - DC_RUNNER_RUST_NATIVE_ONLY
       - id: runtime.artifact_contract_compatibility_preserved
         kind: file_tokens
         path: /specs/04_governance/runner_entrypoints_v1.yaml
         must_contain:
           - /.artifacts/governance-summary.json
           - /.artifacts/critical-gate-summary.json
+          - /.artifacts/job-hooks/DCCONF-JOB-012.complete.json
+          - /.artifacts/job-hooks/DCCONF-JOB-013.complete.json
+          - /.artifacts/job-hooks/DCCONF-JOB-014.complete.json
       - id: runtime.infra_script_boundary_enforced
         kind: file_tokens
         path: /specs/02_contracts/29_runner_cli_interface.md
         must_contain:
           - dc-runner governance
           - dc-runner critical-gate
+          - dc-runner schema check
+          - dc-runner schema lint
+          - dc-runner schema format
         must_not_contain:
-          - ./scripts/runner_bin.sh
+          - scripts/runner_bin.sh
+          - schema-registry-build
+          - schema-registry-check
+          - schema-docs-build
+          - schema-docs-check
+          - contract-spec-format
       - id: docs.audience_surfaces_generated
         kind: file_tokens
         path: /docs/audience/implementer/reference_manifest.yaml
@@ -262,9 +294,10 @@ profiles:
           - audience: implementer
       - id: docs.audience_surfaces_synced
         kind: file_tokens
-        path: /scripts/docs_audience_generate.sh
+        path: /docs/audience/governance/reference_manifest.yaml
         must_contain:
-          - docs_audience_generate.py
+          - version: 1
+          - audience: governance
       - id: docs.audience_canonical_tokens_only
         kind: file_tokens
         path: /specs/00_core/docs_audience_migration_map.md
@@ -301,8 +334,8 @@ profiles:
         kind: file_tokens
         path: /specs/02_contracts/12_runner_interface.md
         must_not_contain:
+          - scripts/runner_status_ingest.sh --enforce-freshness
           - scripts/runner_bin.sh
-          - wrapper-only command boundaries
       - id: entrypoint.registry.schema_valid
         kind: file_tokens
         path: /specs/01_schema/runner_command_entrypoints_v1.yaml
@@ -315,12 +348,24 @@ profiles:
         must_contain:
           - profile: full
           - profile: critical
+          - id: docs-generate
+          - id: docs-generate-check
+          - id: docs-build
+          - id: docs-build-check
+          - id: docs-lint
+          - id: docs-graph
       - id: entrypoint.artifact_contract_complete
         kind: file_tokens
         path: /specs/04_governance/runner_entrypoints_v1.yaml
         must_contain:
           - /.artifacts/governance-summary.json
           - /.artifacts/critical-gate-summary.json
+          - /.artifacts/job-hooks/DCCONF-JOB-006.complete.json
+          - /.artifacts/job-hooks/DCCONF-JOB-007.complete.json
+          - /.artifacts/job-hooks/DCCONF-JOB-008.complete.json
+          - /.artifacts/job-hooks/DCCONF-JOB-009.complete.json
+          - /.artifacts/job-hooks/DCCONF-JOB-010.complete.json
+          - /.artifacts/job-hooks/DCCONF-JOB-011.complete.json
       - id: runtime.policy_library_exports_resolve
         kind: file_tokens
         path: /specs/05_libraries/policy/index.md

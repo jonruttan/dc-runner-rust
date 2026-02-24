@@ -14,12 +14,23 @@ Common commands:
 dc-runner specs run-all
 dc-runner specs list
 dc-runner specs run --ref /specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-001
+dc-runner schema check
+dc-runner schema lint
+dc-runner schema format
 dc-runner docs generate
 dc-runner docs generate-check
 dc-runner docs build
 dc-runner docs build-check
 dc-runner docs lint
 dc-runner docs graph
+```
+
+Optional bundler commands (only when compiled with `--features bundler`):
+
+```sh
+dc-runner bundler resolve
+dc-runner bundler package
+dc-runner bundler check
 ```
 
 ### Spec source selection

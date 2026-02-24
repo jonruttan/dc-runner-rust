@@ -3,39 +3,44 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
         "validate-report" => Some(
             "/specs/05_libraries/domain/conformance_core.spec.md#LIB-DOMAIN-CONFORMANCE-001-000C-DOMAIN-CONFORMANCE-VALIDATE-REPORT-ERRORS",
         ),
-        "schema-registry-build" => {
+        "schema-check" => {
             Some(
-                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-004",
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-012",
             )
         }
-        "schema-registry-check" => {
+        "schema-lint" => {
             Some(
-                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-005",
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-013",
+            )
+        }
+        "schema-format" => {
+            Some(
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-014",
             )
         }
         "docs-lint" => Some(
-            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-006",
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-006",
         ),
         "docs-generate" => {
             Some(
-                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-007",
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-007",
             )
         }
         "docs-generate-check" => {
             Some(
-                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-008",
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-008",
             )
         }
         "docs-build" => Some(
-            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-009",
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-009",
         ),
         "docs-build-check" => {
             Some(
-                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-010",
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-010",
             )
         }
         "docs-graph" => Some(
-            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/script_job_contracts.spec.md#DCCONF-JOB-011",
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-011",
         ),
         "runner-certify" => {
             Some(
@@ -136,6 +141,15 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
             Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-002")
         }
         "perf-smoke" => Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-003"),
+        "bundler-resolve" => Some(
+            "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/bundler_job_contracts.spec.md#DCLIB-BUNDLE-JOB-001",
+        ),
+        "bundler-package" => Some(
+            "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/bundler_job_contracts.spec.md#DCLIB-BUNDLE-JOB-002",
+        ),
+        "bundler-check" => Some(
+            "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/bundler_job_contracts.spec.md#DCLIB-BUNDLE-JOB-003",
+        ),
         _ => None,
     }
 }

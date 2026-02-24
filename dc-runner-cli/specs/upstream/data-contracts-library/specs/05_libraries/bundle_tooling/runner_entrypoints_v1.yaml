@@ -1,0 +1,32 @@
+version: 1
+commands:
+  - id: bundler-resolve
+    cli: dc-runner bundler resolve
+    profile: bundler.resolve
+    visibility: top_level
+    group: bundler
+    source: bundler
+    artifacts:
+      - /.artifacts/job-hooks/DCLIB-BUNDLE-JOB-001.complete.json
+    exit_codes:
+      allowed: [0]
+  - id: bundler-package
+    cli: dc-runner bundler package
+    profile: bundler.package
+    visibility: top_level
+    group: bundler
+    source: bundler
+    artifacts:
+      - /.artifacts/job-hooks/DCLIB-BUNDLE-JOB-002.complete.json
+    exit_codes:
+      allowed: [0]
+  - id: bundler-check
+    cli: dc-runner bundler check
+    profile: bundler.check
+    visibility: top_level
+    group: bundler
+    source: bundler
+    artifacts:
+      - /.artifacts/job-hooks/DCLIB-BUNDLE-JOB-003.complete.json
+    exit_codes:
+      allowed: [0]

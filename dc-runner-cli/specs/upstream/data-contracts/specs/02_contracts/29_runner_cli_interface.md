@@ -20,9 +20,15 @@ Runner CLIs MUST provide deterministic behavior for:
 - `dc-runner conformance`
 - `dc-runner governance`
 - `dc-runner critical-gate`
-- `dc-runner docs-generate-check`
-- `dc-runner contract-spec-format --check <paths...>`
-- `dc-runner contract-spec-format --write <paths...>`
+- `dc-runner schema check`
+- `dc-runner schema lint`
+- `dc-runner schema format`
+- `dc-runner docs generate`
+- `dc-runner docs generate-check`
+- `dc-runner docs build`
+- `dc-runner docs build-check`
+- `dc-runner docs lint`
+- `dc-runner docs graph`
 - `dc-runner project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>]`
 - `dc-runner project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>] [--var <key=value>]... [--overwrite]`
 - unknown command handling with non-zero exit code
@@ -43,14 +49,12 @@ Runner CLIs MAY provide:
 Portable required behavior is represented as required commands and output
 contract keys in `/specs/01_schema/runner_cli_contract_v1.yaml`.
 
-`contract-spec-format` contract:
+`schema` command contract:
 
-- processes Markdown `*.spec.md` files containing fenced `yaml contract-spec`
-  blocks
-- applies only to `spec_version: 1` blocks
-- `--check` is read-only and exits non-zero when canonical order is found
-- `--write` rewrites canonical v1 block key order in place
-- non-v1 blocks are skipped (no rewrite)
+- `schema check` validates schema registry and schema-case invariants
+- `schema lint` runs schema portability/style checks against canonical trees
+- `schema format` applies canonical schema/spec normalization edits
+- schema command semantics are spec-defined via entrypoints and executable job refs
 
 Canonical executable case payload shape for formatting and execution is
 `spec_version/schema_ref/harness/contracts.clauses[].asserts.checks[]`.
@@ -71,6 +75,28 @@ Schema:
 For canonical command entrypoints, `dc-runner` MUST resolve command id to
 `/specs/governance/check_sets_v1.yaml` profile and enforce declared artifact
 and exit-code contracts.
+
+Entrypoints marked `visibility: top_level` are promoted to canonical help and
+user-facing command surfaces.
+
+## Spec Source Resolution
+
+`dc-runner` MUST support runtime source selection for contract refs:
+
+- `--spec-source bundled|workspace|auto`
+- `DC_RUNNER_SPEC_SOURCE=bundled|workspace|auto`
+
+Precedence:
+
+1. CLI flag
+2. Environment variable
+3. Default (`bundled`)
+
+Mode semantics:
+
+- `bundled`: resolve from embedded pinned snapshot only
+- `workspace`: resolve from local workspace only
+- `auto`: workspace first, bundled fallback
 
 ## Scaffold Source Contract
 

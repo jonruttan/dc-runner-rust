@@ -198,6 +198,75 @@ contracts:
         - call:
           - var: policy.job.dispatch_ok
           - var: summary_json
+  - id: DCCONF-JOB-012
+    title: schema check via contract.job
+    purpose: Ensures schema suite check command dispatch is spec-defined and deterministic.
+    when:
+      fail:
+      - ops.job.dispatch:
+        - on_fail
+      complete:
+      - ops.job.dispatch:
+        - on_complete
+    asserts:
+      imports:
+      - from: asset
+        names:
+        - summary_json
+      checks:
+      - id: assert_1
+        assert:
+        - ops.job.dispatch:
+          - main
+        - call:
+          - var: policy.job.dispatch_ok
+          - var: summary_json
+  - id: DCCONF-JOB-013
+    title: schema lint via contract.job
+    purpose: Ensures schema suite lint command dispatch is spec-defined and deterministic.
+    when:
+      fail:
+      - ops.job.dispatch:
+        - on_fail
+      complete:
+      - ops.job.dispatch:
+        - on_complete
+    asserts:
+      imports:
+      - from: asset
+        names:
+        - summary_json
+      checks:
+      - id: assert_1
+        assert:
+        - ops.job.dispatch:
+          - main
+        - call:
+          - var: policy.job.dispatch_ok
+          - var: summary_json
+  - id: DCCONF-JOB-014
+    title: schema format via contract.job
+    purpose: Ensures schema suite format command dispatch is spec-defined and deterministic.
+    when:
+      fail:
+      - ops.job.dispatch:
+        - on_fail
+      complete:
+      - ops.job.dispatch:
+        - on_complete
+    asserts:
+      imports:
+      - from: asset
+        names:
+        - summary_json
+      checks:
+      - id: assert_1
+        assert:
+        - ops.job.dispatch:
+          - main
+        - call:
+          - var: policy.job.dispatch_ok
+          - var: summary_json
 adapters:
 - type: io.system
   defaults:
@@ -465,6 +534,106 @@ adapters:
         capabilities:
         - ops.helper
         - ops.job
+  - id: svc.assert_check.default.9
+    config:
+      jobs:
+      - id: main
+        mode: check
+        helper: helper.schema.registry_report
+        inputs:
+          format: json
+          out: ".artifacts/schema_registry_report.json"
+          check: true
+      - id: on_fail
+        helper: helper.report.emit
+        mode: report
+        inputs:
+          out: ".artifacts/job-hooks/DCCONF-JOB-012.fail.json"
+          format: json
+          report_name: DCCONF-JOB-012.fail
+      - id: on_complete
+        helper: helper.report.emit
+        mode: report
+        inputs:
+          out: ".artifacts/job-hooks/DCCONF-JOB-012.complete.json"
+          format: json
+          report_name: DCCONF-JOB-012.complete
+      use:
+      - as: lib_policy_job
+        symbols:
+        - policy.job.dispatch_ok
+        - policy.job.written_path_contains
+        artifact_id: art.svc.assert_check.default.9.use_1.1
+      spec_lang:
+        capabilities:
+        - ops.helper
+        - ops.job
+  - id: svc.assert_check.default.10
+    config:
+      jobs:
+      - id: main
+        mode: lint
+        helper: helper.schema.normalize_runner
+        inputs:
+          mode: check
+          paths: specs/01_schema,specs/02_contracts,specs/03_conformance,specs/04_governance,specs/05_libraries
+      - id: on_fail
+        helper: helper.report.emit
+        mode: report
+        inputs:
+          out: ".artifacts/job-hooks/DCCONF-JOB-013.fail.json"
+          format: json
+          report_name: DCCONF-JOB-013.fail
+      - id: on_complete
+        helper: helper.report.emit
+        mode: report
+        inputs:
+          out: ".artifacts/job-hooks/DCCONF-JOB-013.complete.json"
+          format: json
+          report_name: DCCONF-JOB-013.complete
+      use:
+      - as: lib_policy_job
+        symbols:
+        - policy.job.dispatch_ok
+        - policy.job.written_path_contains
+        artifact_id: art.svc.assert_check.default.10.use_1.1
+      spec_lang:
+        capabilities:
+        - ops.helper
+        - ops.job
+  - id: svc.assert_check.default.11
+    config:
+      jobs:
+      - id: main
+        mode: format
+        helper: helper.schema.normalize_runner
+        inputs:
+          mode: fix
+          paths: specs/01_schema,specs/02_contracts,specs/03_conformance,specs/04_governance,specs/05_libraries
+      - id: on_fail
+        helper: helper.report.emit
+        mode: report
+        inputs:
+          out: ".artifacts/job-hooks/DCCONF-JOB-014.fail.json"
+          format: json
+          report_name: DCCONF-JOB-014.fail
+      - id: on_complete
+        helper: helper.report.emit
+        mode: report
+        inputs:
+          out: ".artifacts/job-hooks/DCCONF-JOB-014.complete.json"
+          format: json
+          report_name: DCCONF-JOB-014.complete
+      use:
+      - as: lib_policy_job
+        symbols:
+        - policy.job.dispatch_ok
+        - policy.job.written_path_contains
+        artifact_id: art.svc.assert_check.default.11.use_1.1
+      spec_lang:
+        capabilities:
+        - ops.helper
+        - ops.job
 services:
 - id: svc.assert_check.default.1
   consumes:
@@ -490,6 +659,15 @@ services:
 - id: svc.assert_check.default.8
   consumes:
   - svc.assert_check.default.8
+- id: svc.assert_check.default.9
+  consumes:
+  - svc.assert_check.default.9
+- id: svc.assert_check.default.10
+  consumes:
+  - svc.assert_check.default.10
+- id: svc.assert_check.default.11
+  consumes:
+  - svc.assert_check.default.11
 assets:
 - id: art.svc.assert_check.default.1.use_1.1
   ref: "/specs/05_libraries/policy/policy_job.spec.md"
@@ -507,8 +685,13 @@ assets:
   ref: "/specs/05_libraries/policy/policy_job.spec.md"
 - id: art.svc.assert_check.default.8.use_1.1
   ref: "/specs/05_libraries/policy/policy_job.spec.md"
+- id: art.svc.assert_check.default.9.use_1.1
+  ref: "/specs/05_libraries/policy/policy_job.spec.md"
+- id: art.svc.assert_check.default.10.use_1.1
+  ref: "/specs/05_libraries/policy/policy_job.spec.md"
+- id: art.svc.assert_check.default.11.use_1.1
+  ref: "/specs/05_libraries/policy/policy_job.spec.md"
 ```
-
 
 
 

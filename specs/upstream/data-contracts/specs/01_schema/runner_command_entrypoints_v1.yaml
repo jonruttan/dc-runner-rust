@@ -16,6 +16,8 @@ properties:
         - id
         - cli
         - profile
+        - visibility
+        - source
         - artifacts
         - exit_codes
       properties:
@@ -28,6 +30,19 @@ properties:
         profile:
           type: string
           minLength: 1
+        visibility:
+          type: string
+          enum:
+            - top_level
+            - hidden
+        group:
+          type: string
+          minLength: 1
+        source:
+          type: string
+          enum:
+            - core
+            - bundler
         artifacts:
           type: array
           minItems: 1

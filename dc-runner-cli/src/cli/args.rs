@@ -63,6 +63,11 @@ pub enum CommandGroup {
     Governance(GovernanceCommand),
     /// Docs workflows
     Docs(DocsCommand),
+    /// Schema workflows
+    Schema(SchemaCommand),
+    #[cfg(feature = "bundler")]
+    /// Bundler workflows
+    Bundler(BundlerCommand),
     /// Reporting workflows
     Reports(ReportsCommand),
     /// CI workflows
@@ -135,14 +140,6 @@ pub enum CommandGroup {
     NormalizeCheck(PassthroughArgs),
     #[command(name = "normalize-fix", hide = true)]
     NormalizeFix(PassthroughArgs),
-    #[command(name = "schema-registry-check", hide = true)]
-    SchemaRegistryCheck(PassthroughArgs),
-    #[command(name = "schema-registry-build", hide = true)]
-    SchemaRegistryBuild(PassthroughArgs),
-    #[command(name = "schema-docs-check", hide = true)]
-    SchemaDocsCheck(PassthroughArgs),
-    #[command(name = "schema-docs-build", hide = true)]
-    SchemaDocsBuild(PassthroughArgs),
     #[command(name = "spec-portability-json", hide = true)]
     SpecPortabilityJson(PassthroughArgs),
     #[command(name = "spec-portability-md", hide = true)]
@@ -288,6 +285,34 @@ pub enum DocsSubcommand {
     BuildCheck,
     Lint,
     Graph,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct SchemaCommand {
+    #[command(subcommand)]
+    pub command: SchemaSubcommand,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum SchemaSubcommand {
+    Check,
+    Lint,
+    Format,
+}
+
+#[cfg(feature = "bundler")]
+#[derive(Debug, Clone, Args)]
+pub struct BundlerCommand {
+    #[command(subcommand)]
+    pub command: BundlerSubcommand,
+}
+
+#[cfg(feature = "bundler")]
+#[derive(Debug, Clone, Subcommand)]
+pub enum BundlerSubcommand {
+    Resolve,
+    Package,
+    Check,
 }
 
 #[derive(Debug, Clone, Args)]

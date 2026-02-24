@@ -71,10 +71,21 @@ Most common runner CLI commands:
 ```sh
 dc-runner specs run-all
 dc-runner specs list
+dc-runner schema check
+dc-runner schema lint
+dc-runner schema format
 dc-runner docs generate-check
 dc-runner docs lint
 dc-runner docs build-check
 dc-runner governance run
+```
+
+Optional bundler command group (feature-gated build):
+
+```sh
+dc-runner bundler resolve
+dc-runner bundler package
+dc-runner bundler check
 ```
 
 ## Spec Source Mode
@@ -89,7 +100,7 @@ spec refs from the bundled payload by default.
 Examples:
 
 ```sh
-dc-runner --spec-source bundled entrypoints list
+dc-runner --spec-source bundled entrypoints list --format json
 dc-runner --spec-source workspace docs generate-check
 DC_RUNNER_SPEC_SOURCE=auto dc-runner governance run
 ```
