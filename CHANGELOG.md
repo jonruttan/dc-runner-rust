@@ -6,6 +6,9 @@ The format is based on Keep a Changelog, and this project follows SemVer.
 
 ## [Unreleased]
 
+
+## [0.2.6] - 2026-02-24
+
 ### Added
 - Add full spec state lifecycle management commands under `dc-runner specs`:
   `refresh`, `status`, `versions`, `use`, `rollback`, `verify`, `clean`, `info`, and `prune`.
