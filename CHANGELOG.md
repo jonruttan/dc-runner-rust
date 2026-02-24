@@ -6,6 +6,9 @@ The format is based on Keep a Changelog, and this project follows SemVer.
 
 ## [Unreleased]
 
+### Fixed
+- Update bundled spec snapshot so `dc-runner bundle list|install|inspect` resolves through spec entrypoints in the published runtime.
+
 
 ## [0.2.6] - 2026-02-24
 
