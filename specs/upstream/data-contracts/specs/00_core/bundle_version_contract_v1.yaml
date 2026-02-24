@@ -1,0 +1,14 @@
+version: 1
+source:
+  repo: jonruttan/data-contracts-bundles
+required_bundles:
+  - bundle_id: data-contracts-lang-project-scaffold
+    bundle_version: 1.0.0
+    required_assets: [tarball, sha256]
+    required_payload_files: [resolved_bundle_lock_v1.yaml, resolved_files.sha256, payloads/data-contracts-lang-project-scaffold/scaffold/scaffold_manifest_v1.yaml]
+  - bundle_id: data-contracts-lang-rust-project-scaffold
+    bundle_version: 1.0.0
+    required_assets: [tarball, sha256]
+    required_payload_files: [resolved_bundle_lock_v1.yaml, resolved_files.sha256, payloads/data-contracts-lang-rust-project-scaffold/scaffold/scaffold_manifest_v1.yaml]
+policy:
+  on_unpublished_version: hard_fail

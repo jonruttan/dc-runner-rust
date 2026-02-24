@@ -11,6 +11,7 @@ pub const RUNNER_SPEC_MANIFEST_FILE: &str = "specs/upstream/data-contracts-runne
 pub const INCLUDE_PATTERNS: &[&str] = &[
     "specs/index.md",
     "specs/00_core/current.md",
+    "specs/00_core/bundle_version_contract_v1.yaml",
     "specs/02_contracts/**",
     "specs/01_schema/**",
     "specs/03_conformance/**",

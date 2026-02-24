@@ -73,8 +73,8 @@ fn emit_snapshot(source_root: &Path, prefix: &str, out_name: &str) {
 fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap_or_default());
     let core_candidates = [
-        manifest_dir.join("specs/upstream/data-contracts"),
         manifest_dir.join("../specs/upstream/data-contracts"),
+        manifest_dir.join("specs/upstream/data-contracts"),
     ];
     let core_root = core_candidates
         .iter()
@@ -89,8 +89,8 @@ fn main() {
 
     if env::var("CARGO_FEATURE_BUNDLER").is_ok() {
         let bundler_candidates = [
-            manifest_dir.join("specs/upstream/data-contracts-library"),
             manifest_dir.join("../specs/upstream/data-contracts-library"),
+            manifest_dir.join("specs/upstream/data-contracts-library"),
         ];
         let bundler_root = bundler_candidates
             .iter()
