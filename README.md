@@ -164,6 +164,18 @@ Emit local status exchange artifact:
 ./scripts/emit_runner_status_report.sh
 ```
 
+## Release publishing behavior
+
+Release artifacts are published by the `Release` GitHub Action when a release commit lands on `main`
+from the release-please flow.
+
+- `main` changes to release files trigger a check:
+  - `dc-runner-cli/Cargo.toml`
+  - `dc-runner-cli/CHANGELOG.md`
+  - `.release-please-manifest.json`
+- The workflow publishes only when the commit matches a release commit pattern or when manually forced.
+- Manual force is available via `workflow_dispatch` (`force_publish: true`) for emergencies.
+
 ## Upstream Snapshot Workflows
 
 Pinned upstream compatibility artifacts:
