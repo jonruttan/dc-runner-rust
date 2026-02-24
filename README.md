@@ -248,8 +248,8 @@ Shell compatibility wrappers (xtask-backed):
 
 - crates.io package: `dc-runner-cli`
 - release orchestration: `/.github/workflows/release-please.yml` (opens/updates Release PR from conventional commits on `main`)
-- publish executor: `/.github/workflows/release.yml` (runs on `vX.Y.Z` tags created by the release PR merge)
-- CI publish auth: `CRATES_IO_TOKEN` repository secret
+- publish executor: `/.github/workflows/release.yml` (runs on `vX.Y.Z` tags created by the release PR merge or on forced workflow dispatch)
+- CI publish auth: `CRATES_IO_TOKEN` (preferred) or `CARGO_REGISTRY_TOKEN` repository secret
 
 ## Specs Map
 
