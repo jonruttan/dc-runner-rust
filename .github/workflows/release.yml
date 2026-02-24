@@ -2,9 +2,22 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
+    paths:
+      - 'dc-runner-cli/Cargo.toml'
+      - 'dc-runner-cli/CHANGELOG.md'
+      - '.release-please-manifest.json'
   workflow_dispatch:
+    inputs:
+      force_publish:
+        description: Force publish even if this is not a release commit.
+        required: false
+        default: false
+        type: boolean
+      reason:
+        description: Optional reason for forced publish.
+        required: false
 
 permissions:
   contents: write
@@ -14,9 +27,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release-guard:
+    name: Detect release-worthy commit
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.detect.outputs.should_publish }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Detect release commit
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.force_publish }}" == "true" ]]; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
+          if echo "$COMMIT_MESSAGE" | grep -Eq '^(chore|chore\(main\)): release dc-runner-cli '; then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          fi
+
   verify:
     name: Verify
     runs-on: ubuntu-latest
+    needs: release-guard
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -30,7 +70,10 @@ jobs:
   publish-crate:
     name: Publish Crate
     runs-on: ubuntu-latest
-    needs: verify
+    needs:
+      - release-guard
+      - verify
+    if: needs.release-guard.outputs.should_publish == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -42,19 +85,22 @@ jobs:
             echo "ERROR: CRATES_IO_TOKEN is not configured for this repository." >&2
             exit 1
           fi
-      - name: Validate tag matches crate version
+      - name: Validate release metadata
         shell: bash
         run: |
           set -euo pipefail
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          CRATE_VERSION="$(awk -F ' = ' '/^version = / {gsub(/"/, "", $2); print $2; exit}' dc-runner-cli/Cargo.toml)"
-          if [[ -z "${CRATE_VERSION}" ]]; then
+          PREV_TAG="$(git tag --sort=v:refname | grep '^v' | tail -n 1 || true)"
+          CURRENT_VERSION="$(awk -F ' = ' '/^version = / {gsub(/\"/, \"\", $2); print $2; exit}' dc-runner-cli/Cargo.toml)"
+          if [[ -z "${CURRENT_VERSION}" ]]; then
             echo "ERROR: unable to read crate version from dc-runner-cli/Cargo.toml" >&2
             exit 1
           fi
-          if [[ "${TAG_VERSION}" != "${CRATE_VERSION}" ]]; then
-            echo "ERROR: tag version (${TAG_VERSION}) does not match crate version (${CRATE_VERSION})" >&2
-            exit 1
+          if [[ -n "${PREV_TAG}" ]]; then
+            PREV_VERSION="${PREV_TAG#v}"
+            if [[ "${PREV_VERSION}" == "${CURRENT_VERSION}" ]]; then
+              echo "ERROR: release commit produced no version increase (current=${CURRENT_VERSION}, last-tag=${PREV_TAG})" >&2
+              exit 1
+            fi
           fi
       - name: Package Crate
         run: cargo package -p dc-runner-cli --allow-dirty
@@ -66,7 +112,10 @@ jobs:
   build-artifacts:
     name: Build (${{ matrix.platform }})
     runs-on: ${{ matrix.runner }}
-    needs: verify
+    needs:
+      - release-guard
+      - verify
+    if: needs.release-guard.outputs.should_publish == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -110,8 +159,10 @@ jobs:
   publish-release:
     name: Publish Release
     runs-on: ubuntu-latest
-    needs: build-artifacts
-
+    needs:
+      - release-guard
+      - build-artifacts
+    if: needs.release-guard.outputs.should_publish == 'true'
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
