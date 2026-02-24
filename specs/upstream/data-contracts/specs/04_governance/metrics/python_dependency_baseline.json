@@ -8,7 +8,7 @@
       "rust_adapter"
     ],
     "python_allowed_globs": [
-      "scripts/runner_bin.sh",
+      "dc-runner",
       "scripts/python/*.py",
       ".github/workflows/*.yml",
       ".github/workflows/*.yaml"
@@ -27,7 +27,7 @@
     ],
     "runtime_trace_path": ".artifacts/gate-exec-trace.json",
     "rust_transitive_forbidden_tokens": [
-      "scripts/runner_bin.sh",
+      "dc-runner",
       "scripts/run_governance_specs.py",
       "scripts/ci_gate_summary.py",
       "python -m ",
@@ -39,12 +39,12 @@
         ".github/workflows/*.yaml"
       ],
       "default_gate": [
-        "scripts/ci_gate.sh",
-        "scripts/ci_gate.sh",
-        "scripts/control_plane.sh"
+        "dc-runner governance critical",
+        "dc-runner governance critical",
+        "dc-runner governance run"
       ],
       "python_surfaces": [
-        "scripts/runner_bin.sh",
+        "dc-runner",
         "scripts/python/*.py"
       ],
       "rust_adapter": [
@@ -61,7 +61,7 @@
         "file": "dc-runner-rust",
         "kind": "rust_transitive_token",
         "segment": "rust_adapter",
-        "token": "scripts/runner_bin.sh"
+        "token": "dc-runner"
       }
     ]
   },
@@ -75,21 +75,21 @@
     },
     {
       "allowed_python_surface": 0.0,
-      "file": "scripts/ci_gate.sh",
+      "file": "dc-runner governance critical",
       "python_token_count": 0.0,
       "segment": "default_gate",
       "transitive_token_count": 0.0
     },
     {
       "allowed_python_surface": 0.0,
-      "file": "scripts/ci_gate.sh",
+      "file": "dc-runner governance critical",
       "python_token_count": 0.0,
       "segment": "default_gate",
       "transitive_token_count": 0.0
     },
     {
       "allowed_python_surface": 0.0,
-      "file": "scripts/control_plane.sh",
+      "file": "dc-runner governance run",
       "python_token_count": 0.0,
       "segment": "default_gate",
       "transitive_token_count": 0.0
@@ -103,7 +103,7 @@
     },
     {
       "allowed_python_surface": 1.0,
-      "file": "scripts/runner_bin.sh",
+      "file": "dc-runner",
       "python_token_count": 6.0,
       "segment": "python_surfaces",
       "transitive_token_count": 0.0

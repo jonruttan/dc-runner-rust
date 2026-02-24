@@ -16,7 +16,7 @@ harness:
       - compatibility lanes
       - non-blocking
       forbidden_tokens:
-      - ./scripts/ci_gate.sh
+      - dc-runner governance critical
     check:
       profile: governance.scan
       config:

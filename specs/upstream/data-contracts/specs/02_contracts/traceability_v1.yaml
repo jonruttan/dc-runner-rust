@@ -746,9 +746,9 @@ links:
   unit_test_refs:
   - tests/test_quality_metrics_unit.py
   implementation_refs:
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/control_plane.sh
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance run
   notes: Default gate scripts now set rust adapter as default runner interface boundary.
 - rule_id: RUNTIME_PYTHON_USAGE_SCOPED_TO_PYTHON_RUNNER
   policy_ref: specs/02_contracts/policy_v1.yaml#RUNTIME_PYTHON_USAGE_SCOPED_TO_PYTHON_RUNNER
@@ -1141,8 +1141,8 @@ links:
   - tests/test_contract_governance_unit.py
   implementation_refs:
   - dc-runner-python
-  - scripts/ci_gate.sh
-  - scripts/runner_bin.sh
+  - dc-runner governance critical
+  - dc-runner
   - dc-runner-python
   notes: Governance enforces runner-interface boundary usage in gate shell scripts.
 - rule_id: RUNTIME_LOCAL_CI_PARITY_PYTHON_LANE_FORBIDDEN
@@ -1155,7 +1155,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runtime_local_ci_parity_python_lane_forbidden.spec.md
   notes: Local ci parity path is rust-only and forbids python lane execution.
 - rule_id: RUNTIME_MAKE_PYTHON_PARITY_TARGETS_FORBIDDEN
@@ -1181,7 +1181,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - .githooks/pre-push
   - Makefile
   - specs/04_governance/cases/core/runtime_rust_only_prepush_required.spec.md
@@ -1197,7 +1197,7 @@ links:
   - tests/test_contract_governance_unit.py
   implementation_refs:
   - .githooks/pre-push
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - Makefile
   - specs/04_governance/cases/core/runtime_git_hook_prepush_enforced.spec.md
   notes: Managed pre-push hook and installer enforce local parity checks before push.
@@ -1211,8 +1211,8 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
+  - dc-runner governance critical
   - .githooks/pre-push
   - specs/04_governance/cases/core/runtime_fast_path_consistency_required.spec.md
   notes: Fast-path tokens remain consistent across local parity, ci gate, and pre-push
@@ -1258,7 +1258,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/check_prefix_map_v1.yaml
   - specs/04_governance/cases/core/runtime_governance_triage_entrypoint_required.spec.md
   notes: Canonical governance triage entrypoint surface and modes are enforced.
@@ -1272,7 +1272,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runtime_prepush_uses_governance_triage_required.spec.md
   notes: Prepush governance step must use triage entrypoint.
 - rule_id: RUNTIME_CIGATE_GOVERNANCE_TRIAGE_REQUIRED
@@ -1299,7 +1299,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - dc-runner-python
   notes: Triage flow emits deterministic machine/human artifacts on failure/stall.
 - rule_id: RUNTIME_TRIAGE_FAILURE_ID_PARSING_REQUIRED
@@ -1312,7 +1312,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/check_prefix_map_v1.yaml
   - specs/04_governance/cases/core/runtime_triage_failure_id_parsing_required.spec.md
   notes: Triage parser extracts error check ids and maps them to targeted prefixes.
@@ -1339,7 +1339,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runtime_governance_triage_targeted_first_required.spec.md
   notes: Auto triage defaults to targeted-first with broad-first explicit mode.
 - rule_id: RUNTIME_LOCAL_PREPUSH_BROAD_GOVERNANCE_FORBIDDEN
@@ -1352,7 +1352,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runtime_local_prepush_broad_governance_forbidden.spec.md
   notes: Local prepush keeps broad governance out of default flow.
 - rule_id: RUNTIME_CI_GATE_OWNERSHIP_CONTRACT_REQUIRED
@@ -1365,7 +1365,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - dc-runner-python
   - dc-runner-rust
   notes: CI gate owns critical in ci_gate.sh and keeps ci-gate-summary broad-only
@@ -1380,7 +1380,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runtime_governance_prefix_selection_from_changed_paths.spec.md
   notes: Triage resolves changed-path prefixes before fallback prefix sets.
 - rule_id: RUNTIME_GOVERNANCE_TRIAGE_ARTIFACT_SELECTION_METADATA_REQUIRED
@@ -1393,7 +1393,7 @@ links:
   - dc-runner-python
   - tests/test_contract_governance_unit.py
   implementation_refs:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runtime_governance_triage_artifact_contains_selection_metadata.spec.md
   notes: Triage artifacts includes selected prefixes, source, and broad-required flags.
 - rule_id: RUNTIME_CI_ARTIFACT_UPLOAD_PATHS_VALID
@@ -1687,9 +1687,9 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/control_plane.sh
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance run
   - dc-runner-python
   - specs/04_governance/cases/core/runner_contract/runtime_control_plane_ci_runner_execution_forbidden.spec.md
   notes: Gate orchestration remains runner-interface based without direct Python command
@@ -1719,7 +1719,7 @@ links:
   - tests/test_conformance_parity_unit.py
   - dc-runner-python
   implementation_refs:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - dc-runner-python
   - dc-runner-python
   - specs/04_governance/cases/core/runner_contract/runtime_control_plane_ci_runner_execution_forbidden.spec.md
@@ -1800,7 +1800,7 @@ links:
   implementation_refs:
   - scripts/objective_scorecard_report.py
   - dc-runner-python
-  - scripts/runner_bin.sh
+  - dc-runner
   - dc-runner-python
   - specs/04_governance/cases/core/objective_scorecard_metric.spec.md
   notes: Objective scorecard is generated as JSON/Markdown artifacts.
@@ -1948,7 +1948,7 @@ links:
   - dc-runner-python
   implementation_refs:
   - scripts/normalize_repo.py
-  - scripts/runner_bin.sh
+  - dc-runner
   - dc-runner-python
   - Makefile
   notes: Normalize check is included in smoke/full gate command paths.
@@ -1997,7 +1997,7 @@ links:
   - dc-runner-python
   implementation_refs:
   - scripts/normalize_repo.py
-  - scripts/runner_bin.sh
+  - dc-runner
   - Makefile
   - specs/04_governance/cases/core/spec_core/normalization_spec_style_sync.spec.md
   notes: Explicit normalize-fix path is available for local authoring.
@@ -2302,11 +2302,11 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/control_plane.sh
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance run
   - dc-runner-python
-  notes: Gate scripts must reference scripts/runner_bin.sh as the single public
+  notes: Gate scripts must reference dc-runner as the single public
     runner entrypoint.
 - rule_id: RUNTIME_PUBLIC_ENTRYPOINT_RUST_DEFAULT_REQUIRED
   policy_ref: specs/02_contracts/policy_v1.yaml#RUNTIME_PUBLIC_ENTRYPOINT_RUST_DEFAULT_REQUIRED
@@ -2319,7 +2319,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/runner_bin.sh
+  - dc-runner
   - dc-runner-python
   - specs/04_governance/cases/core/runner_contract/runtime_control_plane_ci_runner_execution_forbidden.spec.md
   notes: Canonical runner adapter defaults to rust implementation mode.
@@ -2333,7 +2333,7 @@ links:
   unit_test_refs:
   - dc-runner-python
   implementation_refs:
-  - scripts/runner_bin.sh
+  - dc-runner
   - dc-runner-python
   - specs/04_governance/cases/core/runner_contract/runtime_control_plane_ci_runner_execution_forbidden.spec.md
   notes: Runtime runner adapter rejects python impl selection with normalization guidance.
@@ -2607,7 +2607,7 @@ links:
   - dc-runner-python
   implementation_refs:
   - scripts/docs_generate_all.py
-  - scripts/runner_bin.sh
+  - dc-runner
   - dc-runner-python
   - dc-runner-rust
   notes: Ensures a single docs generation orchestrator command path.
@@ -3767,7 +3767,7 @@ links:
   unit_test_refs:
   - dc-runner-rust
   implementation_refs:
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runner_contract/runtime_compatibility_status_ingestion_configured.spec.md
   notes: Compatibility status exchange is pinned to release-asset ingestion.
 - rule_id: RUNTIME_COMPATIBILITY_STATUS_FRESHNESS_WITHIN_SLO
@@ -3782,8 +3782,8 @@ links:
   unit_test_refs:
   - dc-runner-rust
   implementation_refs:
-  - scripts/runner_status_ingest.sh
-  - scripts/ci_gate.sh
+  - dc-runner governance run
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runner_contract/runtime_compatibility_status_freshness_within_slo.spec.md
   notes: Active compatibility telemetry older than 72 hours is treated as stale.
 - rule_id: RUNTIME_COMPATIBILITY_MISSING_STATUS_VISIBILITY_REQUIRED
@@ -3797,7 +3797,7 @@ links:
   unit_test_refs:
   - dc-runner-rust
   implementation_refs:
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runner_contract/runtime_compatibility_missing_status_visibility_required.spec.md
   notes: Missing compatibility status is surfaced and policy-scored explicitly.
 - rule_id: RUNTIME_REQUIRED_LANE_STATUS_BLOCKING_ENFORCED
@@ -3812,7 +3812,7 @@ links:
   unit_test_refs:
   - dc-runner-rust
   implementation_refs:
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runner_contract/runtime_required_lane_status_blocking_enforced.spec.md
   notes: Required-lane status remains merge-blocking under status exchange.
 - rule_id: CONTROL_PLANE_STATUS_INGEST_INTEGRITY_REQUIRED
@@ -3825,7 +3825,7 @@ links:
   unit_test_refs: []
   implementation_refs:
   - .github/workflows/ci.yml
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runner_contract/runtime_status_ingest_job_present.spec.md
   - specs/04_governance/cases/core/runtime_matrix_artifacts_emitted.spec.md
   notes: Control-plane CI must emit status-ingest artifacts deterministically.
@@ -3838,9 +3838,9 @@ links:
   unit_test_refs: []
   implementation_refs:
   - .github/workflows/ci.yml
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runner_contract/runtime_control_plane_ci_runner_execution_forbidden.spec.md
   notes: Runtime lane execution is externalized to runner repositories.
 - rule_id: CONTROL_PLANE_DOCS_TASK_USAGE_REQUIRED
@@ -3878,7 +3878,7 @@ links:
   conformance_case_ids: []
   unit_test_refs: []
   implementation_refs:
-  - scripts/control_plane.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/spec_core/governance_policy_source_spec_lang_required.spec.md
   notes: Policy verdict authority is delegated to governance spec surfaces.
 - rule_id: SHELL_DECISION_LOGIC_FORBIDDEN
@@ -3889,11 +3889,11 @@ links:
   conformance_case_ids: []
   unit_test_refs: []
   implementation_refs:
-  - scripts/control_plane.sh
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
+  - dc-runner governance run
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runner_contract/runtime_shell_policy_branches_forbidden.spec.md
   notes: Shell scripts stay orchestration-only for covered governance domains.
 - rule_id: ARTIFACT_COMPATIBILITY_DURING_CUTOVER
@@ -3904,9 +3904,9 @@ links:
   conformance_case_ids: []
   unit_test_refs: []
   implementation_refs:
-  - scripts/governance_catalog_validate.sh
-  - scripts/spec_schema_pin_validate.sh
-  - scripts/governance_optional_report.sh
+  - dc-runner governance run
+  - dc-runner governance run
+  - dc-runner governance broad
   - specs/04_governance/cases/core/runtime_artifact_contract_compatibility_preserved.spec.md
   notes: Extractor artifacts retain stable paths and key contract compatibility.
 - rule_id: POLICY_CHAIN_ENTRY_CASES_REQUIRED
@@ -3933,7 +3933,7 @@ links:
   conformance_case_ids: []
   unit_test_refs: []
   implementation_refs:
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runner_contract/runtime_ingest_policy_branches_forbidden.spec.md
   - specs/04_governance/cases/core/runner_contract/runtime_status_ingest_pipeline_chain.spec.md
   notes: Ingest shell emits facts while governance decides policy outcomes.
@@ -4002,7 +4002,7 @@ links:
   implementation_refs:
   - specs/03_conformance/cases/runner_cli/runner_cli_required_contract_spec_format_check.spec.md
   - specs/03_conformance/cases/runner_cli/runner_cli_required_contract_spec_format_write.spec.md
-  notes: Portable formatter command contract covers both check and write modes.
+  notes: Portable schema suite command contract covers check, lint, and format modes.
 - rule_id: CONTRACT_SPEC_V2_KEY_ORDER_CANONICAL
   policy_ref: specs/02_contracts/policy_v1.yaml#CONTRACT_SPEC_V2_KEY_ORDER_CANONICAL
   contract_refs:
@@ -4349,10 +4349,10 @@ links:
   - specs/05_libraries/policy/policy_governance_catalog.spec.md
   - specs/05_libraries/policy/policy_schema_pin.spec.md
   - specs/05_libraries/policy/policy_ci_gate.spec.md
-  - scripts/control_plane.sh
-  - scripts/governance_catalog_validate.sh
-  - scripts/spec_schema_pin_validate.sh
-  - scripts/governance_optional_report.sh
+  - dc-runner governance run
+  - dc-runner governance run
+  - dc-runner governance run
+  - dc-runner governance broad
   notes: Shared governance semantics are spec-defined and runner-executed; shell scripts remain thin transport emitters.
 - rule_id: REPO_BOUNDARY_CANONICAL_SCHEMA_AUTHORITY
   policy_ref: specs/02_contracts/policy_v1.yaml#REPO_BOUNDARY_CANONICAL_SCHEMA_AUTHORITY
@@ -4376,8 +4376,8 @@ links:
   conformance_case_ids: []
   unit_test_refs: []
   implementation_refs:
-  - scripts/governance_boundary_validate.sh
-  - scripts/control_plane.sh
+  - dc-runner governance run
+  - dc-runner governance run
   notes: Governance enforces forbidden runner tree tokens across canonical docs/spec trees.
 - rule_id: ACTIVE_SHELL_SCRIPTS_WRAPPER_ONLY
   policy_ref: specs/02_contracts/policy_v1.yaml#ACTIVE_SHELL_SCRIPTS_WRAPPER_ONLY
@@ -4388,13 +4388,13 @@ links:
   conformance_case_ids: []
   unit_test_refs: []
   implementation_refs:
-  - scripts/control_plane.sh
-  - scripts/ci_gate.sh
-  - scripts/governance_catalog_validate.sh
-  - scripts/spec_schema_pin_validate.sh
-  - scripts/governance_optional_report.sh
-  - scripts/governance_boundary_validate.sh
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
+  - dc-runner governance critical
+  - dc-runner governance run
+  - dc-runner governance run
+  - dc-runner governance broad
+  - dc-runner governance run
+  - dc-runner governance run
   notes: Active shell scripts delegate to runner command/spec execution surfaces only.
 - rule_id: RETIRED_SCRIPT_TREE_REMOVED
   policy_ref: specs/02_contracts/policy_v1.yaml#RETIRED_SCRIPT_TREE_REMOVED
@@ -4471,4 +4471,4 @@ links:
   - specs/04_governance/cases/core/runner_contract/entrypoint_registry_schema_valid.spec.md
   - specs/04_governance/cases/core/runner_contract/entrypoint_profile_refs_resolve.spec.md
   - specs/04_governance/cases/core/runner_contract/entrypoint_artifact_contract_complete.spec.md
-  notes: Canonical command semantics are resolved from spec-owned entrypoint mappings.
+  notes: Canonical command semantics are resolved from spec-owned entrypoint mappings, including docs generate/check/build/lint/graph commands.

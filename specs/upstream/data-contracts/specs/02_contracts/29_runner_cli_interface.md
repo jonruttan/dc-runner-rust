@@ -67,6 +67,7 @@ the required portable command semantics.
 Command-to-profile mapping source of truth:
 
 - `/specs/04_governance/runner_entrypoints_v1.yaml`
+- `/specs/00_core/runner_version_contract_v1.yaml`
 
 Schema:
 
@@ -78,6 +79,15 @@ and exit-code contracts.
 
 Entrypoints marked `visibility: top_level` are promoted to canonical help and
 user-facing command surfaces.
+
+## CI Install Contract
+
+Canonical CI environments MUST install `dc-runner-cli` at the exact
+`required_version` declared in `/specs/00_core/runner_version_contract_v1.yaml`
+and MUST fail if that version is not published.
+
+Canonical CI MUST NOT use git revision install paths (`cargo install --git ...
+--rev ...`) for runner resolution.
 
 ## Spec Source Resolution
 

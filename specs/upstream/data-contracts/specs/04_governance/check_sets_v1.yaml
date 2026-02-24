@@ -26,6 +26,19 @@ profiles:
         must_not_contain:
           - ./dc-runner governance run
           - ./dc-runner
+      - id: runtime.ci_runner_version_contract_enforced
+        kind: file_tokens
+        path: /.github/workflows/ci.yml
+        must_contain:
+          - runner-preflight:
+          - specs/00_core/runner_version_contract_v1.yaml
+          - cargo install "${{ steps.contract.outputs.crate_name }}" --locked --version "${{ steps.contract.outputs.required_version }}" --force
+      - id: runtime.ci_runner_git_sha_pin_forbidden
+        kind: file_tokens
+        path: /.github/workflows/ci.yml
+        must_not_contain:
+          - cargo install --git
+          - --rev
       - id: runtime.compatibility_status_freshness_within_slo
         kind: file_tokens
         path: /specs/04_governance/runner_entrypoints_v1.yaml

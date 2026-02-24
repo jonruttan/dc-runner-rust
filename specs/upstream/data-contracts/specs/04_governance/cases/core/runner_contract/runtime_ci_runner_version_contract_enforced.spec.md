@@ -9,19 +9,23 @@ harness:
     ci_runtime_exec:
       files:
       - /.github/workflows/ci.yml
-      - dc-runner governance critical
+      - /specs/00_core/runner_version_contract_v1.yaml
+      required_tokens:
+      - runner-preflight:
+      - specs/00_core/runner_version_contract_v1.yaml
+      - cargo install "${{ steps.contract.outputs.crate_name }}" --locked --version "${{ steps.contract.outputs.required_version }}" --force
       forbidden_tokens:
-      - ./dc-runner governance run
-      - ./dc-runner
+      - cargo install --git
+      - --rev
     check:
       profile: governance.scan
       config:
-        check: runtime.control_plane_ci_runner_execution_forbidden
+        check: runtime.ci_runner_version_contract_enforced
 contracts:
   clauses:
-  - id: DCGOV-RUNTIME-CI-001
-    title: control-plane ci forbids runtime runner execution
-    purpose: Ensures CI does not bypass the control plane by invoking runtime lane commands directly.
+  - id: DCGOV-RUNTIME-CI-VC-001
+    title: ci runner install resolves via version contract
+    purpose: Ensures CI installs runner from the required version contract and forbids git SHA install paths.
     asserts:
       imports:
       - from: asset
@@ -39,11 +43,11 @@ contracts:
 adapters:
 - type: beta.scan
   actions:
-  - id: act.gov.runtime.control.plane.ci.1
+  - id: act.gov.runtime.ci.version.contract.1
     direction: bidirectional
     profile: default
 services:
-- id: svc.gov.runtime.control.plane.ci.1
+- id: svc.gov.runtime.ci.version.contract.1
   consumes:
-  - act.gov.runtime.control.plane.ci.1
+  - act.gov.runtime.ci.version.contract.1
 ```

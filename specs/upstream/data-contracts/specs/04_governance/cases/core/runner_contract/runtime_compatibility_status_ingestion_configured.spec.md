@@ -8,7 +8,7 @@ harness:
     root: .
     status_ingestion:
       files:
-      - /scripts/runner_status_ingest.sh
+      - dc-runner governance run
       - /specs/01_schema/runner_certification_registry_v1.yaml
       required_tokens:
       - release_api_url

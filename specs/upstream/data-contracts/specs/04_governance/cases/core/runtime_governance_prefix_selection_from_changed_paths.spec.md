@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     triage_prefix_selection:
-      path: /scripts/governance_triage.sh
+      path: dc-runner governance run
       required_tokens:
       - collect_changed_paths
       - select_prefixes_from_changed_paths

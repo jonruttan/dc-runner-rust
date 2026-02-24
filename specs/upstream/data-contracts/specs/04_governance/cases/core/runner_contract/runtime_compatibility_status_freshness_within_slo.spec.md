@@ -8,8 +8,8 @@ harness:
     root: .
     freshness_policy:
       files:
-      - /scripts/runner_status_ingest.sh
-      - /scripts/ci_gate.sh
+      - dc-runner governance run
+      - dc-runner governance critical
       required_tokens:
       - --max-age-hours
       - '72'

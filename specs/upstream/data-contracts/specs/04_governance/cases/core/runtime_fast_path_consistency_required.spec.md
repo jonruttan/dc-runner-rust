@@ -8,16 +8,16 @@ harness:
     root: .
     fast_path_consistency:
       file_token_sets:
-      - path: /scripts/ci_gate.sh
+      - path: dc-runner governance critical
         required_tokens:
         - paths_all_in_list "specs/04_governance/check_sets_v1.yaml"
         - is_fast_path_script_only_change
-        - paths_all_in_list "scripts/ci_gate.sh" "scripts/ci_gate.sh"
+        - paths_all_in_list "dc-runner governance critical" "dc-runner governance critical"
         - skip normalize-check (check_sets-only change)
         - skip docs-generate-check (check_sets-only change)
         - skip normalize-check (gate-script-only change)
         - skip docs-generate-check (gate-script-only change)
-      - path: /scripts/ci_gate.sh
+      - path: dc-runner governance critical
         required_tokens:
         - SPEC_CI_GATE_LOCAL_FAST_PATH
         - only_check_sets_changes
@@ -31,8 +31,8 @@ harness:
         - is_check_sets_only_change
         - is_gate_script_only_change
         - specs/04_governance/check_sets_v1.yaml
-        - scripts/ci_gate.sh
-        - scripts/ci_gate.sh
+        - dc-runner governance critical
+        - dc-runner governance critical
         - 'fast path: check_sets-only change'
         - 'fast path: gate-script-only change'
         - make prepush

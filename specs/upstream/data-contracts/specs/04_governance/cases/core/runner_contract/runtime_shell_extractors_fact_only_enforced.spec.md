@@ -9,7 +9,7 @@ contracts:
     harness:
       root: "."
       extractor_script:
-        path: "/scripts/governance_catalog_validate.sh"
+        path: "dc-runner governance run"
         must_not_contain:
         - exit 1
         - blocking_fail

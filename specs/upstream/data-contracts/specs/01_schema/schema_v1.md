@@ -84,7 +84,7 @@ level in:
 
 ## v1 Canonical Key Order (Formatter Scope)
 
-`contract-spec-format` v1 scope is intentionally narrow:
+`schema format` v1 scope is intentionally narrow:
 
 - suite root mapping keys
 - each `contracts.clauses[]` mapping item

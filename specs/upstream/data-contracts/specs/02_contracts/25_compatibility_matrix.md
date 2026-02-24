@@ -18,7 +18,7 @@ It is not a runtime-lane executor.
 - status producer schema: `/specs/01_schema/runner_status_report_v1.yaml`
 - matrix schema: `/specs/01_schema/runner_status_matrix_v1.yaml`
 - execution certificate schema: `/specs/01_schema/runner_execution_certificate_v1.yaml`
-- ingest entrypoint: `/scripts/runner_status_ingest.sh`
+- ingest entrypoint: `dc-runner governance run`
 - registry source: `/specs/01_schema/runner_certification_registry_v1.yaml`
 
 ## Freshness

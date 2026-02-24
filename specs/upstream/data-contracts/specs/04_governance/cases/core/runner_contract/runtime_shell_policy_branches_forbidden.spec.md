@@ -9,7 +9,7 @@ contracts:
     harness:
       root: "."
       control_plane_shell:
-        path: "/scripts/control_plane.sh"
+        path: "dc-runner"
         forbidden_tokens:
         - README missing required task path token
         - runtime runner execution references are forbidden

@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     triage_artifact_selection_metadata:
-      path: /scripts/governance_triage.sh
+      path: dc-runner governance run
       required_tokens:
       - selection_source
       - selected_prefixes

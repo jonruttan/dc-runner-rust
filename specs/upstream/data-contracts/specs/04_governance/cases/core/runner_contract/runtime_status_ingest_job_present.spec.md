@@ -10,7 +10,7 @@ harness:
       path: /.github/workflows/ci.yml
       required_tokens:
       - runner-status-ingest: null
-      - ./scripts/runner_status_ingest.sh --max-age-hours 72 --enforce-freshness
+      - dc-runner governance run
     check:
       profile: governance.scan
       config:

@@ -10,7 +10,7 @@ harness:
       files:
       - /docs/book/99_generated_reference_index.md
       required_tokens:
-      - ./scripts/control_plane.sh docs-generate-check
+      - dc-runner docs generate-check
       forbidden_tokens:
       - PYTHONPATH=runners/python
       - .venv/bin/python

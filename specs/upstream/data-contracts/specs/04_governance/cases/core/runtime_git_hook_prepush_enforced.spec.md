@@ -8,7 +8,7 @@ harness:
     root: .
     git_hook_prepush:
       hook_path: /.githooks/pre-push
-      install_script: /scripts/ci_gate.sh
+      install_script: dc-runner governance critical
       makefile_path: /Makefile
     check:
       profile: governance.scan

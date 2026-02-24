@@ -11,9 +11,8 @@ harness:
 contracts:
   clauses:
   - id: DCCONF-RCLI-007
-    title: runner cli exposes contract spec format write command
-    purpose: Portable CLI contract requires the write mode for contract-spec key order
-      formatting.
+    title: runner cli exposes schema format command
+    purpose: Portable CLI contract requires schema suite format mode.
     asserts:
       imports:
       - from: asset
@@ -24,7 +23,7 @@ contracts:
         assert:
           std.string.contains:
           - var: text
-          - runner contract-spec-format --write
+          - dc-runner schema format
 adapters:
 - type: beta.check_profile_text_file_config
   actions:

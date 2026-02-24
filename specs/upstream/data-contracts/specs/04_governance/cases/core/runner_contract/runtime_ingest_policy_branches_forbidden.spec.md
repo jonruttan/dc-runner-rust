@@ -9,7 +9,7 @@ contracts:
     harness:
       root: "."
       ingest_script:
-        path: "/scripts/runner_status_ingest.sh"
+        path: "dc-runner governance run"
         must_not_contain:
         - ERROR: compatibility status freshness policy violation
         - exit 1

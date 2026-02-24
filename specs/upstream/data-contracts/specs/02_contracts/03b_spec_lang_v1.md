@@ -356,5 +356,5 @@ standardize `evaluate` expression formatting to:
 
 Tooling:
 
-- lint: `./scripts/control_plane.sh spec-lang-format --check --cases specs`
-- format: `./scripts/control_plane.sh spec-lang-format --write --cases specs`
+- lint: `.dc-runner spec-lang-format --check --cases specs`
+- format: `.dc-runner spec-lang-format --write --cases specs`

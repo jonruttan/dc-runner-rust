@@ -20,7 +20,7 @@ owns_tokens:
 requires_tokens:
 - token_b
 commands:
-- run: ./scripts/ci_gate.sh
+- run: dc-runner governance critical
   purpose: Execute local gate.
 examples:
 - id: EX-REF-001

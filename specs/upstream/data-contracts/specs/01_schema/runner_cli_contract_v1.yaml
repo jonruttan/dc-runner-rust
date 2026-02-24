@@ -37,10 +37,10 @@ properties:
     properties:
       command:
         type: string
-        const: contract-spec-format
+        const: schema
       modes:
         type: array
-        minItems: 2
+        minItems: 3
         items:
           type: string
       scope:

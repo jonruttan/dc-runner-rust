@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     local_ci_parity_python_lane:
-      path: /scripts/ci_gate.sh
+      path: dc-runner governance critical
       required_tokens:
       - MODE="${SPEC_PREPUSH_MODE:-critical}"
       - 'mode=critical: rust-only critical path'

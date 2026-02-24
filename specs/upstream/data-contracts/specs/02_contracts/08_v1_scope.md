@@ -62,7 +62,7 @@ maintenance decisions stay predictable.
 
 `data-contracts` v1 readiness requires:
 
-- deterministic CI gate (`./scripts/ci_gate.sh`) green
+- deterministic CI gate (`dc-runner governance critical`) green
 - contract governance checks green
 - conformance parity check green for the canonical case set
 - no unresolved P0/P1 contract risks in active review backlog

@@ -9,9 +9,9 @@ harness:
     readme_coherence:
       path: /README.md
       required_tokens:
-      - ./scripts/control_plane.sh critical-gate
-      - ./scripts/control_plane.sh governance
-      - ./scripts/control_plane.sh docs-generate-check
+      - dc-runner governance critical
+      - dc-runner governance run
+      - dc-runner docs generate-check
       - Compatibility Matrix (Non-Blocking)
       - compatibility_non_blocking
       - SPEC_PREPUSH_BYPASS=1 git push

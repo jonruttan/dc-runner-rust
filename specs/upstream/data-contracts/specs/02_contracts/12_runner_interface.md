@@ -35,6 +35,7 @@ The public command boundary is the installed binary:
 Command semantics are source-controlled in:
 
 - `/specs/04_governance/runner_entrypoints_v1.yaml`
+- `/specs/00_core/runner_version_contract_v1.yaml`
 
 Runtime source selection is bundled-first:
 
@@ -47,6 +48,18 @@ and must appear in runner help output.
 Shared governance semantics MUST be sourced from spec surfaces (`specs/04_governance/**`
 `specs/05_libraries/policy/**`) and executed by runners. Shell scripts are not
 canonical command entrypoints.
+
+## CI Compatibility Contract
+
+Canonical CI compatibility is version-contract-driven:
+
+- CI MUST read required runner package metadata from
+  `/specs/00_core/runner_version_contract_v1.yaml`.
+- CI MUST install exactly `runner.crate` at `required_version` from crates.io.
+- CI MUST run a single compatibility preflight before downstream jobs and fail
+  when required entrypoints are missing.
+- Git SHA installs (`cargo install --git ... --rev ...`) are forbidden in
+  canonical CI.
 
 Reusable runner executable spec suites MUST use canonical v1 case shape:
 

@@ -15,7 +15,7 @@ Goal:
 
 Minimum checks:
 
-- governance spec checks via runner interface (`./scripts/runner_bin.sh governance`)
+- governance spec checks via runner interface (`dc-runner governance`)
 - style and normalization checks via runner interface (`style-check`, `normalize-check`)
 - focused core runner tests via required Rust command surface
 

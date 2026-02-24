@@ -810,16 +810,16 @@ rules:
   applies_to: runtime.default_gate.adapter
   norm: MUST
   requirement: default_gate_scripts_set_public_runner_adapter_as_default_runner_bin
-  description: 'Default gate scripts must set SPEC_RUNNER_BIN to scripts/runner_bin.sh
+  description: 'Default gate scripts must set SPEC_RUNNER_BIN to dc-runner
     when not explicitly overridden.
 
     '
   rationale: Makes rust lane the default operational boundary.
   risk_if_violated: Default path remains python-biased and normalization stalls.
   references:
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/control_plane.sh
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance run
 - id: RUNTIME_PYTHON_USAGE_SCOPED_TO_PYTHON_RUNNER
   introduced_in: v1
   scope: governance
@@ -1192,10 +1192,10 @@ rules:
   risk_if_violated: Removing Python requires rewriting gate orchestration logic.
   references:
   - specs/02_contracts/12_runner_interface.md
-  - scripts/runner_bin.sh
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
-  - scripts/control_plane.sh
+  - dc-runner
+  - dc-runner governance critical
+  - dc-runner governance critical
+  - dc-runner governance run
 - id: RUNTIME_RUNNER_INTERFACE_SUBCOMMANDS_DECLARED
   introduced_in: v1
   scope: governance
@@ -1231,7 +1231,7 @@ rules:
   applies_to: runtime.required_lane_primary.ci_lane
   norm: MUST
   requirement: rust_primary_ci_lane_executes_core_gate_via_runner_interface
-  description: 'CI must include a Rust-primary lane that executes core gate with SPEC_RUNNER_BIN=./scripts/runner_bin.sh.
+  description: 'CI must include a Rust-primary lane that executes core gate with SPEC_RUNNER_BIN=dc-runner.
 
     '
   rationale: Makes Rust-primary operation continuously verifiable in automation.
@@ -1326,14 +1326,14 @@ rules:
   norm: MUST
   requirement: compatibility_status_ingestion_must_use_release_assets
   description: 'Compatibility status ingestion must be configured through
-    /scripts/runner_status_ingest.sh and runner certification registry release
+    dc-runner governance run and runner certification registry release
     asset metadata.
 
     '
   rationale: Preserves implementation separation while keeping status exchange explicit.
   risk_if_violated: Compatibility telemetry becomes ad-hoc or silently absent.
   references:
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/01_schema/runner_certification_registry_v1.yaml
   - specs/04_governance/cases/core/runner_contract/runtime_compatibility_status_ingestion_configured.spec.md
 - id: RUNTIME_COMPATIBILITY_STATUS_FRESHNESS_WITHIN_SLO
@@ -1349,8 +1349,8 @@ rules:
   rationale: Makes stale compatibility health visible before drift becomes chronic.
   risk_if_violated: Non-blocking lanes can silently rot without governance signal.
   references:
-  - scripts/runner_status_ingest.sh
-  - scripts/ci_gate.sh
+  - dc-runner governance run
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runner_contract/runtime_compatibility_status_freshness_within_slo.spec.md
 - id: RUNTIME_COMPATIBILITY_MISSING_STATUS_VISIBILITY_REQUIRED
   introduced_in: v1
@@ -1365,7 +1365,7 @@ rules:
   rationale: Prevents missing data from being interpreted as healthy data.
   risk_if_violated: CI and reviewers cannot distinguish missing vs passing compatibility state.
   references:
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runner_contract/runtime_compatibility_missing_status_visibility_required.spec.md
 - id: RUNTIME_REQUIRED_LANE_STATUS_BLOCKING_ENFORCED
   introduced_in: v1
@@ -1380,7 +1380,7 @@ rules:
   rationale: Preserves required lane authority under cross-repo status exchange.
   risk_if_violated: Merge can proceed when required runtime health is degraded.
   references:
-  - scripts/runner_status_ingest.sh
+  - dc-runner governance run
   - specs/02_contracts/25_compatibility_matrix.md
   - specs/04_governance/cases/core/runner_contract/runtime_required_lane_status_blocking_enforced.spec.md
 - id: DOCS_COMPATIBILITY_EXAMPLES_LABELING_REQUIRED
@@ -1421,7 +1421,7 @@ rules:
   applies_to: runtime.runner_interface.public_entrypoint
   norm: MUST
   requirement: gate_scripts_use_single_public_runner_entrypoint
-  description: 'Gate shell scripts must reference scripts/runner_bin.sh as the
+  description: 'Gate shell scripts must reference dc-runner as the
     single public runner entrypoint.
 
     '
@@ -1435,7 +1435,7 @@ rules:
   applies_to: runtime.runner_interface.default_mode
   norm: MUST
   requirement: public_runner_entrypoint_targets_rust_runner_binary
-  description: 'scripts/runner_bin.sh must resolve and execute the Rust runner
+  description: 'dc-runner must resolve and execute the Rust runner
     binary as the required lane.
 
     '
@@ -1475,7 +1475,7 @@ rules:
   risk_if_violated: Python runtime dependencies can reappear in local critical gate
     loops.
   references:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runtime_local_ci_parity_python_lane_forbidden.spec.md
 - id: RUNTIME_MAKE_PYTHON_PARITY_TARGETS_FORBIDDEN
   introduced_in: v1
@@ -1506,7 +1506,7 @@ rules:
   risk_if_violated: retired Python execution can re-enter prepush and slow or destabilize
     iteration.
   references:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - .githooks/pre-push
   - Makefile
   - specs/04_governance/cases/core/runtime_rust_only_prepush_required.spec.md
@@ -1524,7 +1524,7 @@ rules:
   risk_if_violated: Local workflows remain advisory and drift from CI expectations.
   references:
   - .githooks/pre-push
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - Makefile
   - specs/04_governance/cases/core/runtime_git_hook_prepush_enforced.spec.md
 - id: RUNTIME_FAST_PATH_CONSISTENCY_REQUIRED
@@ -1541,8 +1541,8 @@ rules:
     prevents drift.
   risk_if_violated: Divergent routing behavior causes slow or inconsistent local validation.
   references:
-  - scripts/ci_gate.sh
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
+  - dc-runner governance critical
   - .githooks/pre-push
   - specs/04_governance/cases/core/runtime_fast_path_consistency_required.spec.md
 - id: RUNTIME_RUST_ADAPTER_TARGET_FALLBACK_REQUIRED
@@ -1591,7 +1591,7 @@ rules:
   rationale: Enforces failure-ID-first triage as the canonical debugging path.
   risk_if_violated: Broad governance reruns become default and debugging cycles regress.
   references:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/check_prefix_map_v1.yaml
   - specs/04_governance/cases/core/runtime_governance_triage_entrypoint_required.spec.md
 - id: RUNTIME_PREPUSH_GOVERNANCE_TRIAGE_REQUIRED
@@ -1608,7 +1608,7 @@ rules:
   risk_if_violated: Local checks can re-enter long hanging cycles before targeted
     isolation.
   references:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runtime_prepush_uses_governance_triage_required.spec.md
 - id: RUNTIME_CIGATE_GOVERNANCE_TRIAGE_REQUIRED
   introduced_in: v1
@@ -1639,7 +1639,7 @@ rules:
   rationale: Preserves diagnosis state across runs and developers.
   risk_if_violated: Repeat triage requires ad-hoc reruns and manual log scraping.
   references:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - dc-runner-python
 - id: RUNTIME_TRIAGE_FAILURE_ID_PARSING_REQUIRED
   introduced_in: v1
@@ -1654,7 +1654,7 @@ rules:
   rationale: Ensures targeted reruns are machine-derived, not guesswork.
   risk_if_violated: Targeted retries miss failing checks or become inconsistent.
   references:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/check_prefix_map_v1.yaml
   - specs/04_governance/cases/core/runtime_triage_failure_id_parsing_required.spec.md
 - id: RUNTIME_TRIAGE_BYPASS_LOGGING_REQUIRED
@@ -1686,7 +1686,7 @@ rules:
   risk_if_violated: Local prepush cycles remain slow and regress into broad-first
     waiting.
   references:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runtime_governance_triage_targeted_first_required.spec.md
 - id: RUNTIME_LOCAL_PREPUSH_BROAD_GOVERNANCE_FORBIDDEN
   introduced_in: v1
@@ -1701,7 +1701,7 @@ rules:
   rationale: Keeps local turnaround fast while preserving CI broad safety.
   risk_if_violated: Developers wait for broad checks before receiving actionable failures.
   references:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - specs/04_governance/cases/core/runtime_local_prepush_broad_governance_forbidden.spec.md
 - id: RUNTIME_CI_GATE_OWNERSHIP_CONTRACT_REQUIRED
   introduced_in: v1
@@ -1718,7 +1718,7 @@ rules:
   risk_if_violated: Duplicate critical execution and ownership drift can reintroduce
     latency and inconsistency.
   references:
-  - scripts/ci_gate.sh
+  - dc-runner governance critical
   - dc-runner-python
   - dc-runner-rust
 - id: RUNTIME_GOVERNANCE_PREFIX_SELECTION_FROM_CHANGED_PATHS
@@ -1735,7 +1735,7 @@ rules:
   risk_if_violated: Triage executes unnecessary checks and degrades developer feedback
     loops.
   references:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runtime_governance_prefix_selection_from_changed_paths.spec.md
 - id: RUNTIME_GOVERNANCE_TRIAGE_ARTIFACT_SELECTION_METADATA_REQUIRED
   introduced_in: v1
@@ -1750,7 +1750,7 @@ rules:
   rationale: Enables deterministic diagnosis of why a targeted set ran.
   risk_if_violated: Reproduction and debugging of targeted runs become ambiguous.
   references:
-  - scripts/governance_triage.sh
+  - dc-runner governance run
   - specs/04_governance/cases/core/runtime_governance_triage_artifact_contains_selection_metadata.spec.md
 - id: RUNTIME_CI_ARTIFACT_UPLOAD_PATHS_VALID
   introduced_in: v1
@@ -2279,7 +2279,7 @@ rules:
     checks.
   references:
   - scripts/normalize_repo.py
-  - scripts/runner_bin.sh
+  - dc-runner
   - dc-runner-python
 - id: NORMALIZATION_MAPPING_AST_ONLY
   introduced_in: v1
@@ -2328,7 +2328,7 @@ rules:
   risk_if_violated: Teams rely on manual ad-hoc rewrites and drift accumulates.
   references:
   - Makefile
-  - scripts/runner_bin.sh
+  - dc-runner
   - scripts/normalize_repo.py
   - specs/04_governance/cases/core/spec_core/normalization_spec_style_sync.spec.md
 - id: NORMALIZATION_VIRTUAL_ROOT_PATHS_ONLY
@@ -2919,7 +2919,7 @@ rules:
   risk_if_violated: Divergent command paths produce inconsistent artifacts.
   references:
   - scripts/docs_generate_all.py
-  - scripts/runner_bin.sh
+  - dc-runner
   - specs/04_governance/cases/core/project_docs/docs_generator_outputs_sync.spec.md
 - id: DOCS_GENERATED_SURFACES_SYNC_REQUIRED
   introduced_in: v1
@@ -4306,11 +4306,12 @@ rules:
   scope: runtime
   applies_to: runner.cli.contract_spec_format
   norm: MUST
-  requirement: portable_contract_spec_formatter_modes_must_be_contract_defined
-  description: Portable runner CLI contract must define `contract-spec-format`
-    with both `--check` and `--write` modes for v1 contract-spec blocks.
-  rationale: Keeps key-order normalization deterministic and implementation-agnostic.
-  risk_if_violated: Contract-spec ordering drifts and review diffs become noisy.
+  requirement: portable_schema_suite_modes_must_be_contract_defined
+  description: Portable runner CLI contract must define `schema` with `check`,
+    `lint`, and `format` modes for v1 schema/spec surfaces.
+  rationale: Keeps schema validation, linting, and normalization deterministic
+    and implementation-agnostic.
+  risk_if_violated: Schema behavior drifts and authoring consistency regresses.
   references:
   - specs/02_contracts/29_runner_cli_interface.md
   - specs/01_schema/runner_cli_contract_v1.yaml
@@ -4698,7 +4699,7 @@ rules:
   risk_if_violated: Canonical contract/docs surfaces leak runner implementation ownership.
   references:
   - specs/00_core/repo_boundary_charter.md
-  - scripts/governance_boundary_validate.sh
+  - dc-runner governance run
   - specs/02_contracts/12_runner_interface.md
 - id: ACTIVE_SHELL_SCRIPTS_WRAPPER_ONLY
   introduced_in: v1
@@ -4793,10 +4794,12 @@ rules:
   norm: MUST
   requirement: canonical_runner_commands_must_resolve_from_spec_entrypoint_registry
   description: Canonical runner command semantics are declared in spec entrypoint
-    manifests and resolved to check-set profiles.
+    manifests and resolved to check-set profiles, including docs commands
+    `docs-generate|docs-generate-check|docs-build|docs-build-check|docs-lint|docs-graph`.
   rationale: Keeps command authority declarative and portable across runner implementations.
   risk_if_violated: Command behavior drifts from canonical contracts and governance lanes.
   references:
   - specs/01_schema/runner_command_entrypoints_v1.yaml
   - specs/04_governance/runner_entrypoints_v1.yaml
   - specs/02_contracts/36_runner_command_entrypoints.md
+  - specs/03_conformance/cases/core/script_job_contracts.spec.md

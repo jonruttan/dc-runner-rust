@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     status_visibility:
-      path: /scripts/runner_status_ingest.sh
+      path: dc-runner governance run
       required_tokens:
       - freshness_state
       - missing

@@ -68,7 +68,7 @@ Allowed labels:
 
 Canonical command:
 
-- `./scripts/control_plane.sh review-validate --snapshot <path>`
+- `.dc-runner review-validate --snapshot <path>`
 
 Exit semantics:
 

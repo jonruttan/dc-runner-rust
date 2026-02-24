@@ -16,7 +16,7 @@ Executable governance checks for canonical contract enforcement.
 - Ownership:
   - `/specs/04_governance/**` is canonical and hand-edited.
   - `/specs/governance/**` is generated and committed from canonical files.
-  - Refresh with: `./scripts/governance_interface_sync.sh --write`
+  - Refresh with: mirror regeneration in repository governance workflows.
 
 ## Domain Grouping
 
@@ -32,12 +32,11 @@ Executable governance checks for canonical contract enforcement.
 ## Execution
 
 ```sh
-./scripts/control_plane.sh governance
+dc-runner governance run
 ```
 
 Governance decision logic is sourced from executable spec cases and policy
-libraries. Shell scripts in `/scripts/` are transport entrypoints and artifact
-emitters only.
+libraries and executed through `dc-runner`.
 
 ## Canonical Checks
 

@@ -7,7 +7,7 @@ harness:
   config:
     root: .
     triage_failure_parser:
-      path: /scripts/governance_triage.sh
+      path: dc-runner governance run
       required_tokens:
       - '^ERROR: ([A-Z0-9-]+):'
       - parse_error_ids_from_output

@@ -9,16 +9,16 @@
     ],
     "gate_required_tokens": [
       "SPEC_RUNNER_BIN",
-      "scripts/runner_bin.sh"
+      "dc-runner"
     ],
     "rust_ci_required_tokens": [
       "core-gate-rust-adapter:",
       "SPEC_RUNNER_BIN: ./dc-runner-rust",
-      "run: ./scripts/ci_gate.sh"
+      "run: dc-runner governance critical"
     ],
     "segment_files": {
       "adapter_interfaces": [
-        "scripts/runner_bin.sh",
+        "dc-runner",
         "dc-runner-rust",
         "dc-runner-rust"
       ],
@@ -35,7 +35,7 @@
   "files": [
     {
       "direct_runtime_invocation_count": 4.0,
-      "file": "scripts/runner_bin.sh",
+      "file": "dc-runner",
       "runner_independence_ratio": 0.6666666666666666,
       "runner_interface_usage_ratio": 1.0,
       "rust_primary_path_coverage_ratio": 1.0,
@@ -67,7 +67,7 @@
     },
     {
       "direct_runtime_invocation_count": 0.0,
-      "file": "scripts/ci_gate.sh",
+      "file": "dc-runner governance critical",
       "runner_independence_ratio": 1.0,
       "runner_interface_usage_ratio": 1.0,
       "rust_primary_path_coverage_ratio": 1.0,
@@ -75,7 +75,7 @@
     },
     {
       "direct_runtime_invocation_count": 0.0,
-      "file": "scripts/ci_gate.sh",
+      "file": "dc-runner governance critical",
       "runner_independence_ratio": 1.0,
       "runner_interface_usage_ratio": 1.0,
       "rust_primary_path_coverage_ratio": 1.0,
@@ -83,7 +83,7 @@
     },
     {
       "direct_runtime_invocation_count": 0.0,
-      "file": "scripts/control_plane.sh",
+      "file": "dc-runner governance run",
       "runner_independence_ratio": 1.0,
       "runner_interface_usage_ratio": 1.0,
       "rust_primary_path_coverage_ratio": 1.0,
@@ -91,7 +91,7 @@
     },
     {
       "direct_runtime_invocation_count": 4.0,
-      "file": "scripts/runner_bin.sh",
+      "file": "dc-runner",
       "runner_independence_ratio": 0.3333333333333333,
       "runner_interface_usage_ratio": 0.0,
       "rust_primary_path_coverage_ratio": 1.0,
