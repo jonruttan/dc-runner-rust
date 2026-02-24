@@ -6215,6 +6215,30 @@ fn runner_command(runner_bin: &str, runner_impl: &str, subcommand: &str) -> Vec<
     vec![runner_bin.to_string(), subcommand.to_string()]
 }
 
+fn runner_command_with_args(
+    runner_bin: &str,
+    runner_impl: &str,
+    args: &[&str],
+) -> Vec<String> {
+    let normalized = runner_bin.replace('\\', "/");
+    let adapter_rel = "runners/public/runner_adapter.sh".to_string();
+    let adapter_prefixed = format!("./{}", adapter_rel);
+    let adapter_suffix = format!("/{}", adapter_rel);
+    if normalized.ends_with(&adapter_suffix)
+        || normalized == adapter_rel
+        || normalized == adapter_prefixed
+    {
+        let mut cmd = vec![
+            runner_bin.to_string(),
+            "--impl".to_string(),
+            runner_impl.to_string(),
+        ];
+        cmd.extend(args.iter().map(|arg| arg.to_string()));
+        return cmd;
+    }
+    args.iter().map(|arg| arg.to_string()).collect()
+}
+
 fn runner_command_with_liveness(
     runner_bin: &str,
     runner_impl: &str,
@@ -6539,11 +6563,11 @@ fn run_ci_gate_summary_native(root: &Path, forwarded: &[String]) -> i32 {
         ),
         (
             "schema_check",
-            runner_command(&runner_bin, &runner_impl, "schema-check"),
+            runner_command_with_args(&runner_bin, &runner_impl, &["schema", "check"]),
         ),
         (
             "schema_lint",
-            runner_command(&runner_bin, &runner_impl, "schema-lint"),
+            runner_command_with_args(&runner_bin, &runner_impl, &["schema", "lint"]),
         ),
         (
             "evaluate_style",

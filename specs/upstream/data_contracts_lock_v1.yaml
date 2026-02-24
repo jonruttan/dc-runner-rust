@@ -2,18 +2,27 @@
 version: 1
 upstream:
   repo: "https://github.com/jonruttan/data-contracts.git"
-  tag: dafecfd8
-  commit: dafecfd854626a853e0f6c1f6feb3d582bc9cf9c
-  synced_at_utc: "2026-02-24T19:21:27Z"
+  tag: main
+  commit: 74d844508a45b40dac5ec7f8afa49a5b0ec9400a
+  synced_at_utc: "2026-02-24T19:37:27Z"
 snapshot:
   root: specs/upstream/data-contracts
   include:
     - specs/index.md
     - specs/00_core/current.md
     - specs/00_core/bundle_version_contract_v1.yaml
+    - specs/00_core/packs/index.md
+    - specs/00_core/packs/project_docs_maintenance_pack_v1.yaml
+    - specs/00_core/packs/runner_contract_pack_v1.yaml
+    - specs/00_core/packs/spec_core_maintenance_pack_v1.yaml
     - specs/02_contracts/**
     - specs/01_schema/**
     - specs/03_conformance/**
+    - specs/05_libraries/policy/index.md
+    - specs/05_libraries/policy/policy_ci_gate.spec.md
+    - specs/05_libraries/policy/policy_governance_catalog.spec.md
+    - specs/05_libraries/policy/policy_schema_pin.spec.md
+    - specs/05_libraries/policy/policy_status_ingest.spec.md
     - specs/04_governance/index.md
     - specs/04_governance/runner_entrypoints_v1.yaml
     - specs/04_governance/check_*.yaml
@@ -24,5 +33,5 @@ snapshot:
     - "**/reviews/**"
     - "**/snapshots/**"
 integrity:
-  file_count: 504
-  sha256_manifest: fa5c7236290a0672cd748b9f9179194465d41c0c77254b3c4b86ebde1a7e03b3
+  file_count: 513
+  sha256_manifest: 32e03079bb94bb13ef67bfa181044eacae6447de04c8efe14183bf378ae2ad0c
