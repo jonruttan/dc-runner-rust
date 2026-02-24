@@ -22,7 +22,12 @@ use crate::service_runtime::{
 use crate::services::gate_summary::summarize as summarize_gate;
 use crate::services::specs_ui;
 use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
-use crate::spec_source::{effective_mode, read_spec_text, spec_exists, SpecSourceMode};
+use crate::spec_source::{
+    bundle_path_for_version, bundled_snapshot_sha256, CachedSpecBundle, effective_mode,
+    mark_check, mark_refresh, read_spec_text, rollback_version,
+    save_state, specs_root, use_cache_version, upsert_bundle_entry, load_state, spec_exists,
+    SpecSourceState, SpecSourceMode,
+};
 use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -339,6 +344,95 @@ fn run_style_check_native(root: &Path, forwarded: &[String]) -> i32 {
     1
 }
 
+fn resolve_specs_source_root(root: &Path) -> PathBuf {
+    match specs_root(root) {
+        Ok(v) => v,
+        Err(_) => root.to_path_buf(),
+    }
+}
+
+fn specs_timestamp(ts: Option<i64>) -> String {
+    ts.and_then(|raw| {
+        chrono::DateTime::from_timestamp(raw, 0)
+            .map(|d| d.to_rfc3339())
+    })
+    .unwrap_or_else(|| "n/a".to_string())
+}
+
+fn canonicalize_bundle_version(raw: &str) -> Result<String, String> {
+    let value = raw.trim();
+    if value.is_empty() {
+        return Err("version cannot be empty".to_string());
+    }
+    let lower = value.to_ascii_lowercase();
+    if lower == "latest" {
+        return Ok("latest".to_string());
+    }
+    if let Some(stripped) = lower.strip_prefix('v') {
+        if !stripped.is_empty() {
+            return Ok(stripped.to_string());
+        }
+    }
+    let mut parts = lower.split('.');
+    let major = parts.next().ok_or_else(|| format!("invalid version `{raw}`"))?;
+    let minor = parts.next().ok_or_else(|| format!("invalid version `{raw}`"))?;
+    let patch_and_rest = parts.next().ok_or_else(|| format!("invalid version `{raw}`"))?;
+    if parts.next().is_some() {
+        return Err(format!("invalid version `{raw}`"));
+    }
+    if major.parse::<u64>().is_err() || minor.parse::<u64>().is_err() || patch_and_rest.is_empty() {
+        return Err(format!("invalid version `{raw}`"));
+    }
+    Ok(lower)
+}
+
+fn specs_cache_source_from_remote(_version: &str) -> Result<String, String> {
+    let latest_url =
+        "https://api.github.com/repos/jonruttan/data-contracts-bundles/releases/latest".to_string();
+    let api_raw = read_url_to_string(&latest_url)?;
+    let parsed: serde_json::Value = serde_json::from_str(&api_raw)
+        .map_err(|e| format!("invalid GitHub latest release payload: {e}"))?;
+    let tag = parsed
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| "missing tag_name in GitHub API payload".to_string())?;
+    Ok(tag.trim_start_matches('v').to_string())
+}
+
+fn spec_bundle_required_paths() -> &'static [&'static str] {
+    &[
+        "specs/04_governance/runner_entrypoints_v1.yaml",
+        "specs/00_core/runner_version_contract_v1.yaml",
+    ]
+}
+
+fn verify_specs_bundle_integrity(bundle_root: &Path) -> Result<(), String> {
+    for required in spec_bundle_required_paths() {
+        let p = bundle_root.join(required);
+        if !p.exists() {
+            return Err(format!("required spec file missing: {}", p.display()));
+        }
+    }
+    Ok(())
+}
+
+fn specs_cache_entry_summary(source_ref: &str) -> String {
+    if source_ref == "bundled" {
+        return "bundled".to_string();
+    }
+    if source_ref == "workspace" {
+        return "workspace".to_string();
+    }
+    source_ref.to_string()
+}
+
+fn specs_active_cached_version(state: &SpecSourceState) -> Option<&str> {
+    state
+        .active
+        .strip_prefix("cache:")
+        .filter(|version| !version.is_empty())
+}
+
 fn run_specs_list_native(root: &Path, forwarded: &[String]) -> i32 {
     let mut path: Option<String> = None;
     let mut format = crate::cli::args::OutputFormat::Text;
@@ -374,7 +468,8 @@ fn run_specs_list_native(root: &Path, forwarded: &[String]) -> i32 {
             }
         }
     }
-    let cases = match specs_ui::list_specs(root, path.as_deref()) {
+    let spec_root = resolve_specs_source_root(root);
+    let cases = match specs_ui::list_specs(&spec_root, path.as_deref()) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("ERROR: {e}");
@@ -391,7 +486,8 @@ fn run_specs_run_native(root: &Path, forwarded: &[String]) -> i32 {
         return 2;
     }
     let normalized = specs_ui::normalize_spec_ref(&forwarded[1]);
-    run_job_run_native(root, &["--ref".to_string(), normalized])
+    let spec_root = resolve_specs_source_root(root);
+    run_job_run_native(&spec_root, &["--ref".to_string(), normalized])
 }
 
 fn run_specs_run_all_native(root: &Path, forwarded: &[String]) -> i32 {
@@ -423,7 +519,8 @@ fn run_specs_run_all_native(root: &Path, forwarded: &[String]) -> i32 {
         }
     }
 
-    let cases = match specs_ui::list_specs(root, source_root.as_deref()) {
+    let spec_root = resolve_specs_source_root(root);
+    let cases = match specs_ui::list_specs(&spec_root, source_root.as_deref()) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("ERROR: {e}");
@@ -437,7 +534,7 @@ fn run_specs_run_all_native(root: &Path, forwarded: &[String]) -> i32 {
 
     let summary = specs_ui::run_all_specs(&cases, fail_fast, |spec_ref| {
         println!("==> {spec_ref}");
-        run_job_run_native(root, &["--ref".to_string(), spec_ref.to_string()])
+        run_job_run_native(&spec_root, &["--ref".to_string(), spec_ref.to_string()])
     });
     println!(
         "specs run-all summary: total={} attempted={} passed={} failed={} skipped={}",
@@ -451,6 +548,872 @@ fn run_specs_run_all_native(root: &Path, forwarded: &[String]) -> i32 {
     } else {
         0
     }
+}
+
+fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut source = String::from("remote");
+    let mut version = String::from("latest");
+    let mut force = false;
+    let mut check_only = false;
+    let mut skip_signature = false;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--source" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --source requires value");
+                    return 2;
+                }
+                source = forwarded[i + 1].to_ascii_lowercase();
+                i += 2;
+            }
+            "--version" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --version requires value");
+                    return 2;
+                }
+                version = forwarded[i + 1].clone();
+                i += 2;
+            }
+            "--force" => {
+                force = true;
+                i += 1;
+            }
+            "--check-only" => {
+                check_only = true;
+                i += 1;
+            }
+            "--skip-signature" => {
+                skip_signature = true;
+                i += 1;
+            }
+            other => {
+                eprintln!("ERROR: unsupported specs refresh arg: {other}");
+                return 2;
+            }
+        }
+    }
+
+    let mut state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+
+    match source.as_str() {
+        "remote" | "bundled" | "workspace" => {}
+        _ => {
+            eprintln!(
+                "ERROR: unsupported --source value `{source}` (expected remote|bundled|workspace)"
+            );
+            return 2;
+        }
+    }
+
+    if source == "remote" {
+        let resolved_version = if version.to_ascii_lowercase() == "latest" {
+            match specs_cache_source_from_remote(&version) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: failed to resolve latest bundle version: {e}");
+                    return 1;
+                }
+            }
+        } else {
+            match canonicalize_bundle_version(&version) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: invalid --version value `{version}`: {e}");
+                    return 2;
+                }
+            }
+        };
+        let normalized_version = resolved_version.clone();
+        let bundle_id = "core";
+        let (asset_name, _sidecar_name, release_tag, asset_url, sidecar_url) =
+            canonical_bundle_release(bundle_id, &normalized_version);
+        let tmp_root = std::env::temp_dir().join(format!(
+            "dc-runner-spec-refresh-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map(|v| v.as_millis())
+                .unwrap_or_default()
+        ));
+        if let Err(e) = fs::create_dir_all(&tmp_root) {
+            eprintln!("ERROR: failed to create temp workdir {}: {e}", tmp_root.display());
+            return 1;
+        }
+        let tmp_sidecar = tmp_root.join(format!("{asset_name}.sha256"));
+        let tmp_archive = tmp_root.join(&asset_name);
+        if !skip_signature {
+            if let Err(e) = download_url_to_file(&sidecar_url, &tmp_sidecar) {
+                eprintln!("ERROR: failed fetching checksum sidecar: {e}");
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
+        }
+        if let Err(e) = download_url_to_file(&asset_url, &tmp_archive) {
+            eprintln!("ERROR: failed downloading bundle: {e}");
+            let _ = fs::remove_dir_all(&tmp_root);
+            return 1;
+        }
+        if let Err(e) = read_url_to_string(&sidecar_url) {
+            if !skip_signature {
+                eprintln!("ERROR: invalid checksum sidecar download: {e}");
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
+        } else if !skip_signature {
+            let raw = match fs::read_to_string(&tmp_sidecar) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!(
+                        "ERROR: failed reading checksum sidecar {}: {e}",
+                        tmp_sidecar.display()
+                    );
+                    let _ = fs::remove_dir_all(&tmp_root);
+                    return 1;
+                }
+            };
+            let expected = match parse_sha256_sidecar(&raw) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: invalid checksum sidecar format: {e}");
+                    let _ = fs::remove_dir_all(&tmp_root);
+                    return 1;
+                }
+            };
+            let actual = match sha256_file(&tmp_archive) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: failed reading downloaded archive: {e}");
+                    let _ = fs::remove_dir_all(&tmp_root);
+                    return 1;
+                }
+            };
+            if actual != expected {
+                eprintln!("ERROR: checksum mismatch for download (expected {expected}, got {actual})");
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
+        }
+
+        let cache_root = bundle_path_for_version(&normalized_version);
+        if !check_only {
+            if cache_root.exists() && !force {
+                println!(
+                    "OK: specs refresh target version already present: {} (use --force to re-fetch)",
+                    cache_root.display()
+                );
+                state.last_error = None;
+                mark_refresh(&mut state);
+                upsert_bundle_entry(
+                    &mut state,
+                    normalized_version.clone(),
+                    format!("{release_tag}:{asset_url}"),
+                    None,
+                    true,
+                    Some(release_tag.clone()),
+                );
+                let _ = fs::remove_dir_all(&tmp_root);
+                return match save_state(&state) {
+                    Ok(_) => 0,
+                    Err(e) => {
+                        eprintln!("ERROR: failed to persist spec state: {e}");
+                        1
+                    }
+                };
+            }
+            if cache_root.exists() && force {
+                let _ = fs::remove_dir_all(&cache_root);
+            }
+            if let Err(e) = fs::create_dir_all(&cache_root) {
+                eprintln!(
+                    "ERROR: failed creating cache directory {}: {e}",
+                    cache_root.display()
+                );
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
+            let tar_status = Command::new("tar")
+                .arg("xzf")
+                .arg(&tmp_archive)
+                .arg("-C")
+                .arg(&cache_root)
+                .status()
+                .map_err(|e| format!("failed to execute tar: {e}"));
+            let tar_status = match tar_status {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: {e}");
+                    let _ = fs::remove_dir_all(&tmp_root);
+                    return 1;
+                }
+            };
+            if !tar_status.success() {
+                eprintln!("ERROR: failed extracting release archive (tar exit={})", tar_status.code().unwrap_or(1));
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
+            if let Err(e) = verify_specs_bundle_integrity(&cache_root) {
+                eprintln!("ERROR: downloaded bundle integrity check failed: {e}");
+                state.last_error = Some(e.clone());
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
+            mark_refresh(&mut state);
+            upsert_bundle_entry(
+                &mut state,
+                normalized_version.clone(),
+                format!("{release_tag}:{asset_url}"),
+                Some(match sha256_file(&tmp_archive) {
+                    Ok(v) => v,
+                    Err(_) => "unavailable".to_string(),
+                }),
+                true,
+                Some(release_tag.clone()),
+            );
+        } else {
+            mark_refresh(&mut state);
+            upsert_bundle_entry(
+                &mut state,
+                normalized_version.clone(),
+                format!("{release_tag}:{asset_url}"),
+                if skip_signature {
+                    None
+                } else {
+                    Some(format!("checked-by-sidecar"))
+                },
+                true,
+                Some(release_tag.clone()),
+            );
+        }
+
+        match save_state(&state) {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("ERROR: failed to save spec state: {e}");
+                let _ = fs::remove_dir_all(&tmp_root);
+                return 1;
+            }
+        }
+        let _ = fs::remove_dir_all(&tmp_root);
+        println!(
+            "OK: refresh {} {}",
+            if check_only {
+                "check completed for"
+            } else {
+                "installed"
+            },
+            normalized_version
+        );
+        return 0;
+    }
+
+    if source == "bundled" {
+        upsert_bundle_entry(
+            &mut state,
+            "bundled".to_string(),
+            specs_cache_entry_summary("bundled"),
+            Some(bundled_snapshot_sha256().to_string()),
+            true,
+            Some("bundled".to_string()),
+        );
+        mark_refresh(&mut state);
+        match save_state(&state) {
+            Ok(_) => {
+                println!("OK: refresh bundled source metadata refreshed");
+                return 0;
+            }
+            Err(e) => {
+                eprintln!("ERROR: failed to save spec state: {e}");
+                return 1;
+            }
+        }
+    }
+
+    upsert_bundle_entry(
+        &mut state,
+        "workspace".to_string(),
+        format!("workspace:{source}"),
+        None,
+        true,
+        Some(root.display().to_string()),
+    );
+    mark_refresh(&mut state);
+    match save_state(&state) {
+        Ok(_) => {
+            println!("OK: refresh workspace source metadata refreshed");
+            0
+        }
+        Err(e) => {
+            eprintln!("ERROR: failed to save spec state: {e}");
+            1
+        }
+    }
+}
+
+fn specs_bundle_active_label(state: &SpecSourceState) -> String {
+    if let Some(version) = specs_active_cached_version(state) {
+        return format!("cache:{version}");
+    }
+    if state.active == "bundled" {
+        return "bundled".to_string();
+    }
+    if state.active == "workspace" {
+        return "workspace".to_string();
+    }
+    state.active.clone()
+}
+
+fn specs_bundle_state_entry(state: &SpecSourceState, version: &str) -> Option<CachedSpecBundle> {
+    state.installed.iter().find(|entry| entry.version == version).cloned()
+}
+
+fn run_specs_status_native(_root: &Path, _forwarded: &[String]) -> i32 {
+    if !_forwarded.is_empty() {
+        eprintln!("ERROR: specs status does not accept extra args");
+        return 2;
+    }
+    let state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+    println!("spec-source status:");
+    println!("  active_source: {}", specs_bundle_active_label(&state));
+    println!(
+        "  last_refresh_at: {}",
+        specs_timestamp(state.last_refresh_at)
+    );
+    println!("  last_check_at: {}", specs_timestamp(state.last_check_at));
+    if let Some(version) = specs_active_cached_version(&state) {
+        if let Some(entry) = specs_bundle_state_entry(&state, version) {
+            println!("  active_version: {version}");
+            println!("  active_checksum: {}", entry.checksum.unwrap_or_else(|| "n/a".to_string()));
+            println!("  active_verified: {}", entry.verified);
+        }
+    }
+    if let Some(error) = state.last_error.as_ref() {
+        println!("  last_error: {error}");
+    }
+    if specs_active_cached_version(&state).is_some_and(|version| {
+        specs_bundle_state_entry(&state, version).is_some_and(|entry| !entry.verified)
+    }) {
+        println!("  integrity: untrusted (unverified bundle)");
+    }
+    println!("  installed_versions: {}", state.installed.len());
+    0
+}
+
+fn run_specs_versions_native(_root: &Path, forwarded: &[String]) -> i32 {
+    if !forwarded.is_empty() {
+        eprintln!("ERROR: specs versions does not accept extra args");
+        return 2;
+    }
+    let state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+    let active = specs_active_cached_version(&state);
+    let mut installed = state.installed.clone();
+    installed.sort_by(|a, b| b.installed_at.cmp(&a.installed_at));
+    if installed.is_empty() {
+        println!("No cached spec versions installed.");
+        return 0;
+    }
+    println!(
+        "{:<16} {:<20} {:<9} {:<9} {:<10} source_ref",
+        "version",
+        "installed_at",
+        "verified",
+        "checksum",
+        "active"
+    );
+    for entry in installed {
+        println!(
+            "{:<16} {:<20} {:<9} {:<9} {:<10} {}",
+            entry.version,
+            specs_timestamp(Some(entry.installed_at)),
+            entry.verified,
+            entry.checksum.as_deref().unwrap_or("-"),
+            if active == Some(entry.version.as_str()) {
+                "yes"
+            } else {
+                "no"
+            },
+            specs_cache_entry_summary(&entry.source_ref)
+        );
+    }
+    0
+}
+
+fn run_specs_use_native(root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.is_empty() {
+        eprintln!("usage: specs use <version-or-source> [--source version|bundled|workspace]");
+        return 2;
+    }
+    let mut i = 1usize;
+    let mut source = String::from("version");
+    if forwarded.len() < 1 {
+        eprintln!("usage: specs use <version-or-source> [--source version|bundled|workspace]");
+        return 2;
+    }
+    let target = forwarded[0].clone();
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--source" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --source requires value");
+                    return 2;
+                }
+                source = forwarded[i + 1].to_string();
+                i += 2;
+            }
+            other => {
+                eprintln!("ERROR: unsupported specs use arg: {other}");
+                return 2;
+            }
+        }
+    }
+
+    let mut state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+    let _ = root;
+    match source.as_str() {
+        "version" => {
+            if target.is_empty() {
+                eprintln!("ERROR: version target required when --source version");
+                return 2;
+            }
+            if let Err(e) = use_cache_version(&mut state, Some(target.as_str())) {
+                eprintln!("ERROR: {e}");
+                return 1;
+            }
+        }
+        "bundled" => {
+            state.active = "bundled".to_string();
+            state.last_error = None;
+        }
+        "workspace" => {
+            state.active = "workspace".to_string();
+            state.last_error = None;
+        }
+        other => {
+            eprintln!(
+                "ERROR: unsupported --source `{other}` (expected version|bundled|workspace)"
+            );
+            return 2;
+        }
+    }
+    if let Err(e) = save_state(&state) {
+        eprintln!("ERROR: failed to save spec state: {e}");
+        return 1;
+    }
+    println!("OK: active spec source set to {} ({})", specs_bundle_active_label(&state), target);
+    0
+}
+
+fn run_specs_rollback_native(_root: &Path, forwarded: &[String]) -> i32 {
+    let mut to = None::<String>;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--to" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --to requires value");
+                    return 2;
+                }
+                to = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            other => {
+                eprintln!("ERROR: unsupported specs rollback arg: {other}");
+                return 2;
+            }
+        }
+    }
+
+    let mut state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+
+    let next = if let Some(v) = to {
+        if v == "bundled" {
+            state.active = "bundled".to_string();
+            "bundled".to_string()
+        } else if v == "workspace" {
+            state.active = "workspace".to_string();
+            "workspace".to_string()
+        } else {
+            match rollback_version(&mut state, Some(v.as_str())) {
+                Ok(v) => v,
+                Err(e) => {
+                    eprintln!("ERROR: {e}");
+                    return 1;
+                }
+            }
+        }
+    } else {
+        match rollback_version(&mut state, None) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: {e}");
+                return 1;
+            }
+        }
+    };
+
+    match save_state(&state) {
+        Ok(_) => {
+            println!("OK: spec source rolled back to {next}");
+            0
+        }
+        Err(e) => {
+            eprintln!("ERROR: failed to save spec state: {e}");
+            1
+        }
+    }
+}
+
+fn run_specs_verify_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut source = String::from("auto");
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--source" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --source requires value");
+                    return 2;
+                }
+                source = forwarded[i + 1].to_string();
+                i += 2;
+            }
+            other => {
+                eprintln!("ERROR: unsupported specs verify arg: {other}");
+                return 2;
+            }
+        }
+    }
+
+    let mut state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+
+    let mut selected = None::<String>;
+    let mut active_bundle_root = None::<PathBuf>;
+
+    match source.as_str() {
+        "active" => {
+            if let Some(v) = specs_active_cached_version(&state) {
+                selected = Some(v.to_string());
+                active_bundle_root = Some(bundle_path_for_version(v));
+            }
+        }
+        "bundled" => {
+            selected = Some("bundled".to_string());
+            active_bundle_root = None;
+        }
+        "workspace" => {
+            selected = Some("workspace".to_string());
+            active_bundle_root = Some(root.to_path_buf());
+        }
+        "auto" => {
+            selected = specs_active_cached_version(&state).map(ToString::to_string);
+            if let Some(v) = specs_active_cached_version(&state) {
+                active_bundle_root = Some(bundle_path_for_version(v));
+            }
+            if selected.is_none() {
+                selected = Some("bundled".to_string());
+            }
+        }
+        raw if raw.starts_with("cache:") => {
+            let v = raw.trim_start_matches("cache:");
+            if v.is_empty() {
+                eprintln!("ERROR: cache source requires version: --source cache:<version>");
+                return 2;
+            }
+            selected = Some(v.to_string());
+            active_bundle_root = Some(bundle_path_for_version(v));
+        }
+        _ => {
+            eprintln!(
+                "ERROR: unsupported --source `{source}` (expected auto|active|bundled|workspace|cache:<version>)"
+            );
+            return 2;
+        }
+    }
+
+    let Some(active) = active_bundle_root else {
+        if selected.as_deref() == Some("bundled") || selected.as_deref() == Some("workspace") {
+            mark_check(&mut state, true);
+            let _ = save_state(&state);
+            println!("OK: verify passed for {}", selected.unwrap_or_else(|| "source".to_string()));
+            println!("Recovery hint: none");
+            return 0;
+        }
+        eprintln!("ERROR: invalid verify target");
+        return 1;
+    };
+
+    let mut ok = true;
+    if let Err(e) = verify_specs_bundle_integrity(&active) {
+        ok = false;
+        eprintln!("ERROR: verify failed for {}: {e}", active.display());
+        if let Some(version) = selected.as_deref() {
+            if let Some(entry) = state
+                .installed
+                .iter_mut()
+                .find(|entry| entry.version == version)
+            {
+                entry.verified = false;
+            }
+            state.last_error = Some(e.clone());
+        }
+    } else if let Some(version) = selected.as_deref() {
+        if let Some(entry) = state
+            .installed
+            .iter_mut()
+            .find(|entry| entry.version == version)
+        {
+            entry.verified = true;
+        }
+        state.last_error = None;
+    }
+    if state.active == "bundled"
+        || state.active == "workspace"
+        || state
+            .active
+            .strip_prefix("cache:")
+            .map(|version| Some(version) == selected.as_deref())
+            .unwrap_or(false)
+    {
+        mark_check(&mut state, ok);
+    }
+    let _ = save_state(&state);
+
+    if ok {
+        println!("OK: verify passed for {}", selected.unwrap_or_else(|| "source".to_string()));
+        0
+    } else {
+        eprintln!("Recovery hints:");
+        eprintln!("  - Run `dc-runner specs refresh`");
+        eprintln!("  - Run `dc-runner specs rollback`");
+        1
+    }
+}
+
+fn run_specs_clean_native(_root: &Path, forwarded: &[String]) -> i32 {
+    let mut keep = 3usize;
+    let mut dry_run = false;
+    let mut yes = false;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--keep" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --keep requires value");
+                    return 2;
+                }
+                keep = match forwarded[i + 1].parse::<usize>() {
+                    Ok(v) if v > 0 => v,
+                    _ => {
+                        eprintln!("ERROR: --keep requires positive integer");
+                        return 2;
+                    }
+                };
+                i += 2;
+            }
+            "--dry-run" => {
+                dry_run = true;
+                i += 1;
+            }
+            "--yes" => {
+                yes = true;
+                i += 1;
+            }
+            other => {
+                eprintln!("ERROR: unsupported specs clean arg: {other}");
+                return 2;
+            }
+        }
+    }
+
+    let mut state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+
+    let active = specs_active_cached_version(&state)
+        .map(ToString::to_string)
+        .into_iter()
+        .collect::<HashSet<_>>();
+    let mut entries = state.installed.clone();
+    entries.sort_by(|a, b| b.installed_at.cmp(&a.installed_at));
+    let verified_entries: Vec<String> = entries
+        .iter()
+        .filter(|entry| entry.verified)
+        .take(keep)
+        .map(|entry| entry.version.clone())
+        .collect();
+    let mut keep_set: HashSet<String> = verified_entries.into_iter().collect();
+    for keep_version in active {
+        keep_set.insert(keep_version);
+    }
+    if keep_set.is_empty() {
+        if let Some(first) = entries.first() {
+            keep_set.insert(first.version.clone());
+        }
+    }
+
+    let remove: Vec<CachedSpecBundle> = entries
+        .into_iter()
+        .filter(|entry| !keep_set.contains(&entry.version))
+        .collect();
+    if remove.is_empty() {
+        println!("OK: no cache entries to remove");
+        return 0;
+    }
+
+    if !dry_run && !yes {
+        eprintln!("ERROR: cleanup requires explicit --yes when removals are planned");
+        for entry in &remove {
+            eprintln!("  would remove version: {}", entry.version);
+        }
+        return 2;
+    }
+
+    for entry in &remove {
+        let path = bundle_path_for_version(&entry.version);
+        if dry_run {
+            println!("Would remove {} at {}", entry.version, path.display());
+        } else if path.exists() {
+            if let Err(e) = fs::remove_dir_all(&path) {
+                eprintln!("ERROR: failed to remove {}: {e}", path.display());
+                return 1;
+            }
+            println!("Removed {}", entry.version);
+            state.installed.retain(|item| item.version != entry.version);
+        } else {
+            state.installed.retain(|item| item.version != entry.version);
+        }
+    }
+
+    if let Err(e) = save_state(&state) {
+        eprintln!("ERROR: failed to save spec state: {e}");
+        return 1;
+    }
+    if dry_run {
+        0
+    } else {
+        println!("OK: clean complete (removed {} version(s))", remove.len());
+        0
+    }
+}
+
+fn run_specs_info_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut version = None::<String>;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        if forwarded[i].starts_with("-") {
+            eprintln!("ERROR: unsupported specs info arg: {}", forwarded[i]);
+            return 2;
+        }
+        version = Some(forwarded[i].clone());
+        i += 1;
+    }
+
+    let state = match load_state() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load spec state: {e}");
+            return 1;
+        }
+    };
+
+    let selected = if let Some(v) = version {
+        v
+    } else if let Some(v) = specs_active_cached_version(&state) {
+        v.to_string()
+    } else if state.active == "workspace" {
+        "workspace".to_string()
+    } else {
+        "bundled".to_string()
+    };
+
+    if selected == "bundled" {
+        println!("source: bundled");
+        println!("checksum: {}", bundled_snapshot_sha256());
+        return 0;
+    }
+    if selected == "workspace" {
+        println!("source: workspace");
+        println!("root: {}", root.display());
+        return 0;
+    }
+
+    let entry = match specs_bundle_state_entry(&state, &selected) {
+        Some(entry) => entry,
+        None => {
+            eprintln!("ERROR: version {selected} not installed");
+            return 1;
+        }
+    };
+    println!("version: {}", entry.version);
+    println!("source_ref: {}", specs_cache_entry_summary(&entry.source_ref));
+    println!("installed_at: {}", specs_timestamp(Some(entry.installed_at)));
+    println!("checksum: {}", entry.checksum.unwrap_or_else(|| "n/a".to_string()));
+    println!("verified: {}", entry.verified);
+    println!("published_at: {}", entry.published_at.unwrap_or_else(|| "n/a".to_string()));
+    println!("signature_available: {}", entry.signature_available);
+    let path = bundle_path_for_version(&entry.version);
+    if let Err(e) = verify_specs_bundle_integrity(&path) {
+        println!("local_integrity: failed ({e})");
+    } else {
+        println!("local_integrity: ok");
+    }
+    0
+}
+
+fn run_specs_prune_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut expired = false;
+    if forwarded.len() == 1 && forwarded[0] == "--expired" {
+        expired = true;
+    } else if !forwarded.is_empty() {
+        eprintln!("ERROR: specs prune supports only --expired");
+        return 2;
+    }
+    if !expired {
+        eprintln!("usage: specs prune --expired");
+        return 2;
+    }
+    run_specs_clean_native(
+        root,
+        &["--keep".to_string(), "3".to_string(), "--yes".to_string()],
+    )
 }
 
 fn run_specs_check_native(root: &Path, forwarded: &[String]) -> i32 {

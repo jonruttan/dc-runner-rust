@@ -7,8 +7,8 @@ use clap::Parser;
 use crate::cli::args::BundlerSubcommand;
 use crate::cli::args::{
     CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand, GovernanceSubcommand,
-    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SchemaSubcommand, SpecSourceOption,
-    SpecsSubcommand,
+    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SchemaSubcommand, SpecRefreshSourceOption,
+    SpecSourceOption, SpecUseSourceOption, SpecsSubcommand,
 };
 use crate::cli::errors::CliError;
 
@@ -115,6 +115,86 @@ fn from_cli(cli: Cli) -> ParsedEntry {
                 map_passthrough("specs-run-all", forwarded)
             }
             SpecsSubcommand::Check => map_passthrough("specs-check", vec![]),
+            SpecsSubcommand::Refresh {
+                source,
+                version,
+                force,
+                check_only,
+                skip_signature,
+            } => {
+                let mut forwarded = Vec::<String>::new();
+                forwarded.push("--source".to_string());
+                forwarded.push(match source {
+                    SpecRefreshSourceOption::Remote => "remote".to_string(),
+                    SpecRefreshSourceOption::Bundled => "bundled".to_string(),
+                    SpecRefreshSourceOption::Workspace => "workspace".to_string(),
+                });
+                forwarded.push("--version".to_string());
+                forwarded.push(version);
+                if force {
+                    forwarded.push("--force".to_string());
+                }
+                if check_only {
+                    forwarded.push("--check-only".to_string());
+                }
+                if skip_signature {
+                    forwarded.push("--skip-signature".to_string());
+                }
+                map_passthrough("specs-refresh", forwarded)
+            }
+            SpecsSubcommand::Status => map_passthrough("specs-status", vec![]),
+            SpecsSubcommand::Versions => map_passthrough("specs-versions", vec![]),
+            SpecsSubcommand::Use { target, source } => {
+                let mut forwarded = Vec::<String>::new();
+                forwarded.push(target);
+                forwarded.push("--source".to_string());
+                forwarded.push(match source {
+                    SpecUseSourceOption::Version => "version".to_string(),
+                    SpecUseSourceOption::Bundled => "bundled".to_string(),
+                    SpecUseSourceOption::Workspace => "workspace".to_string(),
+                });
+                map_passthrough("specs-use", forwarded)
+            }
+            SpecsSubcommand::Rollback { to } => {
+                let mut forwarded = Vec::<String>::new();
+                if let Some(version) = to {
+                    forwarded.push("--to".to_string());
+                    forwarded.push(version);
+                }
+                map_passthrough("specs-rollback", forwarded)
+            }
+            SpecsSubcommand::Verify { source } => {
+                map_passthrough("specs-verify", vec!["--source".to_string(), source])
+            }
+            SpecsSubcommand::Clean {
+                keep,
+                dry_run,
+                yes,
+            } => {
+                let mut forwarded = vec!["--keep".to_string(), keep.to_string()];
+                if dry_run {
+                    forwarded.push("--dry-run".to_string());
+                }
+                if yes {
+                    forwarded.push("--yes".to_string());
+                }
+                map_passthrough("specs-clean", forwarded)
+            }
+            SpecsSubcommand::Info { selected_version } => {
+                let mut forwarded = Vec::<String>::new();
+                if let Some(v) = selected_version {
+                    forwarded.push("--version".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("specs-info", forwarded)
+            }
+            SpecsSubcommand::Prune { expired } => {
+                if expired {
+                    map_passthrough("specs-prune", vec!["--expired".to_string()])
+                } else {
+                    map_passthrough("specs-prune", vec![])
+                }
+            }
         },
         CommandGroup::Entrypoints(entrypoints) => match entrypoints.command {
             EntrypointsSubcommand::List { format } => {

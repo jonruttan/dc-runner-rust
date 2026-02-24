@@ -7,6 +7,20 @@ pub enum SpecSourceOption {
     Auto,
 }
 
+#[derive(Debug, Clone, ValueEnum)]
+pub enum SpecRefreshSourceOption {
+    Remote,
+    Bundled,
+    Workspace,
+}
+
+#[derive(Debug, Clone, ValueEnum)]
+pub enum SpecUseSourceOption {
+    Version,
+    Bundled,
+    Workspace,
+}
+
 #[derive(Debug, Clone, Parser)]
 #[command(
     name = "dc-runner",
@@ -219,6 +233,59 @@ pub enum SpecsSubcommand {
     },
     /// Run style/spec hygiene checks
     Check,
+
+    /// Download/inspect available spec cache entries
+    #[command(disable_version_flag = true)]
+    Refresh {
+        #[arg(long, default_value = "remote", value_enum)]
+        source: SpecRefreshSourceOption,
+        #[arg(long, default_value = "latest")]
+        version: String,
+        #[arg(long, action = ArgAction::SetTrue)]
+        force: bool,
+        #[arg(long, action = ArgAction::SetTrue)]
+        check_only: bool,
+        #[arg(long, action = ArgAction::SetTrue)]
+        skip_signature: bool,
+    },
+    /// Show active spec source and health metadata
+    Status,
+    /// Show installed cache versions and trust state
+    Versions,
+    /// Switch active specs source/version
+    Use {
+        target: String,
+        #[arg(long, value_enum, default_value = "version")]
+        source: SpecUseSourceOption,
+    },
+    /// Rollback to previous or bundled fallback
+    Rollback {
+        #[arg(long)]
+        to: Option<String>,
+    },
+    /// Verify specs source integrity
+    Verify {
+        #[arg(long, default_value = "auto")]
+        source: String,
+    },
+    /// Remove obsolete local spec cache data
+    Clean {
+        #[arg(long, default_value = "3")]
+        keep: usize,
+        #[arg(long, action = ArgAction::SetTrue)]
+        dry_run: bool,
+        #[arg(long, action = ArgAction::SetTrue)]
+        yes: bool,
+    },
+    /// Show metadata for cache version or active source
+    Info {
+        selected_version: Option<String>,
+    },
+    /// Remove stale entries by retention policy
+    Prune {
+        #[arg(long)]
+        expired: bool,
+    },
 }
 
 #[derive(Debug, Clone, Args)]
