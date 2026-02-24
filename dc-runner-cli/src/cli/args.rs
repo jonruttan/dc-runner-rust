@@ -45,6 +45,7 @@ pub enum CommandGroup {
     /// Specs workflows
     Specs(SpecsCommand),
     /// Spec-defined command entrypoints
+    #[command(hide = true)]
     Entrypoints(EntrypointsCommand),
     /// Quality checks
     Quality(QualityCommand),

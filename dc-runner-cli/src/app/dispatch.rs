@@ -105,14 +105,16 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
             root,
         ),
         "perf-smoke" => super::run_job_for_command(root, "perf-smoke", forwarded),
-        "docs-generate" => super::run_docs_generate_native(root, forwarded, false),
+        "docs-generate" => super::run_registered_entry_command(root, "docs-generate", forwarded),
         "docs-generate-check" => {
             super::run_registered_entry_command(root, "docs-generate-check", forwarded)
         }
-        "docs-build" => super::run_job_for_command(root, "docs-build", forwarded),
-        "docs-build-check" => super::run_job_for_command(root, "docs-build-check", forwarded),
-        "docs-lint" => super::run_docs_lint_native(root, forwarded),
-        "docs-graph" => super::run_job_for_command(root, "docs-graph", forwarded),
+        "docs-build" => super::run_registered_entry_command(root, "docs-build", forwarded),
+        "docs-build-check" => {
+            super::run_registered_entry_command(root, "docs-build-check", forwarded)
+        }
+        "docs-lint" => super::run_registered_entry_command(root, "docs-lint", forwarded),
+        "docs-graph" => super::run_registered_entry_command(root, "docs-graph", forwarded),
         "conformance-parity" => super::run_job_for_command(root, "conformance-parity", forwarded),
         "test-core" => super::run_tests_native(root, forwarded),
         "test-full" => super::run_tests_native(root, forwarded),

@@ -71,8 +71,9 @@ Most common runner CLI commands:
 ```sh
 dc-runner specs run-all
 dc-runner specs list
-dc-runner entrypoints list
-dc-runner entrypoints run governance
+dc-runner docs generate-check
+dc-runner docs lint
+dc-runner docs build-check
 dc-runner governance run
 ```
 

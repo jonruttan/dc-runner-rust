@@ -217,7 +217,8 @@ fn help_works_and_mentions_specs_group() {
     assert_eq!(code, 0);
     assert!(stdout.contains("specs"));
     assert!(stdout.contains("governance"));
-    assert!(stdout.contains("entrypoints"));
+    assert!(stdout.contains("docs"));
+    assert!(!stdout.contains("entrypoints"));
     assert!(!stdout.contains("--profile-level"));
 }
 
@@ -258,7 +259,28 @@ fn entrypoints_list_includes_required_ids() {
     assert_eq!(code, 0);
     assert!(stdout.contains("governance"));
     assert!(stdout.contains("critical-gate"));
+    assert!(stdout.contains("docs-generate"));
     assert!(stdout.contains("docs-generate-check"));
+    assert!(stdout.contains("docs-build"));
+    assert!(stdout.contains("docs-build-check"));
+    assert!(stdout.contains("docs-lint"));
+    assert!(stdout.contains("docs-graph"));
+}
+
+#[test]
+fn docs_commands_resolve_via_entrypoints() {
+    let commands = [
+        ["docs", "generate"],
+        ["docs", "generate-check"],
+        ["docs", "build"],
+        ["docs", "build-check"],
+        ["docs", "lint"],
+        ["docs", "graph"],
+    ];
+    for cmd in commands {
+        let (code, _stdout, _stderr) = run_cli(&cmd);
+        assert_ne!(code, 2, "docs command returned usage error: {:?}", cmd);
+    }
 }
 
 #[test]

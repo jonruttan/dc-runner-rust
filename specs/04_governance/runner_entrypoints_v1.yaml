@@ -20,13 +20,51 @@ commands:
     exit_codes:
       allowed: [0, 1]
 
-  - id: docs-generate-check
-    cli: dc-runner docs-generate-check
+  - id: docs-generate
+    cli: dc-runner docs generate
     profile: full
     artifacts:
-      - /.artifacts/governance-summary.json
-      - /.artifacts/governance-trace.json
-      - /.artifacts/governance-summary.md
+      - /.artifacts/job-hooks/DCCONF-JOB-007.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: docs-generate-check
+    cli: dc-runner docs generate-check
+    profile: full
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-008.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: docs-build
+    cli: dc-runner docs build
+    profile: full
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-009.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: docs-build-check
+    cli: dc-runner docs build-check
+    profile: full
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-010.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: docs-lint
+    cli: dc-runner docs lint
+    profile: full
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-006.complete.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: docs-graph
+    cli: dc-runner docs graph
+    profile: full
+    artifacts:
+      - /.artifacts/job-hooks/DCCONF-JOB-011.complete.json
     exit_codes:
       allowed: [0, 1]
 

@@ -447,7 +447,7 @@ fn run_specs_check_native(root: &Path, forwarded: &[String]) -> i32 {
     if style_code != 0 {
         return style_code;
     }
-    run_docs_lint_native(root, &[])
+    run_registered_entry_command(root, "docs-lint", &[])
 }
 
 fn run_help_advanced_native(forwarded: &[String]) -> i32 {
@@ -1883,42 +1883,6 @@ fn run_schema_docs_native(root: &Path, forwarded: &[String], check: bool) -> i32
     0
 }
 
-fn run_docs_generate_native(root: &Path, forwarded: &[String], check: bool) -> i32 {
-    if !forwarded.is_empty() {
-        eprintln!("ERROR: docs-generate command does not accept extra args");
-        return 2;
-    }
-    let script_path = root.join("scripts").join("docs_generate_all.py");
-    if script_path.exists() {
-        let mut args = vec![script_path.to_string_lossy().to_string()];
-        if check {
-            args.push("--check".to_string());
-        } else {
-            args.push("--build".to_string());
-        }
-        return run_cmd("python3", &args, root);
-    }
-    let manifest = root
-        .join("docs")
-        .join("book")
-        .join("reference_manifest.yaml");
-    if !manifest.exists() {
-        eprintln!(
-            "ERROR: docs-generate fallback failed: missing {}",
-            manifest.display()
-        );
-        return 1;
-    }
-    if check {
-        println!(
-            "OK: docs-generate-check fallback passed (no docs_generate_all.py; manifest present)"
-        );
-    } else {
-        println!("OK: docs-generate fallback passed (no docs_generate_all.py; manifest present)");
-    }
-    0
-}
-
 fn resolve_repo_path(root: &Path, raw: &str) -> PathBuf {
     let rel = raw.trim_start_matches('/');
     root.join(rel)
@@ -2135,20 +2099,24 @@ fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[Stri
         return 2;
     };
 
-    let mut gov_args = vec!["--profile".to_string(), entry.profile.clone()];
-    for a in &entry.artifacts {
-        if a.ends_with("-summary.json") {
-            gov_args.push("--out".to_string());
-            gov_args.push(a.trim_start_matches('/').to_string());
-        } else if a.ends_with("-trace.json") {
-            gov_args.push("--trace-out".to_string());
-            gov_args.push(a.trim_start_matches('/').to_string());
-        } else if a.ends_with("-summary.md") {
-            gov_args.push("--summary-out".to_string());
-            gov_args.push(a.trim_start_matches('/').to_string());
+    let code = if crate::domain::command_map::command_spec_ref(command_id).is_some() {
+        run_job_for_command(root, command_id, &[])
+    } else {
+        let mut gov_args = vec!["--profile".to_string(), entry.profile.clone()];
+        for a in &entry.artifacts {
+            if a.ends_with("-summary.json") {
+                gov_args.push("--out".to_string());
+                gov_args.push(a.trim_start_matches('/').to_string());
+            } else if a.ends_with("-trace.json") {
+                gov_args.push("--trace-out".to_string());
+                gov_args.push(a.trim_start_matches('/').to_string());
+            } else if a.ends_with("-summary.md") {
+                gov_args.push("--summary-out".to_string());
+                gov_args.push(a.trim_start_matches('/').to_string());
+            }
         }
-    }
-    let code = run_governance_native(root, &gov_args);
+        run_governance_native(root, &gov_args)
+    };
     if !entry.allowed_exit_codes.contains(&code) {
         eprintln!(
             "ERROR: command entrypoint {} returned disallowed exit code {}",
@@ -2168,34 +2136,6 @@ fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[Stri
         }
     }
     code
-}
-
-fn run_docs_lint_native(root: &Path, forwarded: &[String]) -> i32 {
-    if !forwarded.is_empty() {
-        eprintln!("ERROR: docs-lint does not accept extra args");
-        return 2;
-    }
-    let manifest = root
-        .join("docs")
-        .join("book")
-        .join("reference_manifest.yaml");
-    let docs_quality_contract = root
-        .join("specs")
-        .join("02_contracts")
-        .join("10_docs_quality.md");
-    if !manifest.exists() {
-        eprintln!("ERROR: docs-lint failed: missing {}", manifest.display());
-        return 1;
-    }
-    if !docs_quality_contract.exists() {
-        eprintln!(
-            "ERROR: docs-lint failed: missing {}",
-            docs_quality_contract.display()
-        );
-        return 1;
-    }
-    println!("OK: docs-lint passed");
-    0
 }
 
 fn run_lint_native(root: &Path, forwarded: &[String]) -> i32 {
@@ -2400,8 +2340,12 @@ fn run_cert_command(root: &Path, command: &str, args: &[String]) -> i32 {
         "compilecheck" => run_compilecheck_native(root, args),
         "test-core" => run_tests_native(root, args),
         "test-full" => run_tests_native(root, args),
-        "docs-generate-check" => run_docs_generate_native(root, args, true),
-        "docs-generate" => run_docs_generate_native(root, args, false),
+        "docs-generate-check" => run_registered_entry_command(root, "docs-generate-check", args),
+        "docs-generate" => run_registered_entry_command(root, "docs-generate", args),
+        "docs-build" => run_registered_entry_command(root, "docs-build", args),
+        "docs-build-check" => run_registered_entry_command(root, "docs-build-check", args),
+        "docs-lint" => run_registered_entry_command(root, "docs-lint", args),
+        "docs-graph" => run_registered_entry_command(root, "docs-graph", args),
         "conformance-parity" => run_job_for_command(root, "conformance-parity", args),
         "perf-smoke" => run_job_for_command(root, "perf-smoke", args),
         "schema-registry-check" => run_job_for_command(root, "schema-registry-check", args),

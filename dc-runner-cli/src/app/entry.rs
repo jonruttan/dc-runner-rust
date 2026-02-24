@@ -325,7 +325,7 @@ pub fn parse_entry(args: &[String]) -> Result<ParsedEntry, i32> {
         println!("dc-runner quick start:");
         println!("  dc-runner specs run-all");
         println!("  dc-runner specs list");
-        println!("  dc-runner entrypoints list");
+        println!("  dc-runner docs generate-check");
         println!("  dc-runner --help");
         return Err(0);
     }
