@@ -29,11 +29,34 @@ upstream snapshots.
 
 - Canonical runner entrypoint: Rust CLI (`dc-runner`)
 - Published crates.io package: `dc-runner-cli`
+- `dc-runner` is an implementation-agnostic control plane and does not execute runtime lanes.
 - Stable exit code semantics:
   - `0` success
   - `1` runtime/tool failure
   - `2` invalid usage/config
 - Required lane runtime remains Rust-first.
+
+## How Users Use This Project
+
+### Author a spec change
+
+- Update contract cases under `specs/`.
+- Run `dc-runner quality lint` to validate shape and style.
+- Run `dc-runner schema check` and `dc-runner docs-generate-check` before opening PRs.
+
+### Validate docs and contract coherence
+
+- Use `dc-runner governance` and `dc-runner docs-lint` in routine verification.
+- Keep runner command docs and manifest files in sync with executable behavior.
+
+### Read compatibility and status telemetry
+
+- Inspect `/.artifacts/runner-status-report.json`.
+- Inspect `/.artifacts/runner-status-matrix.json`.
+
+### Debug governance or documentation drift
+
+- Run `dc-runner critical-gate` and `dc-runner governance` for diagnostic reporting.
 
 ## Install
 

@@ -2,3 +2,25 @@ version: 1
 chapters:
   - path: /README.md
     title: Runner Overview
+  - path: /docs/book/guides/index.md
+    title: Runner Guides Index
+  - path: /docs/book/guides/guide_01_onboarding.md
+    title: Onboarding Guide
+  - path: /docs/book/guides/guide_02_first_spec_authoring.md
+    title: First Spec Authoring
+  - path: /docs/book/guides/guide_03_running_checks_and_gates.md
+    title: Running Checks and Gates
+  - path: /docs/book/guides/guide_04_debugging_failures.md
+    title: Debugging Failures
+  - path: /docs/book/guides/guide_05_release_and_change_control.md
+    title: Release and Change Control
+  - path: /docs/book/guides/guide_06_governance_tuning.md
+    title: Governance Tuning
+  - path: /docs/book/guides/guide_07_schema_extension_workflow.md
+    title: Schema Extension Workflow
+  - path: /docs/book/guides/guide_08_ci_integration.md
+    title: CI Integration
+  - path: /docs/book/guides/guide_09_status_exchange_operations.md
+    title: Status Exchange Operations
+  - path: /docs/book/guides/guide_10_reference_navigation_patterns.md
+    title: Reference Navigation Patterns

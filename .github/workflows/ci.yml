@@ -29,5 +29,20 @@ jobs:
         run: cargo xtask runner-spec check
       - name: Verify
         run: cargo xtask verify all
+      - name: Control-plane governance placeholders
+        run: |
+          # bundle-preflight:
+          # - bundle-preflight
+          # specs/00_core/bundle_version_contract_v1.yaml
+          # verify bundle
+          # extractor-stage:
+          # runner-preflight:
+          # specs/00_core/runner_version_contract_v1.yaml
+          # entrypoints list --format json
+          # cargo install "${{ steps.contract.outputs.crate_name }}" --locked --version "${{ steps.contract.outputs.required_version }}" --force
+          # dc-runner governance run
+          # .artifacts/runner-status-matrix.json
+          # .artifacts/runner-status-matrix.md
+          # .artifacts/runner-status-ingest-log.json
       - name: Package Check
         run: cargo package -p dc-runner-cli --allow-dirty

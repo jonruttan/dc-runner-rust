@@ -1,0 +1,4 @@
+pack_id: project_docs_maintenance_pack_v1
+files:
+  - /specs/02_contracts/10_docs_quality.md
+  - /specs/02_contracts/22_docs_information_architecture.md

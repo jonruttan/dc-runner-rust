@@ -1,0 +1,4 @@
+pack_id: spec_core_maintenance_pack_v1
+files:
+  - /specs/01_schema/schema_v1.md
+  - /specs/01_schema/schema_catalog_v1.yaml

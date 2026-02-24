@@ -1,0 +1,4 @@
+pack_id: runner_contract_pack_v1
+files:
+  - /specs/02_contracts/29_runner_cli_interface.md
+  - /specs/01_schema/runner_cli_contract_v1.yaml

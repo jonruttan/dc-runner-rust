@@ -1,0 +1,5 @@
+version: 1
+audience: governance
+chapters:
+  - path: /docs/commands.md
+    title: Commands
