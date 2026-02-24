@@ -3049,10 +3049,6 @@ fn run_entrypoints_run_native(root: &Path, forwarded: &[String]) -> i32 {
 }
 
 fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[String]) -> i32 {
-    if !forwarded.is_empty() {
-        eprintln!("ERROR: {command_id} does not accept extra args");
-        return 2;
-    }
     let entries = match load_runner_entrypoints(root) {
         Ok(v) => v,
         Err(e) => {
@@ -3070,6 +3066,7 @@ fn run_registered_entry_command(root: &Path, command_id: &str, forwarded: &[Stri
         run_job_for_command(root, command_id, &[])
     } else {
         let mut gov_args = vec!["--profile".to_string(), entry.profile.clone()];
+        gov_args.extend(forwarded.iter().cloned());
         for a in &entry.artifacts {
             if a.ends_with("-summary.json") {
                 gov_args.push("--out".to_string());

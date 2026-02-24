@@ -18,9 +18,9 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
                 super::run_spec_ref_print(&forwarded[0])
             }
         }
-        "bundle-list" => super::run_job_for_command(root, "bundle-list", forwarded),
-        "bundle-inspect" => super::run_job_for_command(root, "bundle-inspect", forwarded),
-        "bundle-install" => super::run_job_for_command(root, "bundle-install", forwarded),
+        "bundle-list" => super::run_registered_entry_command(root, "bundle-list", forwarded),
+        "bundle-inspect" => super::run_registered_entry_command(root, "bundle-inspect", forwarded),
+        "bundle-install" => super::run_registered_entry_command(root, "bundle-install", forwarded),
         "validate-report" => super::run_validate_report_native(root, forwarded),
         "governance" => super::run_registered_entry_command(root, "governance", forwarded),
         "governance-heavy" => super::run_governance_heavy_native(root, forwarded),
