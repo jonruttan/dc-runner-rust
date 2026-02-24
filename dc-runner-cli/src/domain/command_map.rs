@@ -150,11 +150,35 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
         "bundle-list" => Some(
             "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-015",
         ),
+        "bundle-info" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-017",
+        ),
         "bundle-install" => Some(
             "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-016",
         ),
         "bundle-inspect" => Some(
             "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-017",
+        ),
+        "bundle-install-check" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-019",
+        ),
+        "bundle-bootstrap" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-020",
+        ),
+        "bundle-bootstrap-check" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-021",
+        ),
+        "bundle-outdated" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-022",
+        ),
+        "bundle-upgrade" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-023",
+        ),
+        "bundle-run" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-024",
+        ),
+        "bundle-scaffold" => Some(
+            "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-025",
         ),
         "conformance-parity" => {
             Some("/specs/impl/rust/jobs/script_jobs.spec.md#DCIMPL-RUST-JOB-002")
@@ -196,6 +220,12 @@ mod tests {
             command_spec_ref("bundle-install"),
             Some(
                 "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-016"
+            )
+        );
+        assert_eq!(
+            command_spec_ref("bundle-info"),
+            Some(
+                "/specs/upstream/data-contracts/specs/03_conformance/cases/core/runner_command_jobs.spec.md#DCCONF-JOB-017"
             )
         );
         assert_eq!(
@@ -241,8 +271,16 @@ mod tests {
             "objective-scorecard-json",
             "objective-scorecard-md",
             "bundle-list",
+            "bundle-info",
             "bundle-install",
             "bundle-inspect",
+            "bundle-install-check",
+            "bundle-bootstrap",
+            "bundle-bootstrap-check",
+            "bundle-outdated",
+            "bundle-upgrade",
+            "bundle-run",
+            "bundle-scaffold",
             "bundler-resolve",
             "bundler-package",
             "bundler-check",

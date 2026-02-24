@@ -30,10 +30,16 @@ Runner CLIs MUST provide deterministic behavior for:
 - `dc-runner docs lint`
 - `dc-runner docs graph`
 - `dc-runner bundle list`
-- `dc-runner bundle inspect --bundle-id <id>`
-- `dc-runner bundle install --bundle-id <id> --bundle-version <semver> [--install-dir <path>]`
-- `dc-runner project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>]`
-- `dc-runner project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>] [--var <key=value>]... [--overwrite]`
+- `dc-runner bundle info --bundle-id <id>`
+- `dc-runner bundle install --project-lock <path> --out <path>`
+- `dc-runner bundle install-check --project-lock <path> --out <path>`
+- `dc-runner bundle bootstrap --lock <path> --out <path>`
+- `dc-runner bundle bootstrap-check --lock <path> --out <path>`
+- `dc-runner bundle outdated --project-lock <path> [--format json|table]`
+- `dc-runner bundle upgrade --project-lock <path> [--dry-run]`
+- `dc-runner bundle run --bundle-id <id> --bundle-version <semver> --entrypoint <name> [--arg <value>]...`
+- `dc-runner bundle scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>]`
+- `dc-runner bundle scaffold --project-root <path> --bundle-id <id> --bundle-version <semver> [--runner <rust|python|php>] [--var <key=value>]... [--overwrite]`
 - unknown command handling with non-zero exit code
 - structured status output mode (`--json` or equivalent capability)
 
@@ -45,7 +51,7 @@ Runner CLIs MAY provide:
 - additional diagnostics modes
 - additional output formats beyond the structured mode
 - external scaffold source override:
-  - `dc-runner project scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external`
+  - `dc-runner bundle scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external`
 - optional spec-management suite under `dc-runner specs` for updating and managing local
   spec cache state without a binary upgrade:
   - `dc-runner specs refresh`
@@ -118,9 +124,9 @@ Precedence:
 
 Mode semantics:
 
-- `bundled`: resolve from embedded pinned snapshot only
+- `bundled`: resolve from the highest verified local `core` bundle cache entry when available; fall back to embedded pinned snapshot if no valid `core` cache exists
 - `workspace`: resolve from local workspace only
-- `auto`: workspace first, bundled fallback
+- `auto`: workspace first, then bundled (`core` cache preferred when bundle mode is explicitly selected), then embedded fallback
 
 ## Spec State Command Surface
 
@@ -147,11 +153,11 @@ Runners MAY provide a stateful spec lifecycle for operator workflows:
 - `dc-runner specs prune --expired`
   - applies retention-policy-driven cleanup
 
-Default runtime behavior remains unchanged when operators do not explicitly invoke
-state commands; this model preserves current `bundled` and `workspace` source
-handling.
+Default runtime behavior remains unchanged for explicit `workspace` mode and non-stateful operations.
+`bundled` mode now treats a verified local `core` bundle cache as authoritative, with the
+embedded snapshot used as a bootstrap/untrusted-fallback path when cache execution is not possible.
 
-## Scaffold Source Contract
+## Bundle Scaffold Source Contract
 
 - Canonical scaffold source is `jonruttan/data-contracts-bundles` release assets.
 - Canonical mode is bundle-identity based (`bundle_id` + `bundle_version`) and
@@ -166,3 +172,13 @@ handling.
 - Canonical scaffold bundle IDs for language scaffolding are:
   - `data-contracts-lang-project-scaffold`
   - `data-contracts-lang-rust-project-scaffold`
+
+## No-Install Bundle Run Contract
+
+- `bundle run` canonical mode is bundle-identity based (`bundle_id` + `bundle_version`)
+  and MUST resolve from `jonruttan/data-contracts-bundles` release assets.
+- `bundle run` MUST fetch the target bundle into a temporary directory.
+- `bundle run` MUST verify bundle integrity before execution.
+- `bundle run` MUST execute only the requested bundle `entrypoint`.
+- `bundle run` MUST delete temporary bundle materialization on both success and failure.
+- `bundle run` MAY persist only declared run artifacts/log outputs.

@@ -421,7 +421,15 @@ pub struct BundleCommand {
 pub enum BundleSubcommand {
     /// List available bundle packages
     List,
-    /// Inspect a bundle package
+    /// Show bundle package details
+    Info {
+        #[arg(long = "bundle-id")]
+        bundle_id: String,
+        #[arg(long = "bundle-version")]
+        bundle_version: Option<String>,
+    },
+    /// Legacy alias for `info`
+    #[command(hide = true)]
     Inspect {
         #[arg(long = "bundle-id")]
         bundle_id: String,
@@ -430,12 +438,83 @@ pub enum BundleSubcommand {
     },
     /// Install a bundle package
     Install {
+        #[arg(long = "project-lock")]
+        project_lock: Option<String>,
+        #[arg(long = "out")]
+        out: Option<String>,
+        #[arg(long = "bundle-id")]
+        bundle_id: Option<String>,
+        #[arg(long = "bundle-version")]
+        bundle_version: Option<String>,
+        #[arg(long = "install-dir")]
+        install_dir: Option<String>,
+    },
+    /// Re-verify installed bundles from lock
+    InstallCheck {
+        #[arg(long = "project-lock")]
+        project_lock: String,
+        #[arg(long = "out")]
+        out: Option<String>,
+    },
+    /// Bootstrap bundle install from a lock
+    Bootstrap {
+        #[arg(long = "lock")]
+        lock: String,
+        #[arg(long = "out")]
+        out: Option<String>,
+    },
+    /// Re-verify bootstrap install from a lock
+    BootstrapCheck {
+        #[arg(long = "lock")]
+        lock: String,
+        #[arg(long = "out")]
+        out: Option<String>,
+    },
+    /// Show outdated bundle pins for a lock
+    Outdated {
+        #[arg(long = "project-lock")]
+        project_lock: String,
+        #[arg(long = "format")]
+        format: Option<String>,
+    },
+    /// Compute bundle lock upgrades
+    Upgrade {
+        #[arg(long = "project-lock")]
+        project_lock: String,
+        #[arg(long = "dry-run", action = ArgAction::SetTrue)]
+        dry_run: bool,
+    },
+    /// Run a bundle entrypoint without persistent install
+    Run {
         #[arg(long = "bundle-id")]
         bundle_id: String,
         #[arg(long = "bundle-version")]
         bundle_version: String,
-        #[arg(long = "install-dir")]
-        install_dir: Option<String>,
+        #[arg(long = "entrypoint")]
+        entrypoint: String,
+        #[arg(long = "arg")]
+        args: Vec<String>,
+    },
+    /// Scaffold a project from a bundle
+    Scaffold {
+        #[arg(long = "project-root")]
+        project_root: String,
+        #[arg(long = "bundle-id")]
+        bundle_id: Option<String>,
+        #[arg(long = "bundle-version")]
+        bundle_version: Option<String>,
+        #[arg(long = "bundle-url")]
+        bundle_url: Option<String>,
+        #[arg(long = "sha256")]
+        sha256: Option<String>,
+        #[arg(long = "allow-external", action = ArgAction::SetTrue)]
+        allow_external: bool,
+        #[arg(long = "runner")]
+        runner: Option<String>,
+        #[arg(long = "var")]
+        vars: Vec<String>,
+        #[arg(long = "overwrite", action = ArgAction::SetTrue)]
+        overwrite: bool,
     },
 }
 

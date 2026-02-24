@@ -59,7 +59,7 @@ Projects MUST pin bundle installs in root `bundles.lock.yaml` using:
 
 - `/specs/01_schema/project_bundle_lock_v1.yaml`
 
-Project scaffold commands MUST support canonical bundle host resolution:
+Bundle scaffold commands MUST support canonical bundle host resolution:
 
 - input: `bundle_id + bundle_version`
 - host: `jonruttan/data-contracts-bundles` release assets
@@ -76,7 +76,7 @@ Installers and runner wrappers MUST implement:
   `resolved_bundle_lock_v1.yaml`.
 - `bundle-sync-check` / `install-check`: re-verify package checksums and
   materialized file manifest drift.
-- `project scaffold`:
+- `bundle scaffold`:
   - fetch tarball and `.sha256` sidecar in canonical mode
   - verify sidecar checksum against fetched tarball bytes
   - materialize root `bundles.lock.yaml`
@@ -84,6 +84,13 @@ Installers and runner wrappers MUST implement:
     `resolved_files.sha256`, and declaration digest verification)
   - load and apply `scaffold/scaffold_manifest_v1.yaml` entries deterministically
     to materialize project files
+- `bundle run`:
+  - fetch tarball and `.sha256` sidecar in canonical mode using `bundle_id + bundle_version`
+  - verify sidecar checksum against fetched tarball bytes
+  - unpack bundle into a temporary directory only
+  - execute the requested `entrypoint` from the temporary materialization
+  - delete temporary bundle materialization after completion (success or failure)
+  - preserve only declared run artifacts/log outputs
 
 Multiple bundle entries are supported and MUST be install-isolated.
 Install directory overlap is forbidden.

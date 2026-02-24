@@ -33,6 +33,7 @@ entry_cases:
   - /specs/03_conformance/cases/runner_build_tool/runner_build_tool_manifest_path.spec.md
   - /specs/04_governance/cases/core/runner_contract/runtime_status_ingest_pipeline_chain.spec.md
 contracts:
+  - /specs/00_core/bundle_version_contract_v1.yaml
   - /specs/02_contracts/12_runner_interface.md
   - /specs/02_contracts/25_compatibility_matrix.md
   - /specs/02_contracts/27_runner_status_exchange.md

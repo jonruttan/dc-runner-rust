@@ -103,7 +103,7 @@ explicit semver pins declared in
 `/specs/00_core/bundle_version_contract_v1.yaml`.
 External URL scaffold mode remains non-canonical emergency fallback.
 
-When a scaffold bundle is consumed through `project scaffold`, runner
+When a scaffold bundle is consumed through `bundle scaffold`, runner
 materialization MUST be driven by `scaffold/scaffold_manifest_v1.yaml`.
 
 ## Failure Behavior

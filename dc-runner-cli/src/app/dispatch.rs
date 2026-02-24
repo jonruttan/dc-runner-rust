@@ -19,8 +19,16 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
             }
         }
         "bundle-list" => super::run_bundle_list_native(root, forwarded),
-        "bundle-inspect" => super::run_bundle_inspect_native(root, forwarded),
+        "bundle-info" => super::run_bundle_info_native(root, forwarded),
+        "bundle-inspect" => super::run_bundle_info_native(root, forwarded),
         "bundle-install" => super::run_bundle_install_native(root, forwarded),
+        "bundle-install-check" => super::run_bundle_install_check_native(root, forwarded),
+        "bundle-bootstrap" => super::run_bundle_bootstrap_native(root, forwarded),
+        "bundle-bootstrap-check" => super::run_bundle_bootstrap_check_native(root, forwarded),
+        "bundle-outdated" => super::run_bundle_outdated_native(root, forwarded),
+        "bundle-upgrade" => super::run_bundle_upgrade_native(root, forwarded),
+        "bundle-run" => super::run_bundle_run_native(root, forwarded),
+        "bundle-scaffold" => super::run_bundle_scaffold_native(root, forwarded),
         "validate-report" => super::run_validate_report_native(root, forwarded),
         "governance" => super::run_registered_entry_command(root, "governance", forwarded),
         "governance-heavy" => super::run_governance_heavy_native(root, forwarded),
@@ -167,6 +175,13 @@ mod tests {
     fn dispatch_targets_bundle_inspect_via_dispatch_with_forwarded_args() {
         let forwarded = vec!["--bundle-id".to_string(), "core".to_string()];
         let code = dispatch(Path::new("."), "bundle-inspect", &forwarded);
+        assert!(matches!(code, 0 | 1 | 2));
+    }
+
+    #[test]
+    fn dispatch_targets_bundle_info_via_dispatch_with_forwarded_args() {
+        let forwarded = vec!["--bundle-id".to_string(), "core".to_string()];
+        let code = dispatch(Path::new("."), "bundle-info", &forwarded);
         assert!(matches!(code, 0 | 1 | 2));
     }
 

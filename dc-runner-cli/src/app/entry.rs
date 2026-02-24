@@ -250,6 +250,17 @@ fn from_cli(cli: Cli) -> ParsedEntry {
         },
         CommandGroup::Bundle(b) => match b.command {
             BundleSubcommand::List => map_passthrough("bundle-list", vec![]),
+            BundleSubcommand::Info {
+                bundle_id,
+                bundle_version,
+            } => {
+                let mut forwarded = vec!["--bundle-id".to_string(), bundle_id];
+                if let Some(v) = bundle_version {
+                    forwarded.push("--bundle-version".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-info", forwarded)
+            }
             BundleSubcommand::Inspect {
                 bundle_id,
                 bundle_version,
@@ -259,24 +270,146 @@ fn from_cli(cli: Cli) -> ParsedEntry {
                     forwarded.push("--bundle-version".to_string());
                     forwarded.push(v);
                 }
-                map_passthrough("bundle-inspect", forwarded)
+                map_passthrough("bundle-info", forwarded)
             }
             BundleSubcommand::Install {
+                project_lock,
+                out,
                 bundle_id,
                 bundle_version,
                 install_dir,
+            } => {
+                let mut forwarded = Vec::<String>::new();
+                if let Some(v) = project_lock {
+                    forwarded.push("--project-lock".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = out {
+                    forwarded.push("--out".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = bundle_id {
+                    forwarded.push("--bundle-id".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = bundle_version {
+                    forwarded.push("--bundle-version".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = install_dir {
+                    forwarded.push("--install-dir".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-install", forwarded)
+            }
+            BundleSubcommand::InstallCheck { project_lock, out } => {
+                let mut forwarded = vec!["--project-lock".to_string(), project_lock];
+                if let Some(v) = out {
+                    forwarded.push("--out".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-install-check", forwarded)
+            }
+            BundleSubcommand::Bootstrap { lock, out } => {
+                let mut forwarded = vec!["--lock".to_string(), lock];
+                if let Some(v) = out {
+                    forwarded.push("--out".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-bootstrap", forwarded)
+            }
+            BundleSubcommand::BootstrapCheck { lock, out } => {
+                let mut forwarded = vec!["--lock".to_string(), lock];
+                if let Some(v) = out {
+                    forwarded.push("--out".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-bootstrap-check", forwarded)
+            }
+            BundleSubcommand::Outdated {
+                project_lock,
+                format,
+            } => {
+                let mut forwarded = vec!["--project-lock".to_string(), project_lock];
+                if let Some(v) = format {
+                    forwarded.push("--format".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-outdated", forwarded)
+            }
+            BundleSubcommand::Upgrade {
+                project_lock,
+                dry_run,
+            } => {
+                let mut forwarded = vec!["--project-lock".to_string(), project_lock];
+                if dry_run {
+                    forwarded.push("--dry-run".to_string());
+                }
+                map_passthrough("bundle-upgrade", forwarded)
+            }
+            BundleSubcommand::Run {
+                bundle_id,
+                bundle_version,
+                entrypoint,
+                args,
             } => {
                 let mut forwarded = vec![
                     "--bundle-id".to_string(),
                     bundle_id,
                     "--bundle-version".to_string(),
                     bundle_version,
+                    "--entrypoint".to_string(),
+                    entrypoint,
                 ];
-                if let Some(v) = install_dir {
-                    forwarded.push("--install-dir".to_string());
+                for arg in args {
+                    forwarded.push("--arg".to_string());
+                    forwarded.push(arg);
+                }
+                map_passthrough("bundle-run", forwarded)
+            }
+            BundleSubcommand::Scaffold {
+                project_root,
+                bundle_id,
+                bundle_version,
+                bundle_url,
+                sha256,
+                allow_external,
+                runner,
+                vars,
+                overwrite,
+            } => {
+                let mut forwarded = vec!["--project-root".to_string(), project_root];
+                if let Some(v) = bundle_id {
+                    forwarded.push("--bundle-id".to_string());
                     forwarded.push(v);
                 }
-                map_passthrough("bundle-install", forwarded)
+                if let Some(v) = bundle_version {
+                    forwarded.push("--bundle-version".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = bundle_url {
+                    forwarded.push("--bundle-url".to_string());
+                    forwarded.push(v);
+                }
+                if let Some(v) = sha256 {
+                    forwarded.push("--sha256".to_string());
+                    forwarded.push(v);
+                }
+                if allow_external {
+                    forwarded.push("--allow-external".to_string());
+                }
+                if let Some(v) = runner {
+                    forwarded.push("--runner".to_string());
+                    forwarded.push(v);
+                }
+                for entry in vars {
+                    forwarded.push("--var".to_string());
+                    forwarded.push(entry);
+                }
+                if overwrite {
+                    forwarded.push("--overwrite".to_string());
+                }
+                map_passthrough("bundle-scaffold", forwarded)
             }
         },
         CommandGroup::Reports(r) => match r.command {
@@ -568,40 +701,37 @@ mod tests {
     }
 
     #[test]
-    fn parse_entry_supports_bundle_inspect() {
+    fn parse_entry_supports_bundle_info() {
         let args = argv(&[
             "dc-runner",
             "bundle",
-            "inspect",
+            "info",
             "--bundle-id",
             "core",
             "--bundle-version",
             "1.0.0",
         ]);
         let parsed = parse_entry(&args).expect("parse");
-        assert_eq!(parsed.subcommand, "bundle-inspect");
+        assert_eq!(parsed.subcommand, "bundle-info");
         assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
         assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
     }
 
     #[test]
-    fn parse_entry_supports_bundle_install() {
+    fn parse_entry_supports_bundle_install_lock_driven() {
         let args = argv(&[
             "dc-runner",
             "bundle",
             "install",
-            "--bundle-id",
-            "core",
-            "--bundle-version",
-            "1.0.0",
-            "--install-dir",
+            "--project-lock",
+            "bundles.lock.yaml",
+            "--out",
             "/tmp/bundles",
         ]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "bundle-install");
-        assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
-        assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
-        assert!(parsed.forwarded.contains(&"--install-dir".to_string()));
+        assert!(parsed.forwarded.contains(&"--project-lock".to_string()));
+        assert!(parsed.forwarded.contains(&"--out".to_string()));
     }
 
     #[test]
@@ -638,8 +768,8 @@ mod tests {
     }
 
     #[test]
-    fn parse_entry_rejects_bundle_inspect_missing_required_bundle_id() {
-        let args = argv(&["dc-runner", "bundle", "inspect"]);
+    fn parse_entry_rejects_bundle_info_missing_required_bundle_id() {
+        let args = argv(&["dc-runner", "bundle", "info"]);
         let code = parse_entry(&args).expect_err("should fail");
         assert_eq!(code, 2);
     }
@@ -647,8 +777,8 @@ mod tests {
     #[test]
     fn parse_entry_rejects_bundle_install_missing_required_version() {
         let args = argv(&["dc-runner", "bundle", "install", "--bundle-id", "core"]);
-        let code = parse_entry(&args).expect_err("should fail");
-        assert_eq!(code, 2);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "bundle-install");
     }
 
     #[test]
@@ -688,5 +818,44 @@ mod tests {
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "project-scaffold");
         assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
+    }
+
+    #[test]
+    fn parse_entry_supports_bundle_scaffold() {
+        let args = argv(&[
+            "dc-runner",
+            "bundle",
+            "scaffold",
+            "--project-root",
+            "/tmp/demo",
+            "--bundle-id",
+            "core",
+            "--bundle-version",
+            "1.0.0",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "bundle-scaffold");
+        assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
+    }
+
+    #[test]
+    fn parse_entry_supports_bundle_run() {
+        let args = argv(&[
+            "dc-runner",
+            "bundle",
+            "run",
+            "--bundle-id",
+            "data-contracts-library-review-workflow",
+            "--bundle-version",
+            "1.0.0",
+            "--entrypoint",
+            "run",
+            "--arg",
+            "foo",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "bundle-run");
+        assert!(parsed.forwarded.contains(&"--entrypoint".to_string()));
+        assert!(parsed.forwarded.contains(&"--arg".to_string()));
     }
 }

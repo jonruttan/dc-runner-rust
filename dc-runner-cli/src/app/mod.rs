@@ -2448,7 +2448,7 @@ fn run_bundle_list_native(_root: &Path, forwarded: &[String]) -> i32 {
     0
 }
 
-fn run_bundle_inspect_native(_root: &Path, forwarded: &[String]) -> i32 {
+pub(super) fn run_bundle_info_native(_root: &Path, forwarded: &[String]) -> i32 {
     let plan = match parse_bundle_inspect_args(forwarded) {
         Ok(plan) => plan,
         Err(e) if e.starts_with("unsupported bundle inspect") => {
@@ -2456,7 +2456,7 @@ fn run_bundle_inspect_native(_root: &Path, forwarded: &[String]) -> i32 {
             return 2;
         }
         Err(e) if e.contains("required") => {
-            eprintln!("usage: bundle inspect --bundle-id <id> [--bundle-version <version>]");
+            eprintln!("usage: bundle info --bundle-id <id> [--bundle-version <version>]");
             eprintln!("ERROR: {e}");
             return 2;
         }
@@ -2468,7 +2468,7 @@ fn run_bundle_inspect_native(_root: &Path, forwarded: &[String]) -> i32 {
 
     let (bundle_id, bundle_version) = match plan {
         BundleInspectPlan::Help => {
-            println!("usage: bundle inspect --bundle-id <id> [--bundle-version <version>]");
+            println!("usage: bundle info --bundle-id <id> [--bundle-version <version>]");
             return 0;
         }
         BundleInspectPlan::Run {
@@ -2531,6 +2531,76 @@ fn run_bundle_inspect_native(_root: &Path, forwarded: &[String]) -> i32 {
 }
 
 fn run_bundle_install_native(_root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.iter().any(|v| v == "--project-lock") {
+        let mut project_lock = None::<String>;
+        let mut out = None::<String>;
+        let mut i = 0usize;
+        while i < forwarded.len() {
+            match forwarded[i].as_str() {
+                "--project-lock" => {
+                    if i + 1 >= forwarded.len() {
+                        eprintln!("usage: bundle install --project-lock <path> --out <path>");
+                        eprintln!("ERROR: --project-lock requires value");
+                        return 2;
+                    }
+                    project_lock = Some(forwarded[i + 1].clone());
+                    i += 2;
+                }
+                "--out" => {
+                    if i + 1 >= forwarded.len() {
+                        eprintln!("usage: bundle install --project-lock <path> --out <path>");
+                        eprintln!("ERROR: --out requires value");
+                        return 2;
+                    }
+                    out = Some(forwarded[i + 1].clone());
+                    i += 2;
+                }
+                "--help" | "-h" => {
+                    println!("usage: bundle install --project-lock <path> --out <path>");
+                    return 0;
+                }
+                other => {
+                    eprintln!("usage: bundle install --project-lock <path> --out <path>");
+                    eprintln!("ERROR: unsupported bundle install arg: {other}");
+                    return 2;
+                }
+            }
+        }
+        let Some(project_lock) = project_lock else {
+            eprintln!("usage: bundle install --project-lock <path> --out <path>");
+            eprintln!("ERROR: --project-lock is required");
+            return 2;
+        };
+        let Some(out) = out else {
+            eprintln!("usage: bundle install --project-lock <path> --out <path>");
+            eprintln!("ERROR: --out is required");
+            return 2;
+        };
+        let cwd = match env::current_dir() {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: failed to read current directory: {e}");
+                return 1;
+            }
+        };
+        let project_root = if Path::new(&out).is_absolute() {
+            PathBuf::from(out)
+        } else {
+            cwd.join(out)
+        };
+        let lock_path = if Path::new(&project_lock).is_absolute() {
+            PathBuf::from(project_lock)
+        } else {
+            cwd.join(project_lock)
+        };
+        if let Err(e) = run_bundler_bundle_subcommand(_root, "install", &project_root, &lock_path) {
+            eprintln!("ERROR: bundle install failed: {}", e);
+            return 1;
+        }
+        println!("OK: bundle install complete");
+        return 0;
+    }
+
     let plan = match parse_bundle_install_args(forwarded) {
         Ok(plan) => plan,
         Err(e)
@@ -2697,6 +2767,230 @@ fn run_bundle_install_native(_root: &Path, forwarded: &[String]) -> i32 {
     println!("  target: {}", install_target.display());
     println!("  status: ok");
     0
+}
+
+pub(super) fn run_bundle_install_check_native(root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!("usage: bundle install-check --project-lock <path> --out <path>");
+        return 0;
+    }
+    let mut project_lock = None::<String>;
+    let mut out = None::<String>;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--project-lock" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --project-lock requires value");
+                    return 2;
+                }
+                project_lock = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--out" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --out requires value");
+                    return 2;
+                }
+                out = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            other => {
+                eprintln!("ERROR: unsupported bundle install-check arg: {other}");
+                return 2;
+            }
+        }
+    }
+    let Some(project_lock) = project_lock else {
+        eprintln!("ERROR: --project-lock is required");
+        return 2;
+    };
+    let Some(out) = out else {
+        eprintln!("ERROR: --out is required");
+        return 2;
+    };
+    let cwd = match env::current_dir() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to read current directory: {e}");
+            return 1;
+        }
+    };
+    let project_root = if Path::new(&out).is_absolute() {
+        PathBuf::from(out)
+    } else {
+        cwd.join(out)
+    };
+    let lock_path = if Path::new(&project_lock).is_absolute() {
+        PathBuf::from(project_lock)
+    } else {
+        cwd.join(project_lock)
+    };
+    if let Err(e) = run_bundler_bundle_subcommand(root, "check", &project_root, &lock_path) {
+        eprintln!("ERROR: bundle install-check failed: {}", e);
+        return 1;
+    }
+    println!("OK: bundle install-check complete");
+    0
+}
+
+pub(super) fn run_bundle_bootstrap_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut translated = Vec::<String>::new();
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--lock" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --lock requires value");
+                    return 2;
+                }
+                translated.push("--project-lock".to_string());
+                translated.push(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--out" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --out requires value");
+                    return 2;
+                }
+                translated.push("--out".to_string());
+                translated.push(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--help" | "-h" => {
+                println!("usage: bundle bootstrap --lock <path> --out <path>");
+                return 0;
+            }
+            other => {
+                eprintln!("ERROR: unsupported bundle bootstrap arg: {other}");
+                return 2;
+            }
+        }
+    }
+    run_bundle_install_native(root, &translated)
+}
+
+pub(super) fn run_bundle_bootstrap_check_native(root: &Path, forwarded: &[String]) -> i32 {
+    let mut translated = Vec::<String>::new();
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--lock" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --lock requires value");
+                    return 2;
+                }
+                translated.push("--project-lock".to_string());
+                translated.push(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--out" => {
+                if i + 1 >= forwarded.len() {
+                    eprintln!("ERROR: --out requires value");
+                    return 2;
+                }
+                translated.push("--out".to_string());
+                translated.push(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--help" | "-h" => {
+                println!("usage: bundle bootstrap-check --lock <path> --out <path>");
+                return 0;
+            }
+            other => {
+                eprintln!("ERROR: unsupported bundle bootstrap-check arg: {other}");
+                return 2;
+            }
+        }
+    }
+    run_bundle_install_check_native(root, &translated)
+}
+
+fn run_bundler_bundle_raw(
+    root: &Path,
+    subcommand: &str,
+    forwarded: &[String],
+) -> Result<(), String> {
+    let run_and_check = |program: &str, args: &[String]| -> Result<(), String> {
+        let status = Command::new(program)
+            .args(args)
+            .current_dir(root)
+            .stdin(process::Stdio::inherit())
+            .stdout(process::Stdio::inherit())
+            .stderr(process::Stdio::inherit())
+            .status()
+            .map_err(|e| format!("failed to execute {}: {}", program, e))?;
+        if !status.success() {
+            return Err(format!(
+                "{} exited non-zero for bundle {}",
+                program, subcommand
+            ));
+        }
+        Ok(())
+    };
+
+    let mut bundler_args = vec!["bundle".to_string(), subcommand.to_string()];
+    bundler_args.extend_from_slice(forwarded);
+
+    if let Ok(bin) = env::var("DATA_CONTRACTS_BUNDLER_BIN") {
+        return run_and_check(bin.as_str(), &bundler_args);
+    }
+    if run_and_check("data-contracts-bundler", &bundler_args).is_ok() {
+        return Ok(());
+    }
+    let manifest_path = root.join("../data-contracts-bundler-rust/Cargo.toml");
+    if manifest_path.exists() {
+        let mut cargo_args = vec![
+            "run".to_string(),
+            "--quiet".to_string(),
+            "--manifest-path".to_string(),
+            manifest_path.to_string_lossy().to_string(),
+            "--".to_string(),
+        ];
+        cargo_args.extend(bundler_args);
+        return run_and_check("cargo", &cargo_args);
+    }
+    Err("unable to execute data-contracts-bundler (set DATA_CONTRACTS_BUNDLER_BIN or install binary)".to_string())
+}
+
+pub(super) fn run_bundle_outdated_native(root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!("usage: bundle outdated --project-lock <path> [--format json|table]");
+        return 0;
+    }
+    if let Err(e) = run_bundler_bundle_raw(root, "outdated", forwarded) {
+        eprintln!("ERROR: bundle outdated failed: {e}");
+        return 1;
+    }
+    0
+}
+
+pub(super) fn run_bundle_upgrade_native(root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!("usage: bundle upgrade --project-lock <path> [--dry-run]");
+        return 0;
+    }
+    if let Err(e) = run_bundler_bundle_raw(root, "upgrade", forwarded) {
+        eprintln!("ERROR: bundle upgrade failed: {e}");
+        return 1;
+    }
+    0
+}
+
+pub(super) fn run_bundle_run_native(root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!("usage: bundle run --bundle-id <id> --bundle-version <semver> --entrypoint <name> [--arg <value>]...");
+        return 0;
+    }
+    if let Err(e) = run_bundler_bundle_raw(root, "run", forwarded) {
+        eprintln!("ERROR: bundle run failed: {e}");
+        return 1;
+    }
+    0
+}
+
+pub(super) fn run_bundle_scaffold_native(root: &Path, forwarded: &[String]) -> i32 {
+    run_project_scaffold_native(root, forwarded)
 }
 
 fn run_bundler_bundle_subcommand(

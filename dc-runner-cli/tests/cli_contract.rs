@@ -261,8 +261,15 @@ fn entrypoints_list_includes_required_ids() {
     assert!(stdout.contains("governance"));
     assert!(stdout.contains("critical-gate"));
     assert!(stdout.contains("bundle-list"));
-    assert!(stdout.contains("bundle-inspect"));
+    assert!(stdout.contains("bundle-info"));
     assert!(stdout.contains("bundle-install"));
+    assert!(stdout.contains("bundle-install-check"));
+    assert!(stdout.contains("bundle-bootstrap"));
+    assert!(stdout.contains("bundle-bootstrap-check"));
+    assert!(stdout.contains("bundle-outdated"));
+    assert!(stdout.contains("bundle-upgrade"));
+    assert!(stdout.contains("bundle-run"));
+    assert!(stdout.contains("bundle-scaffold"));
     assert!(stdout.contains("docs-generate"));
     assert!(stdout.contains("docs-generate-check"));
     assert!(stdout.contains("docs-build"));

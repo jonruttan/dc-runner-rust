@@ -543,7 +543,7 @@ profiles:
           - /.artifacts/job-hooks/DCCONF-JOB-011.complete.json
       - id: runtime.policy_library_exports_resolve
         kind: file_tokens
-        path: /specs/05_libraries/policy/index.md
+        path: /specs/04_governance/check_sets_v1.yaml
         must_contain:
           - /specs/05_libraries/policy/policy_governance_catalog.spec.md
           - /specs/05_libraries/policy/policy_schema_pin.spec.md

@@ -16,8 +16,15 @@ Canonical user-facing commands are:
 - `dc-runner docs lint`
 - `dc-runner docs graph`
 - `dc-runner bundle list`
-- `dc-runner bundle inspect`
+- `dc-runner bundle info`
 - `dc-runner bundle install`
+- `dc-runner bundle install-check`
+- `dc-runner bundle bootstrap`
+- `dc-runner bundle bootstrap-check`
+- `dc-runner bundle outdated`
+- `dc-runner bundle upgrade`
+- `dc-runner bundle run`
+- `dc-runner bundle scaffold`
 - `dc-runner governance-broad-native`
 
 Optional state-management commands for spec cache lifecycle MAY also be exposed and are represented as

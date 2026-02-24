@@ -13,7 +13,7 @@ contracts:
   clauses:
   - id: DCCONF-BTOOL-007
     title: runner CLI exposes canonical scaffold command surface
-    purpose: Runner CLI must expose project scaffold command surface for bundle-driven project setup workflows.
+    purpose: Runner CLI must expose bundle scaffold command surface for bundle-driven project setup workflows.
     asserts:
       imports:
       - from: asset
@@ -24,12 +24,12 @@ contracts:
         assert:
           std.string.contains:
           - var: text
-          - dc-runner project scaffold --project-root <path> --bundle-id <id> --bundle-version <semver>
+          - dc-runner bundle scaffold --project-root <path> --bundle-id <id> --bundle-version <semver>
       - id: assert_2
         assert:
           std.string.contains:
           - var: text
-          - dc-runner project scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external
+          - dc-runner bundle scaffold --project-root <path> --bundle-url <url> --sha256 <hex> --allow-external
 adapters:
 - type: beta.check_profile_text_file_config_path_specs_02_contracts_29_runner_cli_interface
   actions:

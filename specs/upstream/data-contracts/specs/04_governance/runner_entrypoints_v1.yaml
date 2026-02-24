@@ -160,6 +160,17 @@ commands:
     exit_codes:
       allowed: [0, 1]
 
+  - id: bundle-info
+    cli: dc-runner bundle info
+    profile: full
+    visibility: top_level
+    group: bundles
+    source: core
+    artifacts:
+      - /.artifacts/bundle-info.json
+    exit_codes:
+      allowed: [0, 1]
+
   - id: bundle-install
     cli: dc-runner bundle install
     profile: full
@@ -171,14 +182,80 @@ commands:
     exit_codes:
       allowed: [0, 1]
 
-  - id: bundle-inspect
-    cli: dc-runner bundle inspect
+  - id: bundle-install-check
+    cli: dc-runner bundle install-check
     profile: full
     visibility: top_level
     group: bundles
     source: core
     artifacts:
-      - /.artifacts/bundle-inspect.json
+      - /.artifacts/bundle-install-check.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: bundle-bootstrap
+    cli: dc-runner bundle bootstrap
+    profile: full
+    visibility: top_level
+    group: bundles
+    source: core
+    artifacts:
+      - /.artifacts/bundle-bootstrap.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: bundle-bootstrap-check
+    cli: dc-runner bundle bootstrap-check
+    profile: full
+    visibility: top_level
+    group: bundles
+    source: core
+    artifacts:
+      - /.artifacts/bundle-bootstrap-check.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: bundle-outdated
+    cli: dc-runner bundle outdated
+    profile: full
+    visibility: top_level
+    group: bundles
+    source: core
+    artifacts:
+      - /.artifacts/bundle-outdated.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: bundle-upgrade
+    cli: dc-runner bundle upgrade
+    profile: full
+    visibility: top_level
+    group: bundles
+    source: core
+    artifacts:
+      - /.artifacts/bundle-upgrade.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: bundle-run
+    cli: dc-runner bundle run
+    profile: full
+    visibility: top_level
+    group: bundles
+    source: core
+    artifacts:
+      - /.artifacts/bundle-run.json
+    exit_codes:
+      allowed: [0, 1]
+
+  - id: bundle-scaffold
+    cli: dc-runner bundle scaffold
+    profile: full
+    visibility: top_level
+    group: bundles
+    source: core
+    artifacts:
+      - /.artifacts/bundle-scaffold.json
     exit_codes:
       allowed: [0, 1]
 

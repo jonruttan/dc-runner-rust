@@ -8,6 +8,7 @@ entry_cases:
   - /specs/04_governance/cases/core/spec_core/runtime_chain_entry_cases_present.spec.md
   - /specs/04_governance/cases/core/spec_core/runtime_policy_library_exports_resolve.spec.md
 contracts:
+  - /specs/05_libraries/policy/index.md
   - /specs/02_contracts/02_case_shape.md
   - /specs/02_contracts/04_harness.md
   - /specs/02_contracts/28_spec_lang_policy_execution.md

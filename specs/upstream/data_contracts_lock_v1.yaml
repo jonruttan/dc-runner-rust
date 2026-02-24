@@ -3,8 +3,8 @@ version: 1
 upstream:
   repo: "https://github.com/jonruttan/data-contracts.git"
   tag: main
-  commit: 272e9fe702c09972245d57d5e129ba5cc3656945
-  synced_at_utc: "2026-02-24T19:40:38Z"
+  commit: e1a9f035b7dd41380bfa68f1c9983c228684c277
+  synced_at_utc: "2026-02-24T21:48:43Z"
 snapshot:
   root: specs/upstream/data-contracts
   include:
@@ -34,4 +34,4 @@ snapshot:
     - "**/snapshots/**"
 integrity:
   file_count: 513
-  sha256_manifest: ce0a379b7d8fb20e405c1d114bb6480be6b674dcc7e2fe31ffedf71f20caccee
+  sha256_manifest: aa6d5f0358be7ebaa61f64d98a23ea6d43d0c80f663e17d73bd32b94f3144d76
