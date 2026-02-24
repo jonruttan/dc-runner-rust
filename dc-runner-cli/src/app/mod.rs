@@ -1789,7 +1789,7 @@ struct ProjectBundleLockEntry {
     install_dir: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct ProjectBundleLockSource {
     repo: String,
     release_tag: String,
@@ -2148,6 +2148,53 @@ enum BundleInstallPlan {
     },
 }
 
+#[derive(Debug)]
+enum BundleRunPlan {
+    Help,
+    Run {
+        bundle_id: String,
+        bundle_version: String,
+        entrypoint: String,
+        args: Vec<String>,
+    },
+}
+
+#[derive(Debug)]
+enum BundleOutdatedPlan {
+    Help,
+    Run {
+        project_lock: PathBuf,
+        format: String,
+    },
+}
+
+#[derive(Debug)]
+enum BundleUpgradePlan {
+    Help,
+    Run {
+        project_lock: PathBuf,
+        dry_run: bool,
+    },
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ProjectBundleLockMutableV1 {
+    version: i32,
+    project_id: String,
+    bundles: Vec<ProjectBundleLockMutableEntry>,
+    updated_at: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ProjectBundleLockMutableEntry {
+    bundle_id: String,
+    bundle_version: String,
+    #[serde(default)]
+    role: Option<String>,
+    source: ProjectBundleLockSource,
+    install_dir: String,
+}
+
 fn parse_github_bundle_releases(raw: &str) -> Result<Vec<Value>, String> {
     let payload: Value =
         serde_json::from_str(raw).map_err(|e| format!("invalid GitHub releases payload: {e}"))?;
@@ -2341,13 +2388,148 @@ fn parse_bundle_inspect_args(forwarded: &[String]) -> Result<BundleInspectPlan, 
     }
     let bundle_id = bundle_id.ok_or_else(|| "--bundle-id is required".to_string())?;
     let version = match bundle_version.unwrap_or_else(|| "latest".to_string()) {
-        v if v == "latest" => specs_cache_source_from_remote(&v)?,
+        v if v == "latest" => latest_bundle_version()?,
         v => canonicalize_bundle_version(&v)?,
     };
     Ok(BundleInspectPlan::Run {
         bundle_id,
         bundle_version: version,
     })
+}
+
+fn parse_bundle_run_args(forwarded: &[String]) -> Result<BundleRunPlan, String> {
+    let mut bundle_id = None::<String>;
+    let mut bundle_version = None::<String>;
+    let mut entrypoint = None::<String>;
+    let mut args = Vec::<String>::new();
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--bundle-id" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-id requires value".to_string());
+                }
+                bundle_id = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--bundle-version" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-version requires value".to_string());
+                }
+                bundle_version = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--entrypoint" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--entrypoint requires value".to_string());
+                }
+                entrypoint = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--arg" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--arg requires value".to_string());
+                }
+                args.push(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--help" | "-h" => return Ok(BundleRunPlan::Help),
+            other => return Err(format!("unsupported bundle run arg: {other}")),
+        }
+    }
+    let bundle_id = bundle_id.ok_or_else(|| "--bundle-id is required".to_string())?;
+    let bundle_version = match bundle_version.unwrap_or_else(|| "latest".to_string()) {
+        v if v == "latest" => latest_bundle_version()?,
+        v => canonicalize_bundle_version(&v)?,
+    };
+    let entrypoint = entrypoint.unwrap_or_else(|| "run".to_string());
+    Ok(BundleRunPlan::Run {
+        bundle_id,
+        bundle_version,
+        entrypoint,
+        args,
+    })
+}
+
+fn parse_bundle_outdated_args(forwarded: &[String]) -> Result<BundleOutdatedPlan, String> {
+    let mut project_lock = None::<PathBuf>;
+    let mut format = "table".to_string();
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--project-lock" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--project-lock requires value".to_string());
+                }
+                project_lock = Some(PathBuf::from(forwarded[i + 1].clone()));
+                i += 2;
+            }
+            "--format" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--format requires value".to_string());
+                }
+                format = forwarded[i + 1].to_ascii_lowercase();
+                if !matches!(format.as_str(), "json" | "table") {
+                    return Err(format!(
+                        "invalid --format {}; expected json|table",
+                        forwarded[i + 1]
+                    ));
+                }
+                i += 2;
+            }
+            "--help" | "-h" => return Ok(BundleOutdatedPlan::Help),
+            other => return Err(format!("unsupported bundle outdated arg: {other}")),
+        }
+    }
+    let project_lock = project_lock.ok_or_else(|| "--project-lock is required".to_string())?;
+    Ok(BundleOutdatedPlan::Run {
+        project_lock,
+        format,
+    })
+}
+
+fn parse_bundle_upgrade_args(forwarded: &[String]) -> Result<BundleUpgradePlan, String> {
+    let mut project_lock = None::<PathBuf>;
+    let mut dry_run = false;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--project-lock" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--project-lock requires value".to_string());
+                }
+                project_lock = Some(PathBuf::from(forwarded[i + 1].clone()));
+                i += 2;
+            }
+            "--dry-run" => {
+                dry_run = true;
+                i += 1;
+            }
+            "--help" | "-h" => return Ok(BundleUpgradePlan::Help),
+            other => return Err(format!("unsupported bundle upgrade arg: {other}")),
+        }
+    }
+    let project_lock = project_lock.ok_or_else(|| "--project-lock is required".to_string())?;
+    Ok(BundleUpgradePlan::Run {
+        project_lock,
+        dry_run,
+    })
+}
+
+fn latest_bundle_version() -> Result<String, String> {
+    let release_url =
+        "https://api.github.com/repos/jonruttan/data-contracts-bundles/releases/latest";
+    let release_raw = read_url_to_string(release_url)?;
+    let releases = parse_github_bundle_releases(&release_raw)?;
+    let release = releases
+        .into_iter()
+        .next()
+        .ok_or_else(|| "bundle release payload was empty".to_string())?;
+    let tag = release
+        .get("tag_name")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "bundle release payload missing tag_name".to_string())?;
+    canonicalize_bundle_version(tag.trim_start_matches('v'))
 }
 
 fn parse_bundle_install_args(forwarded: &[String]) -> Result<BundleInstallPlan, String> {
@@ -2906,91 +3088,479 @@ pub(super) fn run_bundle_bootstrap_check_native(root: &Path, forwarded: &[String
     run_bundle_install_check_native(root, &translated)
 }
 
-fn run_bundler_bundle_raw(
-    root: &Path,
-    subcommand: &str,
-    forwarded: &[String],
-) -> Result<(), String> {
-    let run_and_check = |program: &str, args: &[String]| -> Result<(), String> {
-        let status = Command::new(program)
-            .args(args)
-            .current_dir(root)
-            .stdin(process::Stdio::inherit())
-            .stdout(process::Stdio::inherit())
-            .stderr(process::Stdio::inherit())
-            .status()
-            .map_err(|e| format!("failed to execute {}: {}", program, e))?;
-        if !status.success() {
-            return Err(format!(
-                "{} exited non-zero for bundle {}",
-                program, subcommand
-            ));
+pub(super) fn run_bundle_outdated_native(_root: &Path, forwarded: &[String]) -> i32 {
+    let plan = match parse_bundle_outdated_args(forwarded) {
+        Ok(plan) => plan,
+        Err(e) => {
+            eprintln!("usage: bundle outdated --project-lock <path> [--format json|table]");
+            eprintln!("ERROR: {e}");
+            return 2;
         }
-        Ok(())
+    };
+    let (project_lock, format) = match plan {
+        BundleOutdatedPlan::Help => {
+            println!("usage: bundle outdated --project-lock <path> [--format json|table]");
+            return 0;
+        }
+        BundleOutdatedPlan::Run {
+            project_lock,
+            format,
+        } => (project_lock, format),
     };
 
-    let mut bundler_args = vec!["bundle".to_string(), subcommand.to_string()];
-    bundler_args.extend_from_slice(forwarded);
+    let raw = match fs::read_to_string(&project_lock) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to read {}: {}", project_lock.display(), e);
+            return 1;
+        }
+    };
+    let lock: ProjectBundleLockMutableV1 = match serde_yaml::from_str(&raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!(
+                "ERROR: invalid project lock {}: {}",
+                project_lock.display(),
+                e
+            );
+            return 1;
+        }
+    };
+    let latest_version = match latest_bundle_version() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to resolve latest bundle version: {e}");
+            return 1;
+        }
+    };
+    let rows: Vec<Value> = lock
+        .bundles
+        .iter()
+        .map(|b| {
+            json!({
+                "bundle_id": b.bundle_id,
+                "current_version": b.bundle_version,
+                "latest_version": latest_version,
+                "outdated": b.bundle_version != latest_version,
+            })
+        })
+        .collect();
 
-    if let Ok(bin) = env::var("DATA_CONTRACTS_BUNDLER_BIN") {
-        return run_and_check(bin.as_str(), &bundler_args);
-    }
-    if run_and_check("data-contracts-bundler", &bundler_args).is_ok() {
-        return Ok(());
-    }
-    let manifest_path = root.join("../data-contracts-bundler-rust/Cargo.toml");
-    if manifest_path.exists() {
-        let mut cargo_args = vec![
-            "run".to_string(),
-            "--quiet".to_string(),
-            "--manifest-path".to_string(),
-            manifest_path.to_string_lossy().to_string(),
-            "--".to_string(),
-        ];
-        cargo_args.extend(bundler_args);
-        return run_and_check("cargo", &cargo_args);
-    }
-    Err("unable to execute data-contracts-bundler (set DATA_CONTRACTS_BUNDLER_BIN or install binary)".to_string())
-}
-
-pub(super) fn run_bundle_outdated_native(root: &Path, forwarded: &[String]) -> i32 {
-    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
-        println!("usage: bundle outdated --project-lock <path> [--format json|table]");
+    if format == "json" {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&rows).unwrap_or_else(|_| "[]".to_string())
+        );
         return 0;
     }
-    if let Err(e) = run_bundler_bundle_raw(root, "outdated", forwarded) {
-        eprintln!("ERROR: bundle outdated failed: {e}");
-        return 1;
+    println!("bundle_id\tcurrent\tlatest\toutdated");
+    for row in rows {
+        println!(
+            "{}\t{}\t{}\t{}",
+            row.get("bundle_id")
+                .and_then(Value::as_str)
+                .unwrap_or_default(),
+            row.get("current_version")
+                .and_then(Value::as_str)
+                .unwrap_or_default(),
+            row.get("latest_version")
+                .and_then(Value::as_str)
+                .unwrap_or_default(),
+            row.get("outdated")
+                .and_then(Value::as_bool)
+                .unwrap_or(false),
+        );
     }
     0
 }
 
-pub(super) fn run_bundle_upgrade_native(root: &Path, forwarded: &[String]) -> i32 {
-    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
-        println!("usage: bundle upgrade --project-lock <path> [--dry-run]");
+pub(super) fn run_bundle_upgrade_native(_root: &Path, forwarded: &[String]) -> i32 {
+    let plan = match parse_bundle_upgrade_args(forwarded) {
+        Ok(plan) => plan,
+        Err(e) => {
+            eprintln!("usage: bundle upgrade --project-lock <path> [--dry-run]");
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+    };
+    let (project_lock, dry_run) = match plan {
+        BundleUpgradePlan::Help => {
+            println!("usage: bundle upgrade --project-lock <path> [--dry-run]");
+            return 0;
+        }
+        BundleUpgradePlan::Run {
+            project_lock,
+            dry_run,
+        } => (project_lock, dry_run),
+    };
+
+    let raw = match fs::read_to_string(&project_lock) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to read {}: {}", project_lock.display(), e);
+            return 1;
+        }
+    };
+    let mut lock: ProjectBundleLockMutableV1 = match serde_yaml::from_str(&raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!(
+                "ERROR: invalid project lock {}: {}",
+                project_lock.display(),
+                e
+            );
+            return 1;
+        }
+    };
+    let latest_version = match latest_bundle_version() {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to resolve latest bundle version: {e}");
+            return 1;
+        }
+    };
+
+    let mut changed = 0usize;
+    for bundle in &mut lock.bundles {
+        if bundle.bundle_version == latest_version {
+            continue;
+        }
+        let (_, _, release_tag, asset_url, sidecar_url) =
+            canonical_bundle_release(&bundle.bundle_id, &latest_version);
+        let sidecar_raw = match read_url_to_string(&sidecar_url) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!(
+                    "ERROR: failed downloading checksum sidecar for {}: {}",
+                    bundle.bundle_id, e
+                );
+                return 1;
+            }
+        };
+        let sha = match parse_sha256_sidecar(&sidecar_raw) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!(
+                    "ERROR: invalid checksum sidecar for {}: {}",
+                    bundle.bundle_id, e
+                );
+                return 1;
+            }
+        };
+        bundle.bundle_version = latest_version.clone();
+        bundle.source.release_tag = release_tag;
+        bundle.source.asset_url = asset_url;
+        bundle.source.sha256 = sha;
+        changed += 1;
+    }
+    if changed == 0 {
+        println!("upgrade complete: no changes");
         return 0;
     }
-    if let Err(e) = run_bundler_bundle_raw(root, "upgrade", forwarded) {
-        eprintln!("ERROR: bundle upgrade failed: {e}");
+    if dry_run {
+        println!(
+            "upgrade plan: {} bundle(s) would update to {}",
+            changed, latest_version
+        );
+        return 0;
+    }
+    lock.updated_at = Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true);
+    let updated_yaml = match serde_yaml::to_string(&lock) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to render updated lock: {}", e);
+            return 1;
+        }
+    };
+    if let Err(e) = fs::write(&project_lock, updated_yaml) {
+        eprintln!("ERROR: failed writing {}: {}", project_lock.display(), e);
         return 1;
     }
+    println!(
+        "upgrade complete: updated {} bundle(s) to {}",
+        changed, latest_version
+    );
     0
 }
 
-pub(super) fn run_bundle_run_native(root: &Path, forwarded: &[String]) -> i32 {
-    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
-        println!("usage: bundle run <bundle-id> [--bundle-version <semver|latest>] [--entrypoint <name>] [--arg <value>]...");
-        return 0;
+pub(super) fn run_bundle_run_native(_root: &Path, forwarded: &[String]) -> i32 {
+    let plan = match parse_bundle_run_args(forwarded) {
+        Ok(plan) => plan,
+        Err(e) => {
+            eprintln!("usage: bundle run <bundle-id> [--bundle-version <semver|latest>] [--entrypoint <name>] [--arg <value>]...");
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+    };
+    let (bundle_id, bundle_version, entrypoint, args) = match plan {
+        BundleRunPlan::Help => {
+            println!("usage: bundle run <bundle-id> [--bundle-version <semver|latest>] [--entrypoint <name>] [--arg <value>]...");
+            return 0;
+        }
+        BundleRunPlan::Run {
+            bundle_id,
+            bundle_version,
+            entrypoint,
+            args,
+        } => (bundle_id, bundle_version, entrypoint, args),
+    };
+
+    let release_url = format!(
+        "https://api.github.com/repos/jonruttan/data-contracts-bundles/releases/tags/v{}",
+        bundle_version
+    );
+    let release_raw = match read_url_to_string(&release_url) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load bundle release v{bundle_version}: {e}");
+            return 1;
+        }
+    };
+    let release = match parse_github_bundle_releases(&release_raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: invalid bundle release payload: {e}");
+            return 1;
+        }
     }
-    if let Err(e) = run_bundler_bundle_raw(root, "run", forwarded) {
-        eprintln!("ERROR: bundle run failed: {e}");
+    .into_iter()
+    .next();
+    let Some(release) = release else {
+        eprintln!("ERROR: bundle release payload was empty");
+        return 1;
+    };
+    let artifacts = match parse_bundle_asset_reference(&release, &bundle_id, &bundle_version) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+    let sidecar_url = match artifacts.sidecar_url {
+        Some(v) => v,
+        None => {
+            eprintln!("ERROR: missing checksum sidecar for {bundle_id} v{bundle_version}");
+            return 1;
+        }
+    };
+
+    let temp_root = env::temp_dir().join(format!(
+        "dc-runner-bundle-run-{}",
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|v| v.as_millis())
+            .unwrap_or_default()
+    ));
+    if let Err(e) = fs::create_dir_all(&temp_root) {
+        eprintln!(
+            "ERROR: failed to create temp workdir {}: {e}",
+            temp_root.display()
+        );
         return 1;
     }
-    0
+
+    let run_result = (|| -> Result<(), String> {
+        let tmp_tarball = temp_root.join(format!("bundle-v{}.tar.gz", bundle_version));
+        download_url_to_file(&artifacts.tarball_url, &tmp_tarball)
+            .map_err(|e| format!("failed downloading bundle artifact: {e}"))?;
+        let sidecar_raw = read_url_to_string(&sidecar_url)
+            .map_err(|e| format!("failed downloading checksum sidecar: {e}"))?;
+        let expected_checksum = parse_sha256_sidecar(&sidecar_raw)
+            .map_err(|e| format!("invalid checksum sidecar: {e}"))?;
+        let actual_checksum = sha256_file(&tmp_tarball)
+            .map_err(|e| format!("failed reading downloaded tarball: {e}"))?;
+        if actual_checksum != expected_checksum {
+            return Err(format!(
+                "checksum mismatch for download (expected {expected_checksum}, got {actual_checksum})"
+            ));
+        }
+
+        let install_root = temp_root.join("bundle");
+        fs::create_dir_all(&install_root).map_err(|e| {
+            format!(
+                "failed to create temporary bundle root {}: {}",
+                install_root.display(),
+                e
+            )
+        })?;
+        let exit_code = run_cmd(
+            "tar",
+            &[
+                "xzf".to_string(),
+                tmp_tarball.to_string_lossy().to_string(),
+                "-C".to_string(),
+                install_root.to_string_lossy().to_string(),
+            ],
+            &temp_root,
+        );
+        if exit_code != 0 {
+            return Err(format!(
+                "failed to unpack bundle archive (tar exit: {exit_code})"
+            ));
+        }
+
+        let entrypoint_path = resolve_bundle_entrypoint_file(&install_root, &entrypoint)?;
+        let status = run_bundle_entrypoint_file(&entrypoint_path, &args, &install_root)?;
+        if !status.success() {
+            return Err(format!(
+                "entrypoint {} exited non-zero ({})",
+                entrypoint,
+                status.code().unwrap_or(1)
+            ));
+        }
+        println!(
+            "run complete: {}@{}#{}",
+            bundle_id, bundle_version, entrypoint
+        );
+        Ok(())
+    })();
+
+    let cleanup = fs::remove_dir_all(&temp_root);
+    match (run_result, cleanup) {
+        (Ok(()), Ok(())) => 0,
+        (Ok(()), Err(e)) => {
+            eprintln!(
+                "ERROR: run succeeded but cleanup failed at {}: {}",
+                temp_root.display(),
+                e
+            );
+            1
+        }
+        (Err(e), Ok(())) => {
+            eprintln!("ERROR: bundle run failed: {e}");
+            1
+        }
+        (Err(e), Err(clean_err)) => {
+            eprintln!(
+                "ERROR: bundle run failed: {} (cleanup failed at {}: {})",
+                e,
+                temp_root.display(),
+                clean_err
+            );
+            1
+        }
+    }
 }
 
 pub(super) fn run_bundle_scaffold_native(root: &Path, forwarded: &[String]) -> i32 {
     run_project_scaffold_native(root, forwarded)
+}
+
+fn resolve_bundle_entrypoint_file(install_dir: &Path, entrypoint: &str) -> Result<PathBuf, String> {
+    let raw = entrypoint.trim();
+    if raw.is_empty() {
+        return Err("--entrypoint must be non-empty".to_string());
+    }
+    if raw.contains('/') {
+        let candidate = install_dir.join(raw.trim_start_matches('/'));
+        if candidate.exists() && candidate.is_file() {
+            return Ok(candidate);
+        }
+    }
+
+    let mut matches = Vec::<PathBuf>::new();
+    let mut stack = vec![install_dir.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let rd = fs::read_dir(&dir)
+            .map_err(|e| format!("failed to read directory {}: {}", dir.display(), e))?;
+        for ent in rd {
+            let ent =
+                ent.map_err(|e| format!("failed to read entry in {}: {}", dir.display(), e))?;
+            let path = ent.path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            let file_name = path
+                .file_name()
+                .and_then(|v| v.to_str())
+                .unwrap_or_default();
+            let stem = path
+                .file_stem()
+                .and_then(|v| v.to_str())
+                .unwrap_or_default();
+            let stem2 = Path::new(stem)
+                .file_stem()
+                .and_then(|v| v.to_str())
+                .unwrap_or_default();
+            if file_name == raw
+                || stem == raw
+                || stem2 == raw
+                || file_name == format!("{}.sh", raw)
+                || file_name == format!("{}.py", raw)
+                || file_name == format!("{}.php", raw)
+            {
+                matches.push(path);
+            }
+        }
+    }
+    matches.sort();
+    if matches.is_empty() {
+        return Err(format!(
+            "entrypoint '{}' not found in materialized bundle {}",
+            raw,
+            install_dir.display()
+        ));
+    }
+    Ok(matches.remove(0))
+}
+
+fn run_bundle_entrypoint_file(
+    path: &Path,
+    args: &[String],
+    cwd: &Path,
+) -> Result<process::ExitStatus, String> {
+    let ext = path
+        .extension()
+        .and_then(|v| v.to_str())
+        .unwrap_or_default();
+    let mut cmd = match ext {
+        "sh" => {
+            let mut c = Command::new("sh");
+            c.arg(path);
+            c
+        }
+        "py" => {
+            let mut c = Command::new("python3");
+            c.arg(path);
+            c
+        }
+        "php" => {
+            let mut c = Command::new("php");
+            c.arg(path);
+            c
+        }
+        "md" => {
+            return Err(format!(
+                "entrypoint {} resolves to markdown ({}) and is not executable",
+                path.display(),
+                path.display()
+            ))
+        }
+        _ => {
+            #[cfg(unix)]
+            {
+                let mode = fs::metadata(path)
+                    .map_err(|e| format!("failed to stat {}: {}", path.display(), e))?
+                    .permissions()
+                    .mode();
+                if mode & 0o111 == 0 {
+                    return Err(format!(
+                        "entrypoint file {} is not executable and has no supported script extension",
+                        path.display()
+                    ));
+                }
+            }
+            Command::new(path)
+        }
+    };
+    cmd.args(args)
+        .current_dir(cwd)
+        .stdin(process::Stdio::inherit())
+        .stdout(process::Stdio::inherit())
+        .stderr(process::Stdio::inherit())
+        .status()
+        .map_err(|e| format!("failed to execute entrypoint {}: {}", path.display(), e))
 }
 
 fn run_bundler_bundle_subcommand(

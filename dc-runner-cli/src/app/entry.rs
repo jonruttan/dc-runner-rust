@@ -876,7 +876,9 @@ mod tests {
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "bundle-run");
         assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
-        assert!(parsed.forwarded.contains(&"data-contracts-library-review-workflow".to_string()));
+        assert!(parsed
+            .forwarded
+            .contains(&"data-contracts-library-review-workflow".to_string()));
         assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
         assert!(parsed.forwarded.contains(&"latest".to_string()));
         assert!(parsed.forwarded.contains(&"--entrypoint".to_string()));
