@@ -633,6 +633,51 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
             }
         };
         let normalized_version = resolved_version.clone();
+        let release_url = format!(
+            "https://api.github.com/repos/jonruttan/data-contracts-bundles/releases/tags/v{}",
+            normalized_version
+        );
+        let release_raw = match read_url_to_string(&release_url) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: failed to load bundle release v{normalized_version}: {e}");
+                return 1;
+            }
+        };
+        let release = match parse_github_bundle_releases(&release_raw) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: invalid bundle release payload: {e}");
+                return 1;
+            }
+        }
+        .into_iter()
+        .next();
+        let Some(release) = release else {
+            eprintln!("ERROR: bundle release payload was empty for v{normalized_version}");
+            return 1;
+        };
+        let bundle_ids = match bundle_ids_for_release_version(&release, &normalized_version) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: failed to detect remote bundle ids: {e}");
+                return 1;
+            }
+        };
+        if !bundle_ids.contains(&"core".to_string()) {
+            let available = if bundle_ids.is_empty() {
+                "none".to_string()
+            } else {
+                bundle_ids.join(", ")
+            };
+            eprintln!(
+                "ERROR: no remote `core` bundle found for v{normalized_version} (available: {available})."
+            );
+            eprintln!(
+                "Run `dc-runner bundle list` to see published bundle ids, then rerun specs refresh with `bundle-id` if supported."
+            );
+            return 1;
+        }
         let bundle_id = "core";
         let (asset_name, _sidecar_name, release_tag, asset_url, sidecar_url) =
             canonical_bundle_release(bundle_id, &normalized_version);
@@ -2058,6 +2103,35 @@ fn parse_bundle_asset_bundle_version(name: &str) -> Option<(String, String)> {
         return None;
     }
     Some((bundle_id.to_string(), version.to_string()))
+}
+
+fn bundle_ids_for_release_version(
+    release: &Value,
+    version: &str,
+) -> Result<Vec<String>, String> {
+    let assets = release
+        .get("assets")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "release payload missing assets array".to_string())?;
+    let mut bundle_ids = Vec::<String>::new();
+    let mut seen = HashSet::new();
+    for asset in assets {
+        let name = match asset.get("name").and_then(Value::as_str) {
+            Some(v) => v,
+            None => continue,
+        };
+        let Some((bundle_id, parsed_version)) = parse_bundle_asset_bundle_version(name) else {
+            continue;
+        };
+        if parsed_version != version {
+            continue;
+        }
+        if seen.insert(bundle_id.clone()) {
+            bundle_ids.push(bundle_id);
+        }
+    }
+    bundle_ids.sort();
+    Ok(bundle_ids)
 }
 
 fn parse_bundle_catalog(raw: &str) -> Result<Vec<BundleCatalogEntry>, String> {
