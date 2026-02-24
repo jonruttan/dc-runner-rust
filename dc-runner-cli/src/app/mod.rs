@@ -6338,6 +6338,24 @@ mod tests {
         std::env::temp_dir().join(format!("dc-runner-spec-cache-test-{unique_suffix}"))
     }
 
+    fn with_workspace_spec_source<T>(test: impl FnOnce() -> T) -> T {
+        let previous_spec_source = env::var_os("DC_RUNNER_SPEC_SOURCE");
+        env::set_var("DC_RUNNER_SPEC_SOURCE", "workspace");
+
+        let result = panic::catch_unwind(panic::AssertUnwindSafe(test));
+
+        if let Some(previous) = previous_spec_source {
+            env::set_var("DC_RUNNER_SPEC_SOURCE", previous);
+        } else {
+            env::remove_var("DC_RUNNER_SPEC_SOURCE");
+        }
+
+        match result {
+            Ok(v) => v,
+            Err(err) => panic::resume_unwind(err),
+        }
+    }
+
     fn with_isolated_spec_cache<T>(test: impl FnOnce(&Path) -> T) -> T {
         let _guard = TEST_SPEC_CACHE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
 
@@ -6666,6 +6684,7 @@ after
 
     #[test]
     fn load_case_block_supports_contracts_clauses_mapping_shape() {
+        with_workspace_spec_source(|| {
         let base = std::env::temp_dir().join(format!(
             "dc_runner_rust_case_shape_{}",
             std::time::SystemTime::now()
@@ -6699,10 +6718,12 @@ contracts:
         assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
 
         let _ = std::fs::remove_dir_all(&base);
+        });
     }
 
     #[test]
     fn load_case_block_supports_legacy_contracts_list_shape() {
+        with_workspace_spec_source(|| {
         let base = std::env::temp_dir().join(format!(
             "dc_runner_rust_case_shape_{}",
             std::time::SystemTime::now()
@@ -6733,10 +6754,12 @@ contracts:
         assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
 
         let _ = std::fs::remove_dir_all(&base);
+        });
     }
 
     #[test]
     fn load_case_block_rejects_runner_spec_non_canonical_schema_ref() {
+        with_workspace_spec_source(|| {
         let base = std::env::temp_dir().join(format!(
             "data-contracts-runner-boundary-{}",
             std::time::SystemTime::now()
@@ -6766,6 +6789,7 @@ contracts:
         assert!(err.contains("canonical schema authority"));
 
         let _ = std::fs::remove_dir_all(&base);
+        });
     }
 
     #[test]
