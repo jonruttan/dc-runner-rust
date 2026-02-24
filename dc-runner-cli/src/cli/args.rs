@@ -280,9 +280,7 @@ pub enum SpecsSubcommand {
         yes: bool,
     },
     /// Show metadata for cache version or active source
-    Info {
-        selected_version: Option<String>,
-    },
+    Info { selected_version: Option<String> },
     /// Remove stale entries by retention policy
     Prune {
         #[arg(long)]

@@ -183,12 +183,7 @@ pub fn load_state() -> Result<SpecSourceState, String> {
         return Ok(SpecSourceState::default());
     }
     serde_yaml::from_str::<SpecSourceState>(&raw)
-        .or_else(|e| {
-            Err(format!(
-                "failed parsing spec state {}: {e}",
-                path.display()
-            ))
-        })
+        .or_else(|e| Err(format!("failed parsing spec state {}: {e}", path.display())))
 }
 
 pub fn save_state(state: &SpecSourceState) -> Result<(), String> {
@@ -197,8 +192,8 @@ pub fn save_state(state: &SpecSourceState) -> Result<(), String> {
         fs::create_dir_all(parent)
             .map_err(|e| format!("failed to create spec state dir {}: {e}", parent.display()))?;
     }
-    let raw = serde_yaml::to_string(state)
-        .map_err(|e| format!("failed to serialize spec state: {e}"))?;
+    let raw =
+        serde_yaml::to_string(state).map_err(|e| format!("failed to serialize spec state: {e}"))?;
     fs::write(&path, raw).map_err(|e| format!("failed writing spec state {}: {e}", path.display()))
 }
 
@@ -226,7 +221,10 @@ fn normalize_active_cache_target(state: &SpecSourceState) -> Option<RuntimeSpecS
 
 pub fn resolve_runtime_mode(_root: &Path) -> Result<RuntimeSpecSource, String> {
     let cli_mode = effective_mode()?;
-    if matches!(cli_mode, SpecSourceMode::Bundled | SpecSourceMode::Workspace) {
+    if matches!(
+        cli_mode,
+        SpecSourceMode::Bundled | SpecSourceMode::Workspace
+    ) {
         return Ok(match cli_mode {
             SpecSourceMode::Bundled => RuntimeSpecSource::Bundled,
             SpecSourceMode::Workspace => RuntimeSpecSource::Workspace,
@@ -308,9 +306,9 @@ pub fn upsert_bundle_entry(
 
 pub fn use_cache_version(state: &mut SpecSourceState, version: Option<&str>) -> Result<(), String> {
     if let Some(version) = version {
-        let entry = state.find_version(version).ok_or_else(|| {
-            format!("cache version {version} is not installed")
-        })?;
+        let entry = state
+            .find_version(version)
+            .ok_or_else(|| format!("cache version {version} is not installed"))?;
         if !entry.verified {
             return Err(format!("cache version {version} is not verified"));
         }
@@ -372,7 +370,6 @@ pub fn mark_check(state: &mut SpecSourceState, ok: bool) {
         Some("verification_failed".to_string())
     };
 }
-
 
 pub fn bundle_path_for_version(version: &str) -> PathBuf {
     bundle_root(version)
@@ -496,8 +493,6 @@ pub fn spec_exists(root: &Path, raw: &str) -> Result<bool, String> {
             }
             Ok(read_bundled(raw)?.is_some())
         }
-        RuntimeSpecSource::Cache { path, .. } => {
-            Ok(path.join(normalize_repo_path(raw)).exists())
-        }
+        RuntimeSpecSource::Cache { path, .. } => Ok(path.join(normalize_repo_path(raw)).exists()),
     }
 }

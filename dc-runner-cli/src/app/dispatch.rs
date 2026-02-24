@@ -18,9 +18,9 @@ pub fn dispatch(root: &Path, subcommand: &str, forwarded: &[String]) -> i32 {
                 super::run_spec_ref_print(&forwarded[0])
             }
         }
-        "bundle-list" => super::run_registered_entry_command(root, "bundle-list", forwarded),
-        "bundle-inspect" => super::run_registered_entry_command(root, "bundle-inspect", forwarded),
-        "bundle-install" => super::run_registered_entry_command(root, "bundle-install", forwarded),
+        "bundle-list" => super::run_bundle_list_native(root, forwarded),
+        "bundle-inspect" => super::run_bundle_inspect_native(root, forwarded),
+        "bundle-install" => super::run_bundle_install_native(root, forwarded),
         "validate-report" => super::run_validate_report_native(root, forwarded),
         "governance" => super::run_registered_entry_command(root, "governance", forwarded),
         "governance-heavy" => super::run_governance_heavy_native(root, forwarded),
@@ -158,32 +158,22 @@ mod tests {
 
     #[test]
     fn dispatch_targets_bundle_list_via_dispatch() {
-        let code = dispatch(Path::new("."), "bundle-list", &[]);
-        assert_ne!(code, 2);
+        let code = dispatch(Path::new("."), "bundle-list", &["--help".to_string()]);
+        assert_eq!(code, 0);
     }
 
     #[test]
     fn dispatch_targets_bundle_inspect_via_dispatch_with_forwarded_args() {
-        let forwarded = vec![
-            "--bundle-id".to_string(),
-            "core".to_string(),
-            "--bundle-version".to_string(),
-            "1.0.0".to_string(),
-        ];
+        let forwarded = vec!["--help".to_string()];
         let code = dispatch(Path::new("."), "bundle-inspect", &forwarded);
-        assert_ne!(code, 2);
+        assert_eq!(code, 0);
     }
 
     #[test]
     fn dispatch_targets_bundle_install_via_dispatch_with_forwarded_args() {
-        let forwarded = vec![
-            "--bundle-id".to_string(),
-            "core".to_string(),
-            "--bundle-version".to_string(),
-            "1.0.0".to_string(),
-        ];
+        let forwarded = vec!["--help".to_string()];
         let code = dispatch(Path::new("."), "bundle-install", &forwarded);
-        assert_ne!(code, 2);
+        assert_eq!(code, 0);
     }
 
     #[test]

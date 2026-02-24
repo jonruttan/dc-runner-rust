@@ -23,10 +23,9 @@ use crate::services::gate_summary::summarize as summarize_gate;
 use crate::services::specs_ui;
 use crate::spec_lang::{eval_mapping_ast, eval_mapping_ast_with_state, EvalLimits};
 use crate::spec_source::{
-    bundle_path_for_version, bundled_snapshot_sha256, CachedSpecBundle, effective_mode,
-    mark_check, mark_refresh, read_spec_text, rollback_version,
-    save_state, specs_root, use_cache_version, upsert_bundle_entry, load_state, spec_exists,
-    SpecSourceState, SpecSourceMode,
+    bundle_path_for_version, bundled_snapshot_sha256, effective_mode, load_state, mark_check,
+    mark_refresh, read_spec_text, rollback_version, save_state, spec_exists, specs_root,
+    upsert_bundle_entry, use_cache_version, CachedSpecBundle, SpecSourceMode, SpecSourceState,
 };
 use chrono::{SecondsFormat, Utc};
 use serde::{Deserialize, Serialize};
@@ -352,11 +351,8 @@ fn resolve_specs_source_root(root: &Path) -> PathBuf {
 }
 
 fn specs_timestamp(ts: Option<i64>) -> String {
-    ts.and_then(|raw| {
-        chrono::DateTime::from_timestamp(raw, 0)
-            .map(|d| d.to_rfc3339())
-    })
-    .unwrap_or_else(|| "n/a".to_string())
+    ts.and_then(|raw| chrono::DateTime::from_timestamp(raw, 0).map(|d| d.to_rfc3339()))
+        .unwrap_or_else(|| "n/a".to_string())
 }
 
 fn canonicalize_bundle_version(raw: &str) -> Result<String, String> {
@@ -374,9 +370,15 @@ fn canonicalize_bundle_version(raw: &str) -> Result<String, String> {
         }
     }
     let mut parts = lower.split('.');
-    let major = parts.next().ok_or_else(|| format!("invalid version `{raw}`"))?;
-    let minor = parts.next().ok_or_else(|| format!("invalid version `{raw}`"))?;
-    let patch_and_rest = parts.next().ok_or_else(|| format!("invalid version `{raw}`"))?;
+    let major = parts
+        .next()
+        .ok_or_else(|| format!("invalid version `{raw}`"))?;
+    let minor = parts
+        .next()
+        .ok_or_else(|| format!("invalid version `{raw}`"))?;
+    let patch_and_rest = parts
+        .next()
+        .ok_or_else(|| format!("invalid version `{raw}`"))?;
     if parts.next().is_some() {
         return Err(format!("invalid version `{raw}`"));
     }
@@ -642,7 +644,10 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
                 .unwrap_or_default()
         ));
         if let Err(e) = fs::create_dir_all(&tmp_root) {
-            eprintln!("ERROR: failed to create temp workdir {}: {e}", tmp_root.display());
+            eprintln!(
+                "ERROR: failed to create temp workdir {}: {e}",
+                tmp_root.display()
+            );
             return 1;
         }
         let tmp_sidecar = tmp_root.join(format!("{asset_name}.sha256"));
@@ -694,7 +699,9 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
                 }
             };
             if actual != expected {
-                eprintln!("ERROR: checksum mismatch for download (expected {expected}, got {actual})");
+                eprintln!(
+                    "ERROR: checksum mismatch for download (expected {expected}, got {actual})"
+                );
                 let _ = fs::remove_dir_all(&tmp_root);
                 return 1;
             }
@@ -753,7 +760,10 @@ fn run_specs_refresh_native(root: &Path, forwarded: &[String]) -> i32 {
                 }
             };
             if !tar_status.success() {
-                eprintln!("ERROR: failed extracting release archive (tar exit={})", tar_status.code().unwrap_or(1));
+                eprintln!(
+                    "ERROR: failed extracting release archive (tar exit={})",
+                    tar_status.code().unwrap_or(1)
+                );
                 let _ = fs::remove_dir_all(&tmp_root);
                 return 1;
             }
@@ -869,7 +879,11 @@ fn specs_bundle_active_label(state: &SpecSourceState) -> String {
 }
 
 fn specs_bundle_state_entry(state: &SpecSourceState, version: &str) -> Option<CachedSpecBundle> {
-    state.installed.iter().find(|entry| entry.version == version).cloned()
+    state
+        .installed
+        .iter()
+        .find(|entry| entry.version == version)
+        .cloned()
 }
 
 fn run_specs_status_native(_root: &Path, _forwarded: &[String]) -> i32 {
@@ -894,7 +908,10 @@ fn run_specs_status_native(_root: &Path, _forwarded: &[String]) -> i32 {
     if let Some(version) = specs_active_cached_version(&state) {
         if let Some(entry) = specs_bundle_state_entry(&state, version) {
             println!("  active_version: {version}");
-            println!("  active_checksum: {}", entry.checksum.unwrap_or_else(|| "n/a".to_string()));
+            println!(
+                "  active_checksum: {}",
+                entry.checksum.unwrap_or_else(|| "n/a".to_string())
+            );
             println!("  active_verified: {}", entry.verified);
         }
     }
@@ -931,11 +948,7 @@ fn run_specs_versions_native(_root: &Path, forwarded: &[String]) -> i32 {
     }
     println!(
         "{:<16} {:<20} {:<9} {:<9} {:<10} source_ref",
-        "version",
-        "installed_at",
-        "verified",
-        "checksum",
-        "active"
+        "version", "installed_at", "verified", "checksum", "active"
     );
     for entry in installed {
         println!(
@@ -1012,9 +1025,7 @@ fn run_specs_use_native(root: &Path, forwarded: &[String]) -> i32 {
             state.last_error = None;
         }
         other => {
-            eprintln!(
-                "ERROR: unsupported --source `{other}` (expected version|bundled|workspace)"
-            );
+            eprintln!("ERROR: unsupported --source `{other}` (expected version|bundled|workspace)");
             return 2;
         }
     }
@@ -1022,7 +1033,11 @@ fn run_specs_use_native(root: &Path, forwarded: &[String]) -> i32 {
         eprintln!("ERROR: failed to save spec state: {e}");
         return 1;
     }
-    println!("OK: active spec source set to {} ({})", specs_bundle_active_label(&state), target);
+    println!(
+        "OK: active spec source set to {} ({})",
+        specs_bundle_active_label(&state),
+        target
+    );
     0
 }
 
@@ -1168,7 +1183,10 @@ fn run_specs_verify_native(root: &Path, forwarded: &[String]) -> i32 {
         if selected.as_deref() == Some("bundled") || selected.as_deref() == Some("workspace") {
             mark_check(&mut state, true);
             let _ = save_state(&state);
-            println!("OK: verify passed for {}", selected.unwrap_or_else(|| "source".to_string()));
+            println!(
+                "OK: verify passed for {}",
+                selected.unwrap_or_else(|| "source".to_string())
+            );
             println!("Recovery hint: none");
             return 0;
         }
@@ -1213,7 +1231,10 @@ fn run_specs_verify_native(root: &Path, forwarded: &[String]) -> i32 {
     let _ = save_state(&state);
 
     if ok {
-        println!("OK: verify passed for {}", selected.unwrap_or_else(|| "source".to_string()));
+        println!(
+            "OK: verify passed for {}",
+            selected.unwrap_or_else(|| "source".to_string())
+        );
         0
     } else {
         eprintln!("Recovery hints:");
@@ -1383,11 +1404,23 @@ fn run_specs_info_native(root: &Path, forwarded: &[String]) -> i32 {
         }
     };
     println!("version: {}", entry.version);
-    println!("source_ref: {}", specs_cache_entry_summary(&entry.source_ref));
-    println!("installed_at: {}", specs_timestamp(Some(entry.installed_at)));
-    println!("checksum: {}", entry.checksum.unwrap_or_else(|| "n/a".to_string()));
+    println!(
+        "source_ref: {}",
+        specs_cache_entry_summary(&entry.source_ref)
+    );
+    println!(
+        "installed_at: {}",
+        specs_timestamp(Some(entry.installed_at))
+    );
+    println!(
+        "checksum: {}",
+        entry.checksum.unwrap_or_else(|| "n/a".to_string())
+    );
     println!("verified: {}", entry.verified);
-    println!("published_at: {}", entry.published_at.unwrap_or_else(|| "n/a".to_string()));
+    println!(
+        "published_at: {}",
+        entry.published_at.unwrap_or_else(|| "n/a".to_string())
+    );
     println!("signature_available: {}", entry.signature_available);
     let path = bundle_path_for_version(&entry.version);
     if let Err(e) = verify_specs_bundle_integrity(&path) {
@@ -1963,6 +1996,563 @@ fn canonical_bundle_release(
         asset_url,
         sidecar_url,
     )
+}
+
+#[derive(Debug, Clone)]
+struct BundleCatalogEntry {
+    bundle_id: String,
+    version: String,
+    published_at: String,
+}
+
+#[derive(Debug, Clone)]
+struct BundleArtifactRef {
+    tarball_url: String,
+    sidecar_url: Option<String>,
+}
+
+#[derive(Debug)]
+enum BundleInspectPlan {
+    Help,
+    Run {
+        bundle_id: String,
+        bundle_version: String,
+    },
+}
+
+#[derive(Debug)]
+enum BundleInstallPlan {
+    Help,
+    Run {
+        bundle_id: String,
+        bundle_version: String,
+        install_dir: Option<String>,
+    },
+}
+
+fn parse_github_bundle_releases(raw: &str) -> Result<Vec<Value>, String> {
+    let payload: Value =
+        serde_json::from_str(raw).map_err(|e| format!("invalid GitHub releases payload: {e}"))?;
+    match payload {
+        Value::Array(items) => Ok(items),
+        Value::Object(_) => Ok(vec![payload]),
+        _ => Err("invalid GitHub releases payload (expected object or array)".to_string()),
+    }
+}
+
+fn parse_bundle_asset_bundle_version(name: &str) -> Option<(String, String)> {
+    let tar_ext = ".tar.gz";
+    if !name.ends_with(tar_ext) {
+        return None;
+    }
+    let core = name.trim_end_matches(tar_ext);
+    let prefix = "data-contract-bundle-";
+    if !core.starts_with(prefix) {
+        return None;
+    }
+    let rest = &core[prefix.len()..];
+    let mut parts = rest.rsplitn(2, "-v");
+    let version = parts.next()?;
+    let bundle_id = parts.next()?;
+    if version.is_empty() || bundle_id.is_empty() || !is_semver_like(version) {
+        return None;
+    }
+    Some((bundle_id.to_string(), version.to_string()))
+}
+
+fn parse_bundle_catalog(raw: &str) -> Result<Vec<BundleCatalogEntry>, String> {
+    let releases = parse_github_bundle_releases(raw)?;
+    let mut entries = Vec::<BundleCatalogEntry>::new();
+    let mut seen = HashSet::new();
+    for release in releases {
+        let published_at = release
+            .get("published_at")
+            .and_then(Value::as_str)
+            .unwrap_or("n/a")
+            .to_string();
+        let Some(assets) = release.get("assets").and_then(Value::as_array) else {
+            continue;
+        };
+        for asset in assets {
+            let Some(name) = asset.get("name").and_then(Value::as_str) else {
+                continue;
+            };
+            if let Some((bundle_id, version)) = parse_bundle_asset_bundle_version(name) {
+                let key = (bundle_id.clone(), version.clone());
+                if seen.insert(key) {
+                    entries.push(BundleCatalogEntry {
+                        bundle_id,
+                        version,
+                        published_at: published_at.clone(),
+                    });
+                }
+            }
+        }
+    }
+    entries.sort_by(|a, b| {
+        let by_bundle = a.bundle_id.cmp(&b.bundle_id);
+        if by_bundle == std::cmp::Ordering::Equal {
+            b.version.cmp(&a.version)
+        } else {
+            by_bundle
+        }
+    });
+    Ok(entries)
+}
+
+fn parse_bundle_asset_reference(
+    release: &Value,
+    bundle_id: &str,
+    bundle_version: &str,
+) -> Result<BundleArtifactRef, String> {
+    let expected_tarball = format!(
+        "data-contract-bundle-{}-v{}.tar.gz",
+        bundle_id, bundle_version
+    );
+    let expected_sidecar = format!("{expected_tarball}.sha256");
+    let assets = release
+        .get("assets")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "release missing assets array".to_string())?;
+
+    let mut tarball_url = None::<String>;
+    let mut sidecar_url = None::<String>;
+    for asset in assets {
+        let Some(name) = asset.get("name").and_then(Value::as_str) else {
+            continue;
+        };
+        let Some(url) = asset
+            .get("browser_download_url")
+            .and_then(Value::as_str)
+            .or_else(|| asset.get("url").and_then(Value::as_str))
+        else {
+            continue;
+        };
+        if name == expected_tarball {
+            tarball_url = Some(url.to_string());
+            continue;
+        }
+        if name == expected_sidecar {
+            sidecar_url = Some(url.to_string());
+        }
+    }
+
+    if tarball_url.is_none() {
+        for asset in assets {
+            let Some(name) = asset.get("name").and_then(Value::as_str) else {
+                continue;
+            };
+            let Some((found_id, found_version)) = parse_bundle_asset_bundle_version(name) else {
+                continue;
+            };
+            if found_id == bundle_id && found_version == bundle_version {
+                let Some(url) = asset
+                    .get("browser_download_url")
+                    .and_then(Value::as_str)
+                    .or_else(|| asset.get("url").and_then(Value::as_str))
+                else {
+                    continue;
+                };
+                tarball_url = Some(url.to_string());
+                break;
+            }
+        }
+    }
+
+    let tarball_url = tarball_url.ok_or_else(|| {
+        format!(
+            "bundle artifact not found for {} v{}",
+            bundle_id, bundle_version
+        )
+    })?;
+    Ok(BundleArtifactRef {
+        tarball_url,
+        sidecar_url,
+    })
+}
+
+fn parse_bundle_inspect_args(forwarded: &[String]) -> Result<BundleInspectPlan, String> {
+    let mut bundle_id = None::<String>;
+    let mut bundle_version = None::<String>;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--bundle-id" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-id requires value".to_string());
+                }
+                bundle_id = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--bundle-version" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-version requires value".to_string());
+                }
+                bundle_version = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--help" | "-h" => return Ok(BundleInspectPlan::Help),
+            other => return Err(format!("unsupported bundle inspect arg: {other}")),
+        }
+    }
+    let bundle_id = bundle_id.ok_or_else(|| "--bundle-id is required".to_string())?;
+    let version = match bundle_version.unwrap_or_else(|| "latest".to_string()) {
+        v if v == "latest" => specs_cache_source_from_remote(&v)?,
+        v => canonicalize_bundle_version(&v)?,
+    };
+    Ok(BundleInspectPlan::Run {
+        bundle_id,
+        bundle_version: version,
+    })
+}
+
+fn parse_bundle_install_args(forwarded: &[String]) -> Result<BundleInstallPlan, String> {
+    let mut bundle_id = None::<String>;
+    let mut bundle_version = None::<String>;
+    let mut install_dir = None::<String>;
+    let mut i = 0usize;
+    while i < forwarded.len() {
+        match forwarded[i].as_str() {
+            "--bundle-id" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-id requires value".to_string());
+                }
+                bundle_id = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--bundle-version" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--bundle-version requires value".to_string());
+                }
+                bundle_version = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--install-dir" => {
+                if i + 1 >= forwarded.len() {
+                    return Err("--install-dir requires value".to_string());
+                }
+                install_dir = Some(forwarded[i + 1].clone());
+                i += 2;
+            }
+            "--help" | "-h" => return Ok(BundleInstallPlan::Help),
+            other => return Err(format!("unsupported bundle install arg: {other}")),
+        }
+    }
+    let bundle_id = bundle_id.ok_or_else(|| "--bundle-id is required".to_string())?;
+    let bundle_version = bundle_version
+        .ok_or_else(|| "--bundle-version is required".to_string())
+        .and_then(|v| canonicalize_bundle_version(&v))?;
+    Ok(BundleInstallPlan::Run {
+        bundle_id,
+        bundle_version,
+        install_dir,
+    })
+}
+
+fn resolve_bundle_install_dir(
+    bundle_id: &str,
+    bundle_version: &str,
+    requested: Option<String>,
+) -> Result<PathBuf, String> {
+    let requested = requested.unwrap_or_else(|| format!(".bundles/{bundle_id}-{bundle_version}"));
+    let path = if Path::new(&requested).is_absolute() {
+        PathBuf::from(requested)
+    } else {
+        env::current_dir()
+            .map_err(|e| format!("failed to read current directory: {e}"))?
+            .join(requested)
+    };
+    Ok(path)
+}
+
+fn run_bundle_list_native(_root: &Path, forwarded: &[String]) -> i32 {
+    if forwarded.iter().any(|arg| arg == "--help" || arg == "-h") {
+        println!("usage: bundle list");
+        return 0;
+    }
+    if !forwarded.is_empty() {
+        eprintln!("ERROR: bundle list does not accept arguments");
+        return 2;
+    }
+    let list_url =
+        "https://api.github.com/repos/jonruttan/data-contracts-bundles/releases?per_page=100";
+    let raw = match read_url_to_string(list_url) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to list bundle releases: {e}");
+            return 1;
+        }
+    };
+    let entries = match parse_bundle_catalog(&raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: invalid bundle release catalog: {e}");
+            return 1;
+        }
+    };
+    if entries.is_empty() {
+        println!("No bundles found.");
+        return 0;
+    }
+    println!("{:<24} {:<12} {}", "bundle_id", "version", "published_at");
+    for entry in entries {
+        println!(
+            "{:<24} {:<12} {}",
+            entry.bundle_id, entry.version, entry.published_at
+        );
+    }
+    0
+}
+
+fn run_bundle_inspect_native(_root: &Path, forwarded: &[String]) -> i32 {
+    let plan = match parse_bundle_inspect_args(forwarded) {
+        Ok(plan) => plan,
+        Err(e) if e.starts_with("unsupported bundle inspect") => {
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+        Err(e) if e.contains("required") => {
+            eprintln!("usage: bundle inspect --bundle-id <id> [--bundle-version <version>]");
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+    };
+
+    let (bundle_id, bundle_version) = match plan {
+        BundleInspectPlan::Help => {
+            println!("usage: bundle inspect --bundle-id <id> [--bundle-version <version>]");
+            return 0;
+        }
+        BundleInspectPlan::Run {
+            bundle_id,
+            bundle_version,
+        } => (bundle_id, bundle_version),
+    };
+
+    let release_url = format!(
+        "https://api.github.com/repos/jonruttan/data-contracts-bundles/releases/tags/v{}",
+        bundle_version
+    );
+    let release_raw = match read_url_to_string(&release_url) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load bundle release v{bundle_version}: {e}");
+            return 1;
+        }
+    };
+    let release = match parse_github_bundle_releases(&release_raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: invalid bundle release payload: {e}");
+            return 1;
+        }
+    }
+    .into_iter()
+    .next();
+    let Some(release) = release else {
+        eprintln!("ERROR: bundle release payload was empty");
+        return 1;
+    };
+    let artifacts = match parse_bundle_asset_reference(&release, &bundle_id, &bundle_version) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+    let published_at = release
+        .get("published_at")
+        .and_then(Value::as_str)
+        .unwrap_or("n/a");
+    println!("bundle-id: {bundle_id}");
+    println!("version: {bundle_version}");
+    println!("published_at: {published_at}");
+    println!("tarball: {}", artifacts.tarball_url);
+    if let Some(sidecar_url) = artifacts.sidecar_url {
+        match read_url_to_string(&sidecar_url) {
+            Ok(raw) => match parse_sha256_sidecar(&raw) {
+                Ok(sum) => println!("checksum-sha256: {sum}"),
+                Err(e) => println!("checksum-sha256: unavailable ({e})"),
+            },
+            Err(e) => println!("checksum-sha256: unavailable ({e})"),
+        }
+    } else {
+        println!("checksum-sha256: unavailable");
+    }
+    0
+}
+
+fn run_bundle_install_native(_root: &Path, forwarded: &[String]) -> i32 {
+    let plan = match parse_bundle_install_args(forwarded) {
+        Ok(plan) => plan,
+        Err(e)
+            if e.contains("required")
+                || e.starts_with("--bundle")
+                || e.starts_with("unsupported") =>
+        {
+            eprintln!("usage: bundle install --bundle-id <id> --bundle-version <version> [--install-dir <path>]");
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 2;
+        }
+    };
+
+    let (bundle_id, bundle_version, requested_install_dir) = match plan {
+        BundleInstallPlan::Help => {
+            println!("usage: bundle install --bundle-id <id> --bundle-version <version> [--install-dir <path>]");
+            return 0;
+        }
+        BundleInstallPlan::Run {
+            bundle_id,
+            bundle_version,
+            install_dir,
+        } => (bundle_id, bundle_version, install_dir),
+    };
+
+    let release_url = format!(
+        "https://api.github.com/repos/jonruttan/data-contracts-bundles/releases/tags/v{}",
+        bundle_version
+    );
+    let release_raw = match read_url_to_string(&release_url) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed to load bundle release v{bundle_version}: {e}");
+            return 1;
+        }
+    };
+    let release = match parse_github_bundle_releases(&release_raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: invalid bundle release payload: {e}");
+            return 1;
+        }
+    }
+    .into_iter()
+    .next();
+    let Some(release) = release else {
+        eprintln!("ERROR: bundle release payload was empty");
+        return 1;
+    };
+
+    let artifacts = match parse_bundle_asset_reference(&release, &bundle_id, &bundle_version) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: {e}");
+            return 1;
+        }
+    };
+
+    let sidecar_url = match artifacts.sidecar_url {
+        Some(v) => v,
+        None => {
+            eprintln!("ERROR: missing checksum sidecar for {bundle_id} v{bundle_version}");
+            return 1;
+        }
+    };
+
+    let install_target =
+        match resolve_bundle_install_dir(&bundle_id, &bundle_version, requested_install_dir) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("ERROR: {e}");
+                return 1;
+            }
+        };
+    if install_target.exists() {
+        eprintln!(
+            "ERROR: install directory already exists: {} (choose a different --install-dir)",
+            install_target.display()
+        );
+        return 1;
+    }
+
+    let temp_root = env::temp_dir().join(format!(
+        "dc-runner-bundle-install-{}",
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|v| v.as_millis())
+            .unwrap_or_default()
+    ));
+    if let Err(e) = fs::create_dir_all(&temp_root) {
+        eprintln!(
+            "ERROR: failed to create temp workdir {}: {e}",
+            temp_root.display()
+        );
+        return 1;
+    }
+
+    let tmp_tarball = temp_root.join(format!("bundle-v{}.tar.gz", bundle_version));
+    if let Err(e) = download_url_to_file(&artifacts.tarball_url, &tmp_tarball) {
+        eprintln!("ERROR: failed downloading bundle artifact: {e}");
+        let _ = fs::remove_dir_all(&temp_root);
+        return 1;
+    }
+    let sidecar_raw = match read_url_to_string(&sidecar_url) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed downloading checksum sidecar: {e}");
+            let _ = fs::remove_dir_all(&temp_root);
+            return 1;
+        }
+    };
+    let expected_checksum = match parse_sha256_sidecar(&sidecar_raw) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: invalid checksum sidecar: {e}");
+            let _ = fs::remove_dir_all(&temp_root);
+            return 1;
+        }
+    };
+    let actual_checksum = match sha256_file(&tmp_tarball) {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("ERROR: failed reading downloaded tarball: {e}");
+            let _ = fs::remove_dir_all(&temp_root);
+            return 1;
+        }
+    };
+    if actual_checksum != expected_checksum {
+        eprintln!(
+            "ERROR: checksum mismatch for download (expected {expected_checksum}, got {actual_checksum})"
+        );
+        let _ = fs::remove_dir_all(&temp_root);
+        return 1;
+    }
+    if let Err(e) = fs::create_dir_all(&install_target) {
+        eprintln!(
+            "ERROR: failed to create install directory {}: {e}",
+            install_target.display()
+        );
+        let _ = fs::remove_dir_all(&temp_root);
+        return 1;
+    }
+    let exit_code = run_cmd(
+        "tar",
+        &[
+            "xzf".to_string(),
+            tmp_tarball.to_string_lossy().to_string(),
+            "-C".to_string(),
+            install_target.to_string_lossy().to_string(),
+        ],
+        &temp_root,
+    );
+    let _ = fs::remove_dir_all(&temp_root);
+    if exit_code != 0 {
+        let _ = fs::remove_dir_all(&install_target);
+        return exit_code;
+    }
+
+    println!("OK: bundle {bundle_id} {bundle_version} installed");
+    println!("  target: {}", install_target.display());
+    println!("  status: ok");
+    0
 }
 
 fn run_bundler_bundle_subcommand(
@@ -6337,7 +6927,10 @@ mod tests {
     }
 
     fn with_workspace_spec_source<T>(test: impl FnOnce() -> T) -> T {
-        let _guard = TEST_SPEC_SOURCE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _guard = TEST_SPEC_SOURCE_LOCK
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap();
         let previous_spec_source = env::var_os("DC_RUNNER_SPEC_SOURCE");
         env::set_var("DC_RUNNER_SPEC_SOURCE", "workspace");
 
@@ -6356,7 +6949,10 @@ mod tests {
     }
 
     fn with_isolated_spec_cache<T>(test: impl FnOnce(&Path) -> T) -> T {
-        let _guard = TEST_SPEC_CACHE_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _guard = TEST_SPEC_CACHE_LOCK
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .unwrap();
 
         let cache_root = isolated_spec_cache_root();
         fs::create_dir_all(&cache_root).expect("spec cache root");
@@ -6392,10 +6988,16 @@ mod tests {
         fs::create_dir_all(path.join("specs/04_governance")).expect("create bundle governance");
         fs::create_dir_all(path.join("specs/00_core")).expect("create bundle core");
         if write_manifest {
-            fs::write(path.join("specs/04_governance/runner_entrypoints_v1.yaml"), "title: test\n")
-                .expect("write manifest");
-            fs::write(path.join("specs/00_core/runner_version_contract_v1.yaml"), "title: test\n")
-                .expect("write manifest");
+            fs::write(
+                path.join("specs/04_governance/runner_entrypoints_v1.yaml"),
+                "title: test\n",
+            )
+            .expect("write manifest");
+            fs::write(
+                path.join("specs/00_core/runner_version_contract_v1.yaml"),
+                "title: test\n",
+            )
+            .expect("write manifest");
         }
         path
     }
@@ -6458,14 +7060,18 @@ mod tests {
     #[test]
     fn specs_use_workspace_and_bundled_are_accepted_targets() {
         with_isolated_spec_cache(|cache_root| {
-            let workspace_code =
-                run_specs_use_native(cache_root, &["workspace".into(), "--source".into(), "workspace".into()]);
+            let workspace_code = run_specs_use_native(
+                cache_root,
+                &["workspace".into(), "--source".into(), "workspace".into()],
+            );
             assert_eq!(workspace_code, 0);
             let mut state = load_state().expect("load state");
             assert_eq!(state.active, "workspace");
 
-            let bundled_code =
-                run_specs_use_native(cache_root, &["bundled".into(), "--source".into(), "bundled".into()]);
+            let bundled_code = run_specs_use_native(
+                cache_root,
+                &["bundled".into(), "--source".into(), "bundled".into()],
+            );
             assert_eq!(bundled_code, 0);
             state = load_state().expect("load state");
             assert_eq!(state.active, "bundled");
@@ -6492,7 +7098,8 @@ mod tests {
             let state = load_state().expect("load state");
             assert_eq!(state.active, "cache:1.0.0");
             // rollback to bundled is also supported
-            let explicit = run_specs_rollback_native(cache_root, &["--to".into(), "bundled".into()]);
+            let explicit =
+                run_specs_rollback_native(cache_root, &["--to".into(), "bundled".into()]);
             assert_eq!(explicit, 0);
             let state = load_state().expect("load state");
             assert_eq!(state.active, "bundled");
@@ -6513,7 +7120,8 @@ mod tests {
             };
             save_state(&state).expect("seed state");
 
-            let code = run_specs_verify_native(cache_root, &["--source".into(), "cache:1.0.0".into()]);
+            let code =
+                run_specs_verify_native(cache_root, &["--source".into(), "cache:1.0.0".into()]);
             assert_eq!(code, 1);
 
             let state = load_state().expect("load state");
@@ -6546,7 +7154,8 @@ mod tests {
             };
             save_state(&state).expect("seed state");
 
-            let code = run_specs_clean_native(cache_root, &["--keep".into(), "2".into(), "--yes".into()]);
+            let code =
+                run_specs_clean_native(cache_root, &["--keep".into(), "2".into(), "--yes".into()]);
             assert_eq!(code, 0);
 
             let state = load_state().expect("load state");
@@ -6585,7 +7194,8 @@ mod tests {
 
     #[test]
     fn specs_versions_accepts_empty_cache() {
-        let code = with_isolated_spec_cache(|cache_root| run_specs_versions_native(cache_root, &[]));
+        let code =
+            with_isolated_spec_cache(|cache_root| run_specs_versions_native(cache_root, &[]));
         assert_eq!(code, 0);
     }
 
@@ -6684,17 +7294,17 @@ after
     #[test]
     fn load_case_block_supports_contracts_clauses_mapping_shape() {
         with_workspace_spec_source(|| {
-        let base = std::env::temp_dir().join(format!(
-            "dc_runner_rust_case_shape_{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("clock")
-                .as_nanos()
-        ));
-        let spec_dir = base.join("specs");
-        std::fs::create_dir_all(&spec_dir).expect("mkdir");
-        let spec_path = spec_dir.join("shape.spec.md");
-        let md = r#"```yaml contract-spec
+            let base = std::env::temp_dir().join(format!(
+                "dc_runner_rust_case_shape_{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .expect("clock")
+                    .as_nanos()
+            ));
+            let spec_dir = base.join("specs");
+            std::fs::create_dir_all(&spec_dir).expect("mkdir");
+            let spec_path = spec_dir.join("shape.spec.md");
+            let md = r#"```yaml contract-spec
 spec_version: 1
 schema_ref: /specs/01_schema/schema_v1.md
 title: suite title
@@ -6708,32 +7318,32 @@ contracts:
         assert:
           lit: true
 ```"#;
-        std::fs::write(&spec_path, md).expect("write");
+            std::fs::write(&spec_path, md).expect("write");
 
-        let out = load_case_block_from_spec_ref(&base, "/specs/shape.spec.md#CASE-001")
-            .expect("load case");
-        assert!(out.contains("id: CASE-001"));
-        assert!(out.contains("spec_version: 1"));
-        assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
+            let out = load_case_block_from_spec_ref(&base, "/specs/shape.spec.md#CASE-001")
+                .expect("load case");
+            assert!(out.contains("id: CASE-001"));
+            assert!(out.contains("spec_version: 1"));
+            assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
 
-        let _ = std::fs::remove_dir_all(&base);
+            let _ = std::fs::remove_dir_all(&base);
         });
     }
 
     #[test]
     fn load_case_block_supports_legacy_contracts_list_shape() {
         with_workspace_spec_source(|| {
-        let base = std::env::temp_dir().join(format!(
-            "dc_runner_rust_case_shape_{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("clock")
-                .as_nanos()
-        ));
-        let spec_dir = base.join("specs");
-        std::fs::create_dir_all(&spec_dir).expect("mkdir");
-        let spec_path = spec_dir.join("shape_legacy.spec.md");
-        let md = r#"```yaml contract-spec
+            let base = std::env::temp_dir().join(format!(
+                "dc_runner_rust_case_shape_{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .expect("clock")
+                    .as_nanos()
+            ));
+            let spec_dir = base.join("specs");
+            std::fs::create_dir_all(&spec_dir).expect("mkdir");
+            let spec_path = spec_dir.join("shape_legacy.spec.md");
+            let md = r#"```yaml contract-spec
 spec_version: 1
 schema_ref: /specs/01_schema/schema_v1.md
 contracts:
@@ -6744,32 +7354,32 @@ contracts:
       assert:
         lit: true
 ```"#;
-        std::fs::write(&spec_path, md).expect("write");
+            std::fs::write(&spec_path, md).expect("write");
 
-        let out =
-            load_case_block_from_spec_ref(&base, "/specs/shape_legacy.spec.md#CASE-LEGACY-001")
-                .expect("load case");
-        assert!(out.contains("id: CASE-LEGACY-001"));
-        assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
+            let out =
+                load_case_block_from_spec_ref(&base, "/specs/shape_legacy.spec.md#CASE-LEGACY-001")
+                    .expect("load case");
+            assert!(out.contains("id: CASE-LEGACY-001"));
+            assert!(out.contains("schema_ref: /specs/01_schema/schema_v1.md"));
 
-        let _ = std::fs::remove_dir_all(&base);
+            let _ = std::fs::remove_dir_all(&base);
         });
     }
 
     #[test]
     fn load_case_block_rejects_runner_spec_non_canonical_schema_ref() {
         with_workspace_spec_source(|| {
-        let base = std::env::temp_dir().join(format!(
-            "data-contracts-runner-boundary-{}",
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("clock")
-                .as_nanos()
-        ));
-        let spec_dir = base.join("specs");
-        std::fs::create_dir_all(&spec_dir).expect("mkdir");
-        let spec_path = spec_dir.join("shape.spec.md");
-        let md = r#"```yaml contract-spec
+            let base = std::env::temp_dir().join(format!(
+                "data-contracts-runner-boundary-{}",
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .expect("clock")
+                    .as_nanos()
+            ));
+            let spec_dir = base.join("specs");
+            std::fs::create_dir_all(&spec_dir).expect("mkdir");
+            let spec_path = spec_dir.join("shape.spec.md");
+            let md = r#"```yaml contract-spec
 spec_version: 1
 schema_ref: /specs/local/schema.md
 contracts:
@@ -6781,13 +7391,13 @@ contracts:
         assert:
           lit: true
 ```"#;
-        std::fs::write(&spec_path, md).expect("write");
+            std::fs::write(&spec_path, md).expect("write");
 
-        let err = load_case_block_from_spec_ref(&base, "/specs/shape.spec.md#CASE-001")
-            .expect_err("expected boundary error");
-        assert!(err.contains("canonical schema authority"));
+            let err = load_case_block_from_spec_ref(&base, "/specs/shape.spec.md#CASE-001")
+                .expect_err("expected boundary error");
+            assert!(err.contains("canonical schema authority"));
 
-        let _ = std::fs::remove_dir_all(&base);
+            let _ = std::fs::remove_dir_all(&base);
         });
     }
 
@@ -6833,6 +7443,86 @@ contracts:
         ];
         let err = parse_project_scaffold_args(&args).expect_err("expected error");
         assert!(err.contains("--allow-external"));
+    }
+
+    #[test]
+    fn parse_bundle_catalog_extracts_bundle_rows() {
+        let raw = serde_json::json!([
+            {
+                "published_at": "2025-01-10T00:00:00Z",
+                "assets": [
+                    {
+                        "name": "data-contract-bundle-core-v1.2.3.tar.gz",
+                        "browser_download_url": "https://example.org/core-v1.2.3.tar.gz"
+                    },
+                    {
+                        "name": "data-contract-bundle-core-v1.2.3.tar.gz.sha256",
+                        "browser_download_url": "https://example.org/core-v1.2.3.tar.gz.sha256"
+                    }
+                ]
+            },
+            {
+                "published_at": "2024-12-01T00:00:00Z",
+                "assets": [
+                    {
+                        "name": "data-contract-bundle-core-v1.2.2.tar.gz",
+                        "browser_download_url": "https://example.org/core-v1.2.2.tar.gz"
+                    },
+                    {
+                        "name": "data-contract-bundle-alpha-v1.0.0.tar.gz",
+                        "browser_download_url": "https://example.org/alpha-v1.0.0.tar.gz"
+                    }
+                ]
+            }
+        ]);
+        let rows = parse_bundle_catalog(&raw.to_string()).expect("parse catalog");
+        assert_eq!(rows.len(), 3);
+        assert_eq!(rows[0].bundle_id, "alpha");
+        assert_eq!(rows[0].version, "1.0.0");
+        assert_eq!(rows[1].bundle_id, "core");
+        assert_eq!(rows[1].version, "1.2.3");
+        assert_eq!(rows[2].bundle_id, "core");
+        assert_eq!(rows[2].version, "1.2.2");
+    }
+
+    #[test]
+    fn parse_bundle_asset_reference_finds_expected_urls() {
+        let release = serde_json::json!({
+            "assets": [
+                {
+                    "name": "data-contract-bundle-core-v1.2.3.tar.gz",
+                    "browser_download_url": "https://example.org/core-v1.2.3.tar.gz"
+                },
+                {
+                    "name": "data-contract-bundle-core-v1.2.3.tar.gz.sha256",
+                    "browser_download_url": "https://example.org/core-v1.2.3.tar.gz.sha256"
+                }
+            ]
+        });
+        let artifacts =
+            parse_bundle_asset_reference(&release, "core", "1.2.3").expect("parse artifacts");
+        assert_eq!(
+            artifacts.tarball_url,
+            "https://example.org/core-v1.2.3.tar.gz"
+        );
+        assert_eq!(
+            artifacts.sidecar_url.expect("sidecar"),
+            "https://example.org/core-v1.2.3.tar.gz.sha256"
+        );
+    }
+
+    #[test]
+    fn parse_bundle_install_args_rejects_missing_version() {
+        let args = vec!["--bundle-id".to_string(), "core".to_string()];
+        let err = parse_bundle_install_args(&args).expect_err("expected error");
+        assert!(err.contains("--bundle-version"));
+    }
+
+    #[test]
+    fn parse_bundle_install_args_allows_help_flag() {
+        let args = vec!["--help".to_string()];
+        let plan = parse_bundle_install_args(&args).expect("help accepted");
+        assert!(matches!(plan, BundleInstallPlan::Help));
     }
 
     #[test]

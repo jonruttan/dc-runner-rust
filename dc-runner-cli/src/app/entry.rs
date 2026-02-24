@@ -6,9 +6,10 @@ use clap::Parser;
 #[cfg(feature = "bundler")]
 use crate::cli::args::BundlerSubcommand;
 use crate::cli::args::{
-    CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand, GovernanceSubcommand,
-    ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SchemaSubcommand, SpecRefreshSourceOption,
-    SpecSourceOption, SpecUseSourceOption, SpecsSubcommand, BundleSubcommand,
+    BundleSubcommand, CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand,
+    GovernanceSubcommand, ProjectSubcommand, QualitySubcommand, ReportsSubcommand,
+    SchemaSubcommand, SpecRefreshSourceOption, SpecSourceOption, SpecUseSourceOption,
+    SpecsSubcommand,
 };
 use crate::cli::errors::CliError;
 
@@ -166,11 +167,7 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             SpecsSubcommand::Verify { source } => {
                 map_passthrough("specs-verify", vec!["--source".to_string(), source])
             }
-            SpecsSubcommand::Clean {
-                keep,
-                dry_run,
-                yes,
-            } => {
+            SpecsSubcommand::Clean { keep, dry_run, yes } => {
                 let mut forwarded = vec!["--keep".to_string(), keep.to_string()];
                 if dry_run {
                     forwarded.push("--dry-run".to_string());
@@ -572,6 +569,20 @@ mod tests {
         assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
         assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
         assert!(parsed.forwarded.contains(&"--install-dir".to_string()));
+    }
+
+    #[test]
+    fn parse_entry_rejects_bundle_inspect_missing_required_bundle_id() {
+        let args = argv(&["dc-runner", "bundle", "inspect"]);
+        let code = parse_entry(&args).expect_err("should fail");
+        assert_eq!(code, 2);
+    }
+
+    #[test]
+    fn parse_entry_rejects_bundle_install_missing_required_version() {
+        let args = argv(&["dc-runner", "bundle", "install", "--bundle-id", "core"]);
+        let code = parse_entry(&args).expect_err("should fail");
+        assert_eq!(code, 2);
     }
 
     #[test]
