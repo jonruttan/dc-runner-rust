@@ -150,6 +150,15 @@ pub fn command_spec_ref(subcommand: &str) -> Option<&'static str> {
         "bundler-check" => Some(
             "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/bundler_job_contracts.spec.md#DCLIB-BUNDLE-JOB-003",
         ),
+        "bundle-list" => Some(
+            "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/bundle_command_jobs.spec.md#DCLIB-BUNDLE-JOB-004",
+        ),
+        "bundle-inspect" => Some(
+            "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/bundle_command_jobs.spec.md#DCLIB-BUNDLE-JOB-005",
+        ),
+        "bundle-install" => Some(
+            "/specs/upstream/data-contracts-library/specs/05_libraries/bundle_tooling/bundle_command_jobs.spec.md#DCLIB-BUNDLE-JOB-006",
+        ),
         _ => None,
     }
 }
@@ -163,5 +172,15 @@ mod tests {
         let got = command_spec_ref("validate-report");
         assert!(got.is_some());
         assert!(got.expect("mapping").contains('#'));
+    }
+
+    #[test]
+    fn command_spec_ref_has_bundle_command_mappings() {
+        for command in ["bundle-list", "bundle-inspect", "bundle-install"] {
+            assert!(
+                command_spec_ref(command).is_some(),
+                "missing command mapping for {command}"
+            );
+        }
     }
 }

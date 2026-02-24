@@ -8,7 +8,7 @@ use crate::cli::args::BundlerSubcommand;
 use crate::cli::args::{
     CiSubcommand, Cli, CommandGroup, DocsSubcommand, EntrypointsSubcommand, GovernanceSubcommand,
     ProjectSubcommand, QualitySubcommand, ReportsSubcommand, SchemaSubcommand, SpecRefreshSourceOption,
-    SpecSourceOption, SpecUseSourceOption, SpecsSubcommand,
+    SpecSourceOption, SpecUseSourceOption, SpecsSubcommand, BundleSubcommand,
 };
 use crate::cli::errors::CliError;
 
@@ -242,6 +242,37 @@ fn from_cli(cli: Cli) -> ParsedEntry {
             BundlerSubcommand::Resolve => map_passthrough("bundler-resolve", vec![]),
             BundlerSubcommand::Package => map_passthrough("bundler-package", vec![]),
             BundlerSubcommand::Check => map_passthrough("bundler-check", vec![]),
+        },
+        CommandGroup::Bundle(b) => match b.command {
+            BundleSubcommand::List => map_passthrough("bundle-list", vec![]),
+            BundleSubcommand::Inspect {
+                bundle_id,
+                bundle_version,
+            } => {
+                let mut forwarded = vec!["--bundle-id".to_string(), bundle_id];
+                if let Some(v) = bundle_version {
+                    forwarded.push("--bundle-version".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-inspect", forwarded)
+            }
+            BundleSubcommand::Install {
+                bundle_id,
+                bundle_version,
+                install_dir,
+            } => {
+                let mut forwarded = vec![
+                    "--bundle-id".to_string(),
+                    bundle_id,
+                    "--bundle-version".to_string(),
+                    bundle_version,
+                ];
+                if let Some(v) = install_dir {
+                    forwarded.push("--install-dir".to_string());
+                    forwarded.push(v);
+                }
+                map_passthrough("bundle-install", forwarded)
+            }
         },
         CommandGroup::Reports(r) => match r.command {
             ReportsSubcommand::ConformancePurposeJson => {
@@ -496,6 +527,51 @@ mod tests {
         ]);
         let parsed = parse_entry(&args).expect("parse");
         assert_eq!(parsed.subcommand, "specs-run");
+    }
+
+    #[test]
+    fn parse_entry_supports_bundle_list() {
+        let args = argv(&["dc-runner", "bundle", "list"]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "bundle-list");
+        assert!(parsed.forwarded.is_empty());
+    }
+
+    #[test]
+    fn parse_entry_supports_bundle_inspect() {
+        let args = argv(&[
+            "dc-runner",
+            "bundle",
+            "inspect",
+            "--bundle-id",
+            "core",
+            "--bundle-version",
+            "1.0.0",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "bundle-inspect");
+        assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
+        assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
+    }
+
+    #[test]
+    fn parse_entry_supports_bundle_install() {
+        let args = argv(&[
+            "dc-runner",
+            "bundle",
+            "install",
+            "--bundle-id",
+            "core",
+            "--bundle-version",
+            "1.0.0",
+            "--install-dir",
+            "/tmp/bundles",
+        ]);
+        let parsed = parse_entry(&args).expect("parse");
+        assert_eq!(parsed.subcommand, "bundle-install");
+        assert!(parsed.forwarded.contains(&"--bundle-id".to_string()));
+        assert!(parsed.forwarded.contains(&"--bundle-version".to_string()));
+        assert!(parsed.forwarded.contains(&"--install-dir".to_string()));
     }
 
     #[test]

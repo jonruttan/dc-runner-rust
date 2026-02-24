@@ -82,6 +82,8 @@ pub enum CommandGroup {
     #[cfg(feature = "bundler")]
     /// Bundler workflows
     Bundler(BundlerCommand),
+    /// Bundle package workflows
+    Bundle(BundleCommand),
     /// Reporting workflows
     Reports(ReportsCommand),
     /// CI workflows
@@ -380,6 +382,34 @@ pub enum BundlerSubcommand {
     Resolve,
     Package,
     Check,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct BundleCommand {
+    #[command(subcommand)]
+    pub command: BundleSubcommand,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum BundleSubcommand {
+    /// List available bundle packages
+    List,
+    /// Inspect a bundle package
+    Inspect {
+        #[arg(long = "bundle-id")]
+        bundle_id: String,
+        #[arg(long = "bundle-version")]
+        bundle_version: Option<String>,
+    },
+    /// Install a bundle package
+    Install {
+        #[arg(long = "bundle-id")]
+        bundle_id: String,
+        #[arg(long = "bundle-version")]
+        bundle_version: String,
+        #[arg(long = "install-dir")]
+        install_dir: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Args)]
